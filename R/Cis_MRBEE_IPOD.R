@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,ridge=ridge){
+Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=cluster.index,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,ridge=ridge,block.rho=0,robust.sandwith){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -108,9 +108,13 @@ Hinv=as.matrix(Hinv)
 Hinv=solve(Hinv)
 D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
-D=rep(1,m)-diag(D)
+D=1-diag(D)
 D[which(D<0.5)]=0.5
+if(robust.sandwith==F){
 S=diag(res^2/D^2)
+}else{
+S=AR1_block_threshold(res=res/D,cluster.index=cluster.index,block.rho=block.rho)
+}
 V=as.matrix(t(bZ)%*%Theta%*%S%*%Theta%*%bZ)
 IV=rep(0,nrow(V));IV[1:p]=1
 V=V+ridge*diag(IV)

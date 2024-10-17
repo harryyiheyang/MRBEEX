@@ -12,6 +12,7 @@ CisMRBEEX(
   LD,
   Rxy,
   use.susie = T,
+  cluster.index = kronecker(c(1:length(by)), rep(1, 4))[1:length(by)],
   estimate_residual_variance = T,
   residual_variance = 1,
   reliability.thres = 0.9,
@@ -21,6 +22,8 @@ CisMRBEEX(
   xQTL.sampling = 1000,
   xQTL.pip.thres = 0.2,
   xQTL.Nvec,
+  block.rho = 0,
+  robust.sandwith = T,
   tauvec = seq(3, 30, by = 3),
   rho = 2,
   ridge = 0.05,
@@ -49,6 +52,8 @@ CisMRBEEX(
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
+\item{cluster.index}{The indices of quasi-blocks of variants.}
+
 \item{estimate_residual_variance}{An indicator of whether estimating the residual_variance in SuSiE. Defaults to \code{T}.}
 
 \item{residual_variance}{When \code{estimate_residual_variance = T}, the initial value of the residual variance. When \code{estimate_residual_variance = F}, the fixed value of the residual variance. Defaults to \code{1}.}
@@ -66,6 +71,10 @@ CisMRBEEX(
 \item{xQTL.pip.thres}{The minimum empirical posterior inclustion probability (PIP) used in calibrating causality for xQTL data.}
 
 \item{xQTL.Nvec}{The vector of sample sizes of exposures.}
+
+\item{block.rho}{A coefficent of between quasi-blocks. Defaults to \code{0.25}.}
+
+\item{robust.sandwith}{An indicator of whether using robust sandwith formula. Defaults to \code{T}.}
 
 \item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
 

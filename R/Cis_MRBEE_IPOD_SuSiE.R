@@ -157,6 +157,11 @@ indtheta=which(theta!=0)
 indgamma=which(gamma1!=0)
 indvalid=which(gamma1==0)
 res=by-matrixVectorMultiply(bX,theta)-matrixVectorMultiply(LD,gamma)
+if(length(indvalid)==m){
+  Rxysum=Rxyall
+}else{
+  Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
+}
 adjf=m/(length(indvalid)-length(indtheta))
 
 if(length(indtheta)>0){
@@ -167,9 +172,13 @@ Hinv[1:length(indtheta),1:length(indtheta)]=Hinv[1:length(indtheta),1:length(ind
 Hinv=solve(as.matrix(Hinv))
 D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
-D=rep(1,m)-diag(D)
+D=1-diag(D)
 D[which(D<0.5)]=0.5
+if(robust.sandwith==F){
 S=diag(res^2/D^2)
+}else{
+S=AR1_block_threshold(res=res/D,cluster.index=cluster.index,block.rho=block.rho)
+}
 V=as.matrix(t(bZ)%*%Theta%*%S%*%Theta%*%bZ)
 IV=rep(0,nrow(V));IV[1:length(indtheta)]=1
 V=V+ridge*diag(IV)
