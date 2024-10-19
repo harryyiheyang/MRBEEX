@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,mix.coef=0.9){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -96,7 +96,7 @@ if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
-taugamma=groupdmcp(x=gamma,lambda=tauvec[j],cluster.index=cluster.index,a=3)
+taugamma=groupdmcp(x=gamma1,lambda=tauvec[j],cluster.index=cluster.index,a=3)*mix.coef+(1-mix.coef)*tauvec[j]
 gamma1=mcp(gamma+delta/rho,taugamma/rho)
 delta=delta+rho*(gamma-gamma1)
 iter=iter+1
@@ -154,7 +154,7 @@ if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
-taugamma=groupdmcp(x=gamma,lambda=tauvec[jstar],cluster.index=cluster.index,a=3)
+taugamma=groupdmcp(x=gamma1,lambda=tauvec[jstar],cluster.index=cluster.index,a=3)*mix.coef+(1-mix.coef)*tauvec[jstar]
 gamma1=mcp(gamma+delta/rho,taugamma/rho)
 delta=delta+rho*(gamma-gamma1)
 iter=iter+1
@@ -216,7 +216,7 @@ if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
-taugammaj=groupdmcp(x=gamma,lambda=tauvec[jstar],cluster.index=cluster.index,a=3)
+taugammaj=groupdmcp(x=gamma1j,lambda=tauvec[jstar],cluster.index=cluster.index,a=3)*mix.coef+(1-mix.coef)*tauvec[jstar]
 gamma1j=mcp(gammaj+deltaj/rho,taugammaj/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }

@@ -30,10 +30,10 @@ Btheta=Bse=array(0,c(500,p,9))
 Btime=matrix(0,500,9)
 cluster.index=kronecker(c(1:150),rep(1,4))
 theta0=c(1,-0.5,rep(0,6),-0.5,1)
-UHP.var=1.1
-UHP.frac=0.05*4
-UHP.frac=0.01
-CHP.frac=0.05*4
+UHP.var=1
+UHP.frac=0.05*1
+#UHP.frac=0
+CHP.frac=0.05*0
 iter=1
 
 A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.8,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="normal",cluster.index=cluster.index)
@@ -95,9 +95,9 @@ if(is.null(fit.mixture.susie$IsMixture)==1){
 cbind(theta0,fit.ipod$theta,fit.susie$theta,fit.mixture$theta1,fit.mixture.susie$theta1)
 c(ipod.time,susie.time,mixture.time,mixture.susie.time)
 par(mfrow=c(2,2))
-barplot(fit.ipod$gamma)
-barplot(fit.susie$gamma)
-barplot(fit.mixture$gamma)
-barplot(fit.mixture.susie$gamma)
+barplot(fit.ipod$gamma/byse)
+barplot(fit.susie$gamma/byse)
+barplot(fit.mixture$gamma/byse)
+barplot(fit.mixture.susie$gamma/byse)
 cor(cbind(A$pleiotropy,fit.ipod$gamma,fit.susie$gamma))
 c(min(fit.ipod$Bic),min(fit.susie$Bic),min(fit.mixture$Bic),min(fit.mixture.susie$Bic))
