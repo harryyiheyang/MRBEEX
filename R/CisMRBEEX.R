@@ -114,6 +114,7 @@ A$bXest=bXest
 A$bXestse=bXestse
 A$bXest0=bXest0
 A$bXestse0=bXestse0
+A$cluster.index=cluster.index
 return(A)
 }
 
