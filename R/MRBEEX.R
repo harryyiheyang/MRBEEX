@@ -14,7 +14,7 @@
 #' @param use.susie An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
 #' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
 #' @param rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
-#' @param mix.coef When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.1}.
+#' @param mix.coef When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.75}.
 #' @param main.cluster.thres When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.
 #' @param min.cluster.size When choosing \code{"Mixture"}, a threshold for the minimum number of IVs in the second cluster. If our initial check reveals that the number is below this threshold, the IPOD algorithm will be applied. Default is \code{10}.
 #' @param robust.se When choosing \code{"Mixture"}, an indicator of whether the robust covariance estimate is applied to calculate the empirical covariance matrix of causal effect estimates from subsampling results. Default is \code{T}.
@@ -80,7 +80,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                use.susie=T,
                tauvec=seq(3,30,by=3),rho=2,mix.coef=0.9,
                main.cluster.thres=0.48,min.cluster.size=10,robust.se=T,
-               delta=10,step.size=0.8,
+               delta=10,step.size=0.75,
                Lvec=c(1:min(10,nrow(bX))),pip.thres=0.3,
                max.iter=100,max.eps=0.001,susie.iter=100,
                ebic.theta=1,ebic.gamma=2,maxdiff=3,
