@@ -503,3 +503,14 @@ Vote=Vote[,c(2,1)]
 }
 return(list(Weight=Weight,Cluster=Vote))
 }
+
+auto_cluster = function(corr_mat, size) {
+
+p <- ncol(corr_mat)
+dist_mat <- as.dist(1 - abs(corr_mat))
+hc <- hclust(dist_mat, method = "ward.D2")
+num_clusters <- round(p / size)
+cluster_indices <- cutree(hc, k = num_clusters)
+
+return(cluster_indices)
+}

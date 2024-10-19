@@ -12,7 +12,7 @@ CisMRBEEX(
   LD,
   Rxy,
   use.susie = T,
-  cluster.index = kronecker(c(1:length(by)), rep(1, 4))[1:length(by)],
+  cluster.index = 4,
   estimate_residual_variance = T,
   residual_variance = 1,
   reliability.thres = 0.9,
@@ -52,7 +52,7 @@ CisMRBEEX(
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
-\item{cluster.index}{The indices of quasi-blocks of variants.}
+\item{cluster.index}{The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.}
 
 \item{estimate_residual_variance}{An indicator of whether estimating the residual_variance in SuSiE. Defaults to \code{T}.}
 

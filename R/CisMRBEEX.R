@@ -7,7 +7,7 @@
 #' @param byse A vector of standard errors of effect estimates from the outcome GWAS.
 #' @param bXse A matrix of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The linkage disequilibrium (LD) matrix.
-#' @param cluster.index The indices of quasi-blocks of variants.
+#' @param cluster.index The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
@@ -62,7 +62,7 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,use.susie=T,
-                   cluster.index=kronecker(c(1:length(by)),rep(1,4))[1:length(by)],
+                   cluster.index=4,
                    estimate_residual_variance=T,residual_variance=1,
                    reliability.thres=0.9,Lvec=c(1:5),pip.thres=0.2,
                    xQTL.max.L=10,xQTL.sampling=1000,
@@ -97,6 +97,11 @@ bXest[,i]=bX[,i]
 bXestse[,i]=bXse[,i]
 }
 }
+###### Auto-cluster the block ###########
+if(length(cluster.index)==1){
+cluster.index=auto_cluster(LD,cluster.index)
+}
+
 ##########################################################################
 if(use.susie==T){
 A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,pip.thres=pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,estimate_residual_variance=estimate_residual_variance,residual_variance=residual_variance,ridge=ridge,robust.sandwith=robust.sandwith,block.rho=block.rho)
