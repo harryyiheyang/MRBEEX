@@ -17,6 +17,8 @@
 #' @param main.cluster.thres When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.
 #' @param min.cluster.size When choosing \code{"Mixture"}, a threshold for the minimum number of IVs in the second cluster. If our initial check reveals that the number is below this threshold, the IPOD algorithm will be applied. Default is \code{10}.
 #' @param robust.se When choosing \code{"Mixture"}, an indicator of whether the robust covariance estimate is applied to calculate the empirical covariance matrix of causal effect estimates from subsampling results. Default is \code{T}.
+#' @param delta When choosing \code{"Mixture"}, a fixed threshold of potential horizontal pleiotropy. It is suggested to be moderately, and default is 10.
+#' @param step.size When choosing \code{"Mixture"}, a gradient method is used to estimate horizontal pleiotropy, and \code{step.size} is the step size of gradient descent method. Default is 0.8.
 #' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.3}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
@@ -29,7 +31,6 @@
 #' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{5}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
-
 #'
 #' @importFrom MASS rlm
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -78,6 +79,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                use.susie=T,
                tauvec=seq(3,30,by=3),rho=2,
                main.cluster.thres=0.48,min.cluster.size=10,robust.se=T,
+               delta=10,step.size=0.8,
                Lvec=c(1:min(10,nrow(bX))),pip.thres=0.3,
                max.iter=100,max.eps=0.001,susie.iter=100,
                ebic.theta=1,ebic.gamma=2,maxdiff=3,
@@ -94,7 +96,7 @@ A=MRBEE_IPOD(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster
 }
 ##########################################################################
 if(Method[1]=="Mixture"&use.susie==F){
-A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter)
+A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,delta=delta,step.size=step.size)
 if(A$IsIPOD==T){
 A=list()
 A$IsMixture="Initial check suggests only one pathway"
@@ -102,7 +104,7 @@ print(A$IsMixture)
 }
 }
 if(Method[1]=="Mixture"&use.susie==T){
-A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter)
+A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,delta=delta,step.size=step.size)
 if(A$IsIPOD==T){
 A=list()
 A$IsMixture="Initial check suggests only one pathway"

@@ -20,6 +20,8 @@ MRBEEX(
   main.cluster.thres = 0.48,
   min.cluster.size = 10,
   robust.se = T,
+  delta = 10,
+  step.size = 0.8,
   Lvec = c(1:min(10, nrow(bX))),
   pip.thres = 0.3,
   max.iter = 100,
@@ -64,6 +66,10 @@ MRBEEX(
 \item{min.cluster.size}{When choosing \code{"Mixture"}, a threshold for the minimum number of IVs in the second cluster. If our initial check reveals that the number is below this threshold, the IPOD algorithm will be applied. Default is \code{10}.}
 
 \item{robust.se}{When choosing \code{"Mixture"}, an indicator of whether the robust covariance estimate is applied to calculate the empirical covariance matrix of causal effect estimates from subsampling results. Default is \code{T}.}
+
+\item{delta}{When choosing \code{"Mixture"}, a fixed threshold of potential horizontal pleiotropy. It is suggested to be moderately, and default is 10.}
+
+\item{step.size}{When choosing \code{"Mixture"}, a gradient method is used to estimate horizontal pleiotropy, and \code{step.size} is the step size of gradient descent method. Default is 0.8.}
 
 \item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
 

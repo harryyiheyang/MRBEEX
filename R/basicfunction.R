@@ -8,7 +8,7 @@ rss1=sum(res1^2)/(m1-df1)
 rss2=sum(res2^2)/(m2-df2)
 alpha1=m1/m
 alpha2=m2/m
-MRC1=m1*log(rss1)-2*m1*log(alpha1)
+MRC1=m1*log(rss1)
 MRC2=m2*log(rss2)-2*m2*log(alpha2)
 
 return(MRC1+MRC2)
