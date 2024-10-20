@@ -68,6 +68,25 @@ z[which(b>(a*lam))]=x[which(b>(a*lam))]
 return(z)
 }
 
+groupmcp=function(x, cluster.index, lambda, a = 3) {
+J <- max(cluster.index)
+z <- x
+a_const <- a / (a - 1)
+x_split <- split(x, cluster.index)
+z_split <- lapply(x_split, function(xj) {
+delta <- sqrt(mean(xj^2))
+zj <- max(1 - lambda / delta, 0) * xj
+zj <- a_const * zj
+if (delta > (a * lambda)) {
+zj <- xj
+}
+return(zj)
+})
+z <- unsplit(z_split, cluster.index)
+return(z)
+}
+
+
 trace=function(A){
 a=sum(diag(A))
 return(a)

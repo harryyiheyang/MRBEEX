@@ -77,8 +77,8 @@ theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 ########################### update gamma ############################
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
-taugamma=groupdmcp(x=gamma1,lambda=tauvec[j],cluster.index=cluster.index,a=3)*mix.coef+(1-mix.coef)*tauvec[j]
-gamma1=mcp(gamma+delta/rho,taugamma/rho)
+gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
+gamma1=groupmcp(gamma1,cluster.index,tauvec[j]/rho*(1-mix.coef)/mix.coef)
 delta=delta+rho*(gamma-gamma1)
 
 iter=iter+1
@@ -115,8 +115,8 @@ cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace
 indj=which(cluster.index%in%cluster.sampling)
 indj=sort(indj)
 LDj=LD[indj,indj]
-Thetarhoj <- solve(LDj+rho*diag(length(indj)))
-Thetaj <- solve(LDj)
+Thetaj <- Theta[indj,indj]
+Thetarhoj <- Thetarho[indj,indj]
 Bt <- as.matrix(t(bX[indj, ]) %*% Thetaj)
 BtB <- matrixMultiply(Bt, bX[indj, ])
 thetaj=theta*runif(1,0.95,1.05)
@@ -133,8 +133,8 @@ if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
-taugammaj=groupdmcp(x=gamma1j,lambda=tauvec[jstar],cluster.index=cluster.index,a=3)*mix.coef+(1-mix.coef)*tauvec[jstar]
-gamma1j=mcp(gammaj+deltaj/rho,taugammaj/rho)
+gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
+gamma1j=groupmcp(gamma1j,cluster.index,tauvec[jstar]/rho*(1-mix.coef)/mix.coef)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 ThetaList[j, ] <- thetaj

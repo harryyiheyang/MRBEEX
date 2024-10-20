@@ -16,12 +16,12 @@ MRBEEX(
   Method = c("IPOD", "Mixture"),
   use.susie = T,
   tauvec = seq(3, 30, by = 3),
-  rho = 2,
-  mix.coef = 0.9,
+  ADMM.rho = 2,
+  group.mix.coef = 0.75,
   main.cluster.thres = 0.48,
   min.cluster.size = 10,
   robust.se = T,
-  delta = 10,
+  tau = 10,
   step.size = 0.75,
   Lvec = c(1:min(10, nrow(bX))),
   pip.thres = 0.3,
@@ -60,9 +60,9 @@ MRBEEX(
 
 \item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
 
-\item{rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
+\item{ADMM.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{mix.coef}{When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.75}.}
+\item{group.mix.coef}{When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.75}.}
 
 \item{main.cluster.thres}{When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.}
 
@@ -70,7 +70,7 @@ MRBEEX(
 
 \item{robust.se}{When choosing \code{"Mixture"}, an indicator of whether the robust covariance estimate is applied to calculate the empirical covariance matrix of causal effect estimates from subsampling results. Default is \code{T}.}
 
-\item{delta}{When choosing \code{"Mixture"}, a fixed threshold of potential horizontal pleiotropy. It is suggested to be moderately, and default is 10.}
+\item{tau}{When choosing \code{"Mixture"}, a fixed threshold of potential horizontal pleiotropy. It is suggested to be moderately, and default is 10.}
 
 \item{step.size}{When choosing \code{"Mixture"}, a gradient method is used to estimate horizontal pleiotropy, and \code{step.size} is the step size of gradient descent method. Default is 0.8.}
 

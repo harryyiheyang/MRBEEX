@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,delta=delta,step.size=0.8){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -46,8 +46,6 @@ Voting.ini=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,thet
 cluster.ini.2=which(Voting.ini$Cluster[,2]==1)
 cluster.ini.1=which(Voting.ini$Cluster[,1]==1)
 cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
-Rxysum2=biasterm(RxyList=RxyList,cluster.ini.2)
-Rxysum1=biasterm(RxyList=RxyList,cluster.ini.1)
 ############################## Tuning Parameter ######################
 q=length(Lvec)
 Btheta1=array(0,c(p,q))
@@ -67,8 +65,10 @@ fit.susie1=fit.susie2=NULL
 while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
-Rxysum2=biasterm(RxyList=RxyList,cluster2)
-Rxysum1=biasterm(RxyList=RxyList,cluster1)
+indvalid=which(gamma==0)
+valid1=intersect(indvalid,cluster1)
+valid2=intersect(indvalid,cluster2)
+Rxysum1=biasterm(RxyList=RxyList,valid1)
 gamma.y=tilde.y-matrixVectorMultiply(tilde.R,gamma)
 XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
@@ -77,6 +77,7 @@ yty1=sum(gamma.y[cluster1]^2)
 fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2)>min.cluster.size){
+Rxysum2=biasterm(RxyList=RxyList,valid2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),gamma.y[cluster2])
@@ -109,20 +110,20 @@ XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]
 Xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=c(solve(XtX2)%*%Xty2)
 }
-sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
-sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
+res.theta=as.vector(tilde.y-tilde.R%*%gamma)
+sigma1=sum((res.theta[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
+sigma2=sum((res.theta[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
 sigma2=max(0.1,sigma2)
 sigma1=max(0.1,sigma1)
-Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
+Voting=cluster_voting(by=res.theta,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
-cluster.ratio=c(length(cluster1),length(cluster2))/m
 grad=tilde.y
 grad[cluster1]=tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1
 grad[cluster2]=tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2
-grad=-grad+matrixVectorMultiply(tilde.R,gamma)
+grad=matrixVectorMultiply(t(tilde.R),-grad+matrixVectorMultiply(tilde.R,gamma))
 gamma=gamma-grad*step.size
-gamma=mcp(gamma,delta)
+gamma=mcp(gamma,tau)
 iter=iter+1
 if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
@@ -134,7 +135,7 @@ CLU1[[v]]=cluster1
 CLU2[[v]]=cluster2
 df1=min(sum(theta1!=0),Lvec[v])
 df2=min(sum(theta2!=0),Lvec[v])
-Bbic[v]=MRFit(by=tilde.y,bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
+Bbic[v]=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
 }
 Bbic=Bbic/m
 ######################## Final Estimate #################################
@@ -152,8 +153,10 @@ gamma=0*by
 while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
-Rxysum2=biasterm(RxyList=RxyList,cluster2)
-Rxysum1=biasterm(RxyList=RxyList,cluster1)
+indvalid=which(gamma==0)
+valid1=intersect(indvalid,cluster1)
+valid2=intersect(indvalid,cluster2)
+Rxysum1=biasterm(RxyList=RxyList,valid1)
 gamma.y=tilde.y-matrixVectorMultiply(tilde.R,gamma)
 XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
@@ -162,6 +165,7 @@ yty1=sum(tilde.y[cluster1]^2)
 fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=300,intercept=F,estimate_prior_method="EM")
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2)>min.cluster.size){
+Rxysum2=biasterm(RxyList=RxyList,valid2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
@@ -194,19 +198,20 @@ XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]
 Xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=c(solve(XtX2)%*%Xty2)
 }
-sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
-sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
+res.theta=as.vector(tilde.y-tilde.R%*%gamma)
+sigma1=sum((res.theta[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
+sigma2=sum((res.theta[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
 sigma2=max(0.1,sigma2)
 sigma1=max(0.1,sigma1)
-Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
+Voting=cluster_voting(by=res.theta,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
 grad=tilde.y
 grad[cluster1]=tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1
 grad[cluster2]=tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2
-grad=-grad+matrixVectorMultiply(tilde.R,gamma)
+grad=matrixVectorMultiply(t(tilde.R),-grad+matrixVectorMultiply(tilde.R,gamma))
 gamma=gamma-grad*step.size
-gamma=mcp(gamma,delta)
+gamma=mcp(gamma,tau)
 iter=iter+1
 if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
@@ -235,8 +240,11 @@ cluster1j=which(indj%in%cluster1)
 cluster2j=which(indj%in%cluster2)
 gammaj=tilde.yj*0
 for(iterj in 1:sampling.iter){
+indvalidj=which(gammaj==0)
+valid1j=intersect(indvalidj,cluster1j)
+valid2j=intersect(indvalidj,cluster2j)
 gamma.yj=tilde.yj-matrixVectorMultiply(tilde.Rj,gammaj)
-Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+Rxysum1j=biasterm(RxyList=RxyList,indj[valid1j])
 XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
 XtX1j=t(XtX1j)/2+XtX1j/2
 Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),gamma.yj[cluster1j])
@@ -244,7 +252,7 @@ yty1j=sum(gamma.yj[cluster1j]^2)
 fit.susie1j=susie_suff_stat(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=300,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2j)>(min.cluster.size/2)){
-Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+Rxysum2j=biasterm(RxyList=RxyList,indj[valid2j])
 XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),gamma.yj[cluster2j])
@@ -277,19 +285,20 @@ XtX2j=XtX2j[indtheta2j,indtheta2j]-Rxysum2j[indtheta2j,indtheta2j]
 Xty2j=Xty2j[indtheta2j]-Rxysum2j[indtheta2j,p+1]
 theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
 }
-sigma1j=sum((tilde.yj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
-sigma2j=sum((tilde.yj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
+res.thetaj=as.vector(tilde.yj-tilde.Rj%*%gammaj)
+sigma1j=sum((res.thetaj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
+sigma2j=sum((res.thetaj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
 sigma2j=max(0.1,sigma2j)
 sigma1j=max(0.1,sigma1j)
-Votingj=cluster_voting(by=tilde.yj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres)
+Votingj=cluster_voting(by=res.thetaj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres)
 cluster2j=which(Votingj$Cluster[,2]==1)
 cluster1j=which(Votingj$Cluster[,1]==1)
 gradj=tilde.yj
 gradj[cluster1j]=tilde.yj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j
 gradj[cluster2j]=tilde.yj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j
-gradj=-gradj+matrixVectorMultiply(tilde.Rj,gammaj)
+grad=matrixVectorMultiply(t(tilde.Rj),-gradj+matrixVectorMultiply(tilde.Rj,gammaj))
 gammaj=gammaj-gradj*step.size
-gammaj=mcp(gammaj,delta)
+gammaj=mcp(gammaj,tau)
 }
 ThetaVecj=cbind(theta1j,theta2j)
 ThetaNormj=colMeans((ThetaVecj-cbind(theta1,theta1))^2)
