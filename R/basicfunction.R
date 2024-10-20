@@ -79,7 +79,7 @@ J=max(cluster.index)
 for(j in 1:J){
 indj=which(cluster.index==j)
 xj=x[indj]
-xj=sum(abs(xj))
+xj=mean(abs(xj))
 lambda1[indj]=dmcp(xj,lambda,a=3)
 }
 return(lambda1)
