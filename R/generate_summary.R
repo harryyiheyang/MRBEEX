@@ -339,6 +339,6 @@ bXse=matrix(1,length(by),p)
 for(jj in 1:p){bXse[,jj]=sd(E1[,jj])}
 }
 Rxy=cov2cor(Vxy)
-A=list(bX=bX,bXse=bXse,by=by,byse=byse,pleiotropy=pleiotropy0,bX0=b0,by0=by0,Rxy=Rxy)
+A=list(bX=bX,bXse=bXse,by=by,byse=byse,pleiotropy=pleiotropy0,bX0=b0,by0=by0,Rxy=Rxy,Vxy=Vxy)
 return(A)
 }
