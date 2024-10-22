@@ -11,7 +11,6 @@
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
-#' @param xQTL.sampling The number of subsampling times in estimating the standard errors of xQTL effects. Defaults to 1000.
 #' @param xQTL.pip.thres The minimum empirical posterior inclustion probability (PIP) used in calibrating causality for xQTL data.
 #' @param xQTL.Nvec The vector of sample sizes of exposures.
 #' @param use.susie An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
@@ -65,13 +64,12 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,use.susie=T,
                    cluster.index=4,
                    estimate_residual_variance=T,residual_variance=1,
                    reliability.thres=0.9,Lvec=c(1:5),pip.thres=0.2,
-                   xQTL.max.L=10,xQTL.sampling=1000,
-                   xQTL.pip.thres=0.2,xQTL.Nvec,
+                   xQTL.max.L=10,xQTL.pip.thres=0.2,xQTL.Nvec,
                    block.rho=0,robust.sandwith=T,
                    tauvec=seq(3,30,by=3),rho=2,ridge=0.05,
                    max.iter=100,max.eps=0.001,susie.iter=100,
                    ebic.theta=1,ebic.gamma=2,maxdiff=3,
-                   theta.ini=F,gamma.ini=F){
+                   theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
 
 cat("Note: susie_rss() will be used to estimate the xQTL effect sizes\n")
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
@@ -81,20 +79,46 @@ m=nrow(bX)
 bXest=bX
 bXest0=bXestse0=bX*0
 bXestse=bXestse0=matrix(1000,m,p)
-nonzero=c(1:p)
-fitList=list()
+if(is.null(eQTLfitList)==T){
+eQTLfitList=list()
 for(i in 1:p){
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000)
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=sum(fit$pip>xQTL.pip.thres)+1,max_iter=1000)
-fit=susie_xQTL_resampling(LD=LD,alpha=fit$alpha,mu=fit$mu,mu2=fit$mu2,pip.thres=xQTL.pip.thres,sampling=xQTL.sampling)
-if(sum(abs(fit$mean_margin))>0){
-bXest[,i]=fit$mean_margin
-bXestse[,i]=fit$sd_margin
-bXest0[,i]=fit$mean_joint
-bXestse0[,i]=fit$sd_joint
+eQTLfitList[[i]]=fit
+indj=which(fit$pip>=xQTL.pip.thres)
+if(length(indj)>0){
+LDj=LD[indj,indj]
+Thetaj=solve(LDj)
+bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+Thetajj=LD*0
+Thetajj[indj,indj]=Thetaj
+bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
+LDjj=LD%*%Thetajj%*%LD
+bXest[,i]=as.vector(LD%*%(bXest0[,i]/bXse[,i]))*bXse[,i]
+bXestse[,i]=sqrt(diag(LDjj))*bXse[,i]
 }else{
 bXest[,i]=bX[,i]
 bXestse[,i]=bXse[,i]
+}
+}
+}else{
+for(i in 1:p){
+fit=eQTLfitList[[i]]
+indj=which(fit$pip>=xQTL.pip.thres)
+if(length(indj)>0){
+LDj=LD[indj,indj]
+Thetaj=solve(LDj)
+bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+Thetajj=LD*0
+Thetajj[indj,indj]=Thetaj
+bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
+LDjj=LD%*%Thetajj%*%LD
+bXest[,i]=as.vector(LD%*%(bXest0[,i]/bXse[,i]))*bXse[,i]
+bXestse[,i]=sqrt(diag(LDjj))*bXse[,i]
+}else{
+bXest[,i]=bX[,i]
+bXestse[,i]=bXse[,i]
+}
 }
 }
 ###### Auto-cluster the block ###########
@@ -115,6 +139,7 @@ A$bXestse=bXestse
 A$bXest0=bXest0
 A$bXestse0=bXestse0
 A$cluster.index=cluster.index
+A$eQTLfitList=eQTLfitList
 return(A)
 }
 
