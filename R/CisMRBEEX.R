@@ -25,13 +25,11 @@
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
 #' @param susie.iter Number of iterations in SuSiE per iteration. Default is \code{100}.
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.
-#' @param robust.sandwith An indicator of whether using robust sandwith formula. Defaults to \code{T}.
-#' @param block.rho A coefficent of between quasi-blocks. Defaults to \code{0.25}.
 #' @param ebic.theta EBIC factor on causal effect. Default is \code{1}.
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
-
+#' @param eQTLfitList Initial fits of xQTLs of exposures. Default is \code{NULL}.
 #'
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -61,11 +59,9 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,use.susie=T,
-                   cluster.index=4,
                    estimate_residual_variance=T,residual_variance=1,
                    reliability.thres=0.9,Lvec=c(1:5),pip.thres=0.2,
                    xQTL.max.L=10,xQTL.pip.thres=0.2,xQTL.Nvec,
-                   block.rho=0,robust.sandwith=T,
                    tauvec=seq(3,30,by=3),rho=2,ridge=0.05,
                    max.iter=100,max.eps=0.001,susie.iter=100,
                    ebic.theta=1,ebic.gamma=2,maxdiff=3,
@@ -121,24 +117,18 @@ bXestse[,i]=bXse[,i]
 }
 }
 }
-###### Auto-cluster the block ###########
-if(length(cluster.index)==1){
-cluster.index=auto_cluster(LD,cluster.index)
-}
-
 ##########################################################################
 if(use.susie==T){
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,pip.thres=pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,estimate_residual_variance=estimate_residual_variance,residual_variance=residual_variance,ridge=ridge,robust.sandwith=robust.sandwith,block.rho=block.rho)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,estimate_residual_variance=estimate_residual_variance,residual_variance=residual_variance,ridge=ridge)
 }
 ##########################################################################
 if(use.susie==F){
-A=Cis_MRBEE_IPOD(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,ebic.theta=ebic.theta,ridge=ridge,robust.sandwith=robust.sandwith,block.rho=block.rho)
+A=Cis_MRBEE_IPOD(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,ebic.theta=ebic.theta,ridge=ridge)
 }
 A$bXest=bXest
 A$bXestse=bXestse
 A$bXest0=bXest0
 A$bXestse0=bXestse0
-A$cluster.index=cluster.index
 A$eQTLfitList=eQTLfitList
 return(A)
 }

@@ -12,18 +12,14 @@ CisMRBEEX(
   LD,
   Rxy,
   use.susie = T,
-  cluster.index = 4,
   estimate_residual_variance = T,
   residual_variance = 1,
   reliability.thres = 0.9,
   Lvec = c(1:5),
   pip.thres = 0.2,
   xQTL.max.L = 10,
-  xQTL.sampling = 1000,
   xQTL.pip.thres = 0.2,
   xQTL.Nvec,
-  block.rho = 0,
-  robust.sandwith = T,
   tauvec = seq(3, 30, by = 3),
   rho = 2,
   ridge = 0.05,
@@ -34,7 +30,8 @@ CisMRBEEX(
   ebic.gamma = 2,
   maxdiff = 3,
   theta.ini = F,
-  gamma.ini = F
+  gamma.ini = F,
+  eQTLfitList = NULL
 )
 }
 \arguments{
@@ -52,8 +49,6 @@ CisMRBEEX(
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
-\item{cluster.index}{The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.}
-
 \item{estimate_residual_variance}{An indicator of whether estimating the residual_variance in SuSiE. Defaults to \code{T}.}
 
 \item{residual_variance}{When \code{estimate_residual_variance = T}, the initial value of the residual variance. When \code{estimate_residual_variance = F}, the fixed value of the residual variance. Defaults to \code{1}.}
@@ -66,15 +61,9 @@ CisMRBEEX(
 
 \item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{xQTL.sampling}{The number of subsampling times in estimating the standard errors of xQTL effects. Defaults to 1000.}
-
 \item{xQTL.pip.thres}{The minimum empirical posterior inclustion probability (PIP) used in calibrating causality for xQTL data.}
 
 \item{xQTL.Nvec}{The vector of sample sizes of exposures.}
-
-\item{block.rho}{A coefficent of between quasi-blocks. Defaults to \code{0.25}.}
-
-\item{robust.sandwith}{An indicator of whether using robust sandwith formula. Defaults to \code{T}.}
 
 \item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
 
@@ -97,6 +86,10 @@ CisMRBEEX(
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
+
+\item{eQTLfitList}{Initial fits of xQTLs of exposures. Default is \code{NULL}.}
+
+\item{cluster.index}{The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:

@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,estimate_residual_variance=T,residual_variance=1,ridge=ridge,block.rho=0,robust.sandwith){
+Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,estimate_residual_variance=T,residual_variance=1,ridge=ridge){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -174,11 +174,7 @@ D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
 D=1-diag(D)
 D[which(D<0.5)]=0.5
-if(robust.sandwith==F){
 S=diag(res^2/D^2)
-}else{
-S=AR1_block_threshold(res=res/D,cluster.index=cluster.index,block.rho=block.rho)
-}
 V=as.matrix(t(bZ)%*%Theta%*%S%*%Theta%*%bZ)
 IV=rep(0,nrow(V));IV[1:length(indtheta)]=1
 V=V+ridge*diag(IV)
