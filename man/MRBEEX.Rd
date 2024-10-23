@@ -15,7 +15,7 @@ MRBEEX(
   reliability.thres = 0.8,
   Method = c("IPOD", "Mixture"),
   use.susie = T,
-  tauvec = seq(3, 30, by = 3),
+  tauvec = seq(2.5, 40, by = 2.5),
   ADMM.rho = 2,
   group.mix.coef = 0.75,
   main.cluster.thres = 0.48,
