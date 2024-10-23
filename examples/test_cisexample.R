@@ -27,8 +27,7 @@ Theta=solve(LD)
 Nxy=c(rep(n1,p),n0) # sample size vector
 Hxy=c(rep(.3,p),.000667*15) # H2 vector
 Rnn=CScov(p=p+1,1)
-Btheta=Bse=array(0,c(100,p,8))
-Btime=matrix(0,100,9)
+Btheta=Bse=array(0,c(150,p,2))
 cluster.index=kronecker(c(1:50),rep(1,4))
 theta0=c(1,-0.5,rep(0,6),-0.5,1)
 UHP.var=1
@@ -37,7 +36,7 @@ UHP.frac=0.01*0
 CHP.frac=0*2
 
 iter=1
-while(iter<=100){
+while(iter<=150){
 A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.02,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="normal",cluster.index=cluster.index)
 bX=A$bX
 by=A$by
@@ -55,17 +54,17 @@ ebic.theta=1;ebic.gamma=2;maxdiff=3;
 theta.ini=F;gamma.ini=F
 Rxy=A$Rxy
 
-fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=4,block.rho=0.25)
-fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=F,xQTL.Nvec=rep(n1,p),cluster.index=4,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
-fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=5,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
-fit4=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=4,block.rho=0.5,eQTLfitList=fit1$eQTLfitList)
-fit5=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=2,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
-fit6=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=1,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
-fit7=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=10,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
-fit8=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),robust.sandwith=F,eQTLfitList=fit1$eQTLfitList)
+fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),sandwich_formula=F)
+fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=F,xQTL.Nvec=rep(n1,p),eQTLfitList=fit1$eQTLfitList,sandwich_formula=F)
+#fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=5,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
+#fit4=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=4,block.rho=0.5,eQTLfitList=fit1$eQTLfitList)
+#fit5=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=2,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
+#fit6=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=1,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
+#fit7=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),cluster.index=10,block.rho=0.25,eQTLfitList=fit1$eQTLfitList)
+#fit8=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,use.susie=T,xQTL.Nvec=rep(n1,p),robust.sandwith=F,eQTLfitList=fit1$eQTLfitList)
 
-Btheta[iter,,]=cbind(fit1$theta,fit2$theta,fit3$theta,fit4$theta,fit5$theta,fit6$theta,fit7$theta,fit8$theta)
-Bse[iter,,]=cbind(fit1$theta.se,fit2$theta.se,fit3$theta.se,fit4$theta.se,fit5$theta.se,fit6$theta.se,fit7$theta.se,fit8$theta.se)
+Btheta[iter,,]=cbind(fit1$theta,fit2$theta)#,fit3$theta,fit4$theta,fit5$theta,fit6$theta,fit7$theta,fit8$theta)
+Bse[iter,,]=cbind(fit1$theta.se,fit2$theta.se)#,fit3$theta.se,fit4$theta.se,fit5$theta.se,fit6$theta.se,fit7$theta.se,fit8$theta.se)
 iter=iter+1
 if(iter %% 25==0){print(iter)}
 }

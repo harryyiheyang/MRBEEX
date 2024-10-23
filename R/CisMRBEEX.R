@@ -7,7 +7,6 @@
 #' @param byse A vector of standard errors of effect estimates from the outcome GWAS.
 #' @param bXse A matrix of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The linkage disequilibrium (LD) matrix.
-#' @param cluster.index The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.

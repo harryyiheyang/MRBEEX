@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,ridge=ridge){
+Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,ridge=ridge,sandwich_formula=F){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -110,11 +110,8 @@ D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
 D=1-diag(D)
 D[which(D<0.5)]=0.5
-S=diag(res^2/D^2)
-V=as.matrix(t(bZ)%*%Theta%*%S%*%Theta%*%bZ)
-IV=rep(0,nrow(V));IV[1:p]=1
-V=V+ridge*diag(IV)
-COV=as.matrix(Hinv%*%V%*%Hinv)*adjf
+varres=sum((res/D)*(Theta%*%(res/D)))/(sum(gamma==0)-sum(theta!=0))
+COV=Hinv*varres*adjf
 theta.cov=COV[1:p,1:p]
 theta.se=sqrt(diag(theta.cov))
 
