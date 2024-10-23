@@ -55,6 +55,17 @@ B=matrixMultiply(a$vectors,t(a$vectors)*d)
 return(B)
 }
 
+#' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen
+positiveinv=function(A,min.eps=0){
+a=matrixEigen(A)
+d=c(a$values)
+d1=1/d
+d1[d<min.eps]=min.eps
+B=matrixMultiply(a$vectors,t(a$vectors)*d1)
+B=t(B)/2+B/2
+return(B)
+}
+
 dmcp=function(x,lam,a=3){
 b=lam-abs(x)/a
 b[abs(x/a)>lam]=0

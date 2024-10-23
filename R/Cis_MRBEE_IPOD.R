@@ -105,13 +105,14 @@ TCbZ=as.matrix(TC%*%bZ)
 Hinv=t(bZ)%*%(Theta%*%bZ)
 Hinv[1:p,1:p]=Hinv[1:p,1:p]-Rxysum[1:p,1:p]+ridge*diag(p)
 Hinv=as.matrix(Hinv)
-Hinv=solve(Hinv)
+Hinv=positiveinv(as.matrix(Hinv))
 D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
 D=1-diag(D)
 D[which(D<0.5)]=0.5
 res=res/D
 varres=sum(res*(Theta%*%res))/(sum(gamma==0)-p)
+varres=max(0.5,varres)
 COV=Hinv*varres*adjf
 theta.cov=COV[1:p,1:p]
 theta.se=sqrt(diag(theta.cov))

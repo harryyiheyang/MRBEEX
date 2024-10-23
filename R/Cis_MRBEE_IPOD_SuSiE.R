@@ -169,13 +169,14 @@ bZ=cbind(bX[,indtheta],as.matrix(LD[,indgamma]))
 TCbZ=TC%*%bZ
 Hinv=matrixListProduct(list(t(bZ),Theta,bZ))
 Hinv[1:length(indtheta),1:length(indtheta)]=Hinv[1:length(indtheta),1:length(indtheta)]-Rxysum[indtheta,indtheta]+ridge*diag(length(indtheta))
-Hinv=solve(as.matrix(Hinv))
+Hinv=positiveinv(as.matrix(Hinv))
 D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
 D=1-diag(D)
 D[which(D<0.5)]=0.5
 res=res/D
 varres=sum(res*(Theta%*%res))/(sum(gamma==0)-sum(theta!=0))
+varres=max(0.5,varres)
 COV=Hinv*varres*adjf
 theta.cov=diag(p)*0
 theta.cov[indtheta,indtheta]=COV[1:length(indtheta),1:length(indtheta)]
