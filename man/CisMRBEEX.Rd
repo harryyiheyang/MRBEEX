@@ -88,8 +88,6 @@ CisMRBEEX(
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
 \item{eQTLfitList}{Initial fits of xQTLs of exposures. Default is \code{NULL}.}
-
-\item{cluster.index}{The indices of quasi-blocks of variants. If a number rather than a vector is provide, then an auto-cluster method is applied to find the clusters with average cluster size equal to the number.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:
