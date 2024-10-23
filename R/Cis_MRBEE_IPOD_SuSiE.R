@@ -174,7 +174,8 @@ D=TCbZ%*%(Hinv%*%t(TCbZ))
 D=as.matrix(D)
 D=1-diag(D)
 D[which(D<0.5)]=0.5
-varres=sum((res/D)*(Theta%*%(res/D)))/(sum(gamma==0)-sum(theta!=0))
+res=res/D
+varres=sum(res*(Theta%*%res))/(sum(gamma==0)-sum(theta!=0))
 COV=Hinv*varres*adjf
 theta.cov=diag(p)*0
 theta.cov[indtheta,indtheta]=COV[1:length(indtheta),1:length(indtheta)]
