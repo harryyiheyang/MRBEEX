@@ -1,4 +1,4 @@
-MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,mix.coef=0.9){
+MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,mix.coef=0.3){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -78,7 +78,7 @@ theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 ########################### update gamma ############################
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
-gamma1=groupmcp(gamma1,cluster.index,tauvec[j]/rho*(1-mix.coef)/mix.coef)
+gamma1=groupmcp(gamma1,cluster.index,tauvec[j]/rho*mix.coef)
 delta=delta+rho*(gamma-gamma1)
 
 iter=iter+1
@@ -134,7 +134,7 @@ thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
-gamma1j=groupmcp(gamma1j,cluster.index,tauvec[jstar]/rho*(1-mix.coef)/mix.coef)
+gamma1j=groupmcp(gamma1j,cluster.index,tauvec[jstar]/rho*mix.coef)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 ThetaList[j, ] <- thetaj

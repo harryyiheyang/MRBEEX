@@ -1,17 +1,15 @@
-MRFit=function(by,bX,theta1,theta2,cluster1,cluster2,df1,df2){
+MRFit=function(by,bX,theta1,theta2,cluster1,cluster2,df1,df2,ebic.en=1){
 m=length(by)
 res1=by[cluster1]-bX[cluster1,]%*%theta1
 res2=by[cluster2]-bX[cluster2,]%*%theta2
 m1=length(cluster1)
 m2=length(cluster2)
-rss1=sum(res1^2)/(m1-df1)
-rss2=sum(res2^2)/(m2-df2)
+rss=sum(res1^2)+sum(res2^2)
+rss=rss/(m-df1-df2)
 alpha1=m1/m
 alpha2=m2/m
-MRC1=m1*log(rss1)
-MRC2=m2*log(rss2)-2*m2*log(alpha2)
-
-return(MRC1+MRC2)
+en=(-m1*log(alpha1)-m2*log(alpha2))*2
+return(log(rss)*m+(ebic.en+log(m))*log(en))
 }
 
 susie_xQTL_resampling=function(LD,alpha,mu,mu2,pip.thres=0.5,sampling=100){

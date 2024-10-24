@@ -31,8 +31,8 @@ Btime=matrix(0,500,9)
 cluster.index=kronecker(c(1:150),rep(1,4))
 theta0=c(1,-0.5,rep(0,6),-0.5,1)
 UHP.var=1
-UHP.frac=0.05*1
-UHP.frac=0.01
+UHP.frac=0.05*0
+#UHP.frac=0.00
 CHP.frac=0.05*2
 iter=1
 
@@ -47,16 +47,16 @@ plot(A$bX[-c(1:480),]%*%c(0,0,0,0,1,-1,rep(0,4)),A$by[-c(1:480)])
 plot(A$bX[c(1:480),]%*%theta0,A$by[c(1:480)])
 plot(A$bX0[-c(1:480),]%*%c(0,0,0,0,1,-1,rep(0,4)),A$by0[-c(1:480)])
 plot(A$bX0[c(1:480),]%*%theta0,A$by0[c(1:480)])
-Lvec=c(1:min(10,nrow(bX)));pip.thres=0.5;tauvec=seq(3,50,by=2);max.iter=100;max.eps=0.001;susie.iter=100;ebic.theta=1;ebic.gamma=2;reliability.thres=0.8;ADMM.rho=2;maxdiff=1.5;sampling.time=100;sampling.iter=10;theta.ini=F;gamma.ini=F
+Lvec=c(1:min(10,nrow(bX)));pip.thres=0.5;tauvec=seq(3,50,by=2);max.iter=100;max.eps=0.001;susie.iter=100;ebic.theta=1;ebic.gamma=2;reliability.thres=0.8;admm.rho=2;maxdiff=1.5;sampling.time=100;sampling.iter=10;theta.ini=F;gamma.ini=F
 main.cluster.thres=0.49
 
 t1=Sys.time()
-fit.ipod=MRBEEX(Method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ADMM.rho=2,sampling.time=200,maxdiff=3,sampling.iter=5)
+fit.ipod=MRBEEX(Method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),admm.rho=2,sampling.time=200,maxdiff=3,sampling.iter=5)
 t2=Sys.time()
 ipod.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit.susie=MRBEEX(Method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,ADMM.rho=2,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=5)
+fit.susie=MRBEEX(Method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,admm.rho=2,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=5)
 t2=Sys.time()
 susie.time=difftime(t2, t1, units = "secs")
 

@@ -97,7 +97,7 @@ theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
-gamma1=groupmcp(gamma1,cluster.index,tauvec[j]/rho*(1-mix.coef)/mix.coef)
+gamma1=groupmcp(gamma1,cluster.index,tauvec[j]/rho*mix.coef)
 delta=delta+rho*(gamma-gamma1)
 iter=iter+1
 if(iter>3){
@@ -155,7 +155,7 @@ theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
 gamma1=mcp(gamma+delta/rho,tauvec[jstar]/rho)
-gamma1=groupmcp(gamma1,cluster.index,tauvec[jstar]/rho*(1-mix.coef)/mix.coef)
+gamma1=groupmcp(gamma1,cluster.index,tauvec[jstar]/rho*mix.coef)
 delta=delta+rho*(gamma-gamma1)
 iter=iter+1
 if(iter>3){
@@ -217,7 +217,7 @@ thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
-gamma1j=groupmcp(gamma1j,cluster.index,tauvec[jstar]/rho*(1-mix.coef)/mix.coef)
+gamma1j=groupmcp(gamma1j,cluster.index,tauvec[jstar]/rho*mix.coef)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 ThetaList[j, ] <- thetaj

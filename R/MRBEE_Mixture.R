@@ -1,4 +1,4 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,robust.se=T,ebic.theta=1,ebic.gamma=1,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,robust.se=T,ebic.theta=1,ebic.gamma=1,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8,ebic.en=1){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -24,12 +24,10 @@ Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
 ############################ Initial Estimate #######################
-fit.init=fit.mixture=regmixEM(y=tilde.y,x=tilde.X,k=2,addintercept=F,maxit=300)
+fit.init=fit.mixture=regmixEM(y=tilde.y,x=tilde.X,k=2,addintercept=F,maxit=300,epsilon=max.eps)
 max.cluster=ifelse(sum(fit.init$posterior[,1]>main.cluster.thres)>(m/2),1,2)
 cluster1=which(fit.init$posterior[,max.cluster]>main.cluster.thres)
 cluster2=setdiff(1:m,cluster1)
-########################### Check if applied mixture model #######################
-if(length(cluster2)>=min.cluster.size){
 theta1=fit.init$beta[,max.cluster]
 theta2=fit.init$beta[,setdiff(1:2,max.cluster)]
 sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
@@ -81,7 +79,7 @@ iter=iter+1
 if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
-Bic=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=p,df2=p)+2*p*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
+Bic=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=p,df2=p,ebic.en=ebic.en)+2*p*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
 Bic=Bic/m
 }
 
@@ -192,9 +190,4 @@ A$IsIPOD=F
 A$gamma=gamma
 A$Bic=Bic
 return(A)
-}else{
-A=list()
-A$IsIPOD=T
-return(A)
-}
 }

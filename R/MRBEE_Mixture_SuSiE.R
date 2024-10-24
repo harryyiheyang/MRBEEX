@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8,ebic.en=1){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -26,12 +26,10 @@ Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
 ############################ Initial Estimate #######################
-fit.init=fit.mixture=regmixEM(y=tilde.y,x=tilde.X,k=2,addintercept=F,maxit=300)
+fit.init=fit.mixture=regmixEM(y=tilde.y,x=tilde.X,k=2,addintercept=F,maxit=300,epsilon=max.eps)
 max.cluster=ifelse(sum(fit.init$posterior[,1]>main.cluster.thres)>(m/2),1,2)
 cluster.ini.1=which(fit.init$posterior[,max.cluster]>main.cluster.thres)
 cluster.ini.2=setdiff(1:m,cluster.ini.1)
-########################### Check if applied mixture model #######################
-if(length(cluster.ini.2)>=min.cluster.size){
 theta.ini.1=theta.ini.11=fit.init$beta[,max.cluster]
 theta.ini.2=theta.ini.22=fit.init$beta[,setdiff(1:2,max.cluster)]
 fit.susie.init1=susie(X=tilde.X[cluster.ini.1,],y=tilde.y[cluster.ini.1],L=5,intercept=F)
@@ -48,11 +46,13 @@ cluster.ini.1=which(Voting.ini$Cluster[,1]==1)
 cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
 ############################## Tuning Parameter ######################
 q=length(Lvec)
-Btheta1=array(0,c(p,q))
-Btheta2=array(0,c(p,q))
-Bbic=c(1:q)
-CLU1=CLU2=list()
-for(v in length(Lvec):1){
+Btheta1=array(0,c(p,q,q))
+Btheta2=array(0,c(p,q,q))
+Bbic=matrix(1e6,q,q)
+
+for(v in 1:length(Lvec)){
+fit.susie1=fit.susie2=NULL
+for(j in 1:v){
 theta1=theta.ini.1
 theta2=theta.ini.2
 cluster1=cluster.ini.1
@@ -61,7 +61,7 @@ cluster.ratio=cluster.ratio.ini
 iter=0
 error=1
 gamma=0*by
-fit.susie1=fit.susie2=NULL
+fit.susie2=NULL
 while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
@@ -82,7 +82,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),gamma.y[cluster2])
 yty2=sum(gamma.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[v],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[j],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -129,28 +129,29 @@ if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
 }
-Btheta1[,v]=theta1
-Btheta2[,v]=theta2
-CLU1[[v]]=cluster1
-CLU2[[v]]=cluster2
+Btheta1[,v,j]=theta1
+Btheta2[,v,j]=theta2
 df1=min(sum(theta1!=0),Lvec[v])
-df2=min(sum(theta2!=0),Lvec[v])
-Bbic[v]=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
+df2=min(sum(theta2!=0),Lvec[j])
+Bbic[v,j]=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2,ebic.en=ebic.en)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
+}
 }
 Bbic=Bbic/m
 ######################## Final Estimate #################################
-vstar=which.min(Bbic)
-theta1=Btheta1[,vstar]
-theta2=Btheta2[,vstar]
+vstar=bimin(Bbic)[1]
+jstar=bimin(Bbic)[2]
+theta1=Btheta1[,vstar,jstar]
+theta2=Btheta2[,vstar,jstar]
 cluster.ratio=cluster.ratio.ini
-cluster1=CLU1[[vstar]]
-cluster2=CLU2[[vstar]]
+cluster1=cluster.ini.1
+cluster2=cluster.ini.2
 iter=0
 error=1
 theta11=theta1*0
 theta22=theta2*0
 gamma=0*by
-while(iter<max.iter&error>max.eps){
+fit.susie1=fit.susie2=NULL
+while(iter<(max.iter*2)&error>max.eps){
 theta11=theta1
 theta22=theta2
 indvalid=which(gamma==0)
@@ -162,7 +163,7 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
-fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=300,intercept=F,estimate_prior_method="EM")
+fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,valid2)
@@ -170,7 +171,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[vstar],max_iter=300,intercept=F,estimate_prior_method="EM")
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[jstar],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -257,7 +258,7 @@ XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),gamma.yj[cluster2j])
 yty2j=sum(gamma.yj[cluster2j]^2)
-fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[vstar],max_iter=300,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
+fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[jstar],max_iter=300,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2j=theta1j*0
@@ -355,10 +356,5 @@ A$susie.theta2=fit.susie2
 A$gamma=gamma
 A$IsIPOD=F
 return(A)
-}else{
-A=list()
-A$IsIPOD=T
-return(A)
-}
 }
 
