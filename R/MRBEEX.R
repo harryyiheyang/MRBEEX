@@ -98,14 +98,14 @@ A=MRBEE_IPOD(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster
 if(Method[1]=="Mixture"&use.susie==F){
 A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,tau=tau,step.size=step.size,ebic.en=ebic.en)
 if(A$IsIPOD==T){
-cat("Initial checks suggest using MRBEE-IPOD")
+cat("Initial checks suggest using MRBEE-IPOD\n")
 }
 }
 ###########################################################################
 if(Method[1]=="Mixture"&use.susie==T){
 A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,tau=tau,step.size=step.size,ebic.en=ebic.en,susie.iter=susie.iter)
 if(A$IsIPOD==T){
-cat("Initial checks suggest using MRBEE-IPOD")
+cat("Initial checks suggest using MRBEE-IPOD\n")
 }
 }
 
