@@ -61,7 +61,7 @@ t2=Sys.time()
 susie.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit.mixture=MRBEEX(Method="Mixture",use.susie=F,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.8,pip.thres=0.15,sampling.iter=5)
+fit.mixture=MRBEEX(Method="Mixture",use.susie=F,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.8,pip.thres=0.15,sampling.iter=5,ebic.en = 1)
 t2=Sys.time()
 mixture.time=difftime(t2, t1, units = "secs")
 if(is.null(fit.mixture$IsMixture)==1){
@@ -77,7 +77,7 @@ if(is.null(fit.mixture$IsMixture)==1){
 }
 
 t1=Sys.time()
-fit.mixture.susie=MRBEEX(Method="Mixture",use.susie=T,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.8,sampling.iter=5)
+fit.mixture.susie=MRBEEX(Method="Mixture",use.susie=T,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=200,maxdiff=3,reliability.thres=0.8,sampling.iter=5,ebic.en = 1)
 t2=Sys.time()
 mixture.susie.time=difftime(t2, t1, units = "secs")
 if(is.null(fit.mixture.susie$IsMixture)==1){

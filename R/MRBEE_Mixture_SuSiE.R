@@ -44,15 +44,15 @@ Voting.ini=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,thet
 cluster.ini.2=which(Voting.ini$Cluster[,2]==1)
 cluster.ini.1=which(Voting.ini$Cluster[,1]==1)
 cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
+if(length(cluster.ini.2)>min.cluster.size){
 ############################## Tuning Parameter ######################
 q=length(Lvec)
-Btheta1=array(0,c(p,q,q))
-Btheta2=array(0,c(p,q,q))
-Bbic=matrix(1e6,q,q)
-
+Btheta1=array(0,c(p,q))
+Btheta2=array(0,c(p,q))
+Bbic=c(1e6,q)
+CLU1=CLU2=list()
 for(v in 1:length(Lvec)){
 fit.susie1=fit.susie2=NULL
-for(j in 1:v){
 theta1=theta.ini.1
 theta2=theta.ini.2
 cluster1=cluster.ini.1
@@ -61,7 +61,6 @@ cluster.ratio=cluster.ratio.ini
 iter=0
 error=1
 gamma=0*by
-fit.susie2=NULL
 while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
@@ -82,7 +81,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),gamma.y[cluster2])
 yty2=sum(gamma.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[j],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[v],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -118,6 +117,7 @@ sigma1=max(0.1,sigma1)
 Voting=cluster_voting(by=res.theta,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
+cluster.ratio=c(length(cluster1),length(cluster2))/m
 grad=tilde.y
 grad[cluster1]=tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1
 grad[cluster2]=tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2
@@ -129,22 +129,21 @@ if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
 }
-Btheta1[,v,j]=theta1
-Btheta2[,v,j]=theta2
+Btheta1[,v]=theta1
+Btheta2[,v]=theta2
+CLU1[[v]]=cluster1
+CLU2[[v]]=cluster2
 df1=min(sum(theta1!=0),Lvec[v])
-df2=min(sum(theta2!=0),Lvec[j])
-Bbic[v,j]=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2,ebic.en=ebic.en)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
-}
+df2=min(sum(theta2!=0),Lvec[v])
+Bbic[v]=MRFit(by=as.vector(tilde.y-tilde.R%*%gamma),bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2,ebic.en=ebic.en)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)*(1+ebic.gamma)*sum(gamma!=0)
 }
 Bbic=Bbic/m
 ######################## Final Estimate #################################
-vstar=bimin(Bbic)[1]
-jstar=bimin(Bbic)[2]
-theta1=Btheta1[,vstar,jstar]
-theta2=Btheta2[,vstar,jstar]
-cluster.ratio=cluster.ratio.ini
-cluster1=cluster.ini.1
-cluster2=cluster.ini.2
+vstar=which.min(Bbic)
+theta1=Btheta1[,vstar]
+theta2=Btheta2[,vstar]
+cluster1=CLU1[[vstar]]
+cluster2=CLU2[[vstar]]
 iter=0
 error=1
 theta11=theta1*0
@@ -171,7 +170,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[jstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[vstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -207,6 +206,7 @@ sigma1=max(0.1,sigma1)
 Voting=cluster_voting(by=res.theta,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
+cluster.ratio=c(length(cluster1),length(cluster2))/m
 grad=tilde.y
 grad[cluster1]=tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1
 grad[cluster2]=tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2
@@ -258,7 +258,7 @@ XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),gamma.yj[cluster2j])
 yty2j=sum(gamma.yj[cluster2j]^2)
-fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[jstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
+fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2j=theta1j*0
@@ -356,5 +356,10 @@ A$susie.theta2=fit.susie2
 A$gamma=gamma
 A$IsIPOD=F
 return(A)
+}else{
+A=list()
+A$IsIPOD=T
+return(A)
+}
 }
 

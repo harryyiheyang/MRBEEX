@@ -37,7 +37,8 @@ sigma1=max(0.1,sigma1)
 Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
-cluster.ratio.ini=c(length(cluster1),length(cluster2))/m
+if(length(cluster2)>min.cluster.size){
+############################## Tuning Parameter ######################
 iter=0
 error=1
 gamma=by*0
@@ -190,4 +191,9 @@ A$IsIPOD=F
 A$gamma=gamma
 A$Bic=Bic
 return(A)
+}else{
+A=list()
+A$IsIPOD=T
+return(A)
+}
 }

@@ -9,7 +9,11 @@ rss=rss/(m-df1-df2)
 alpha1=m1/m
 alpha2=m2/m
 en=(-m1*log(alpha1)-m2*log(alpha2))*2
+if(ebic.en>0){
 return(log(rss)*m+(ebic.en+log(m))*log(en))
+}else{
+return(log(rss)*m)
+}
 }
 
 susie_xQTL_resampling=function(LD,alpha,mu,mu2,pip.thres=0.5,sampling=100){
