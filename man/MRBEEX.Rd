@@ -12,12 +12,11 @@ MRBEEX(
   LD = "identity",
   Rxy,
   cluster.index = c(1:length(by)),
-  reliability.thres = 0.8,
   Method = c("IPOD", "Mixture"),
   use.susie = T,
   tauvec = seq(2.5, 40, by = 2.5),
-  ADMM.rho = 2,
-  group.mix.coef = 0.75,
+  admm.rho = 2,
+  group.coef = 0.25,
   main.cluster.thres = 0.48,
   min.cluster.size = 10,
   robust.se = T,
@@ -30,9 +29,11 @@ MRBEEX(
   susie.iter = 100,
   ebic.theta = 1,
   ebic.gamma = 2,
-  maxdiff = 3,
+  ebic.en = 1,
   sampling.time = 100,
   sampling.iter = 10,
+  maxdiff = 3,
+  reliability.thres = 0.8,
   theta.ini = F,
   gamma.ini = F
 )
@@ -52,17 +53,15 @@ MRBEEX(
 
 \item{cluster.index}{A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
-
 \item{Method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.}
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
 \item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
 
-\item{ADMM.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
+\item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{group.mix.coef}{When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.75}.}
+\item{group.coef}{When choosing \code{"IPOD"}, the mixing coefficient in L1-L2 penalty. Default is \code{0.75}.}
 
 \item{main.cluster.thres}{When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.}
 
@@ -88,11 +87,13 @@ MRBEEX(
 
 \item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{2}.}
 
-\item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.}
-
 \item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
 
 \item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{5}.}
+
+\item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.}
+
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 

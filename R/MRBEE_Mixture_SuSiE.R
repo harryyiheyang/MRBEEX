@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8,ebic.en=1){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.48,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,ebic.gamma=1,reliability.thres=0.8,sampling.time=100,robust.se=T,max.iter=30,max.eps=5e-4,sampling.iter=5,tau=tau,step.size=0.8,ebic.en=1,susie.iter=100){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -74,7 +74,7 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),gamma.y[cluster1])
 yty1=sum(gamma.y[cluster1]^2)
-fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
+fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,valid2)
@@ -82,7 +82,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),gamma.y[cluster2])
 yty2=sum(gamma.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[j],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[j],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -163,7 +163,7 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
-fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
+fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,valid2)
@@ -171,7 +171,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[jstar],max_iter=300,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[jstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2=theta1*0
@@ -250,7 +250,7 @@ XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
 XtX1j=t(XtX1j)/2+XtX1j/2
 Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),gamma.yj[cluster1j])
 yty1j=sum(gamma.yj[cluster1j]^2)
-fit.susie1j=susie_suff_stat(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=300,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
+fit.susie1j=susie_suff_stat(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>(pip.thres*max(1/5,cluster.ratio[1])))
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[valid2j])
@@ -258,7 +258,7 @@ XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),gamma.yj[cluster2j])
 yty2j=sum(gamma.yj[cluster2j]^2)
-fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[jstar],max_iter=300,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
+fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[jstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>(pip.thres*min(1/5,cluster.ratio[2])))
 }else{
 theta2j=theta1j*0

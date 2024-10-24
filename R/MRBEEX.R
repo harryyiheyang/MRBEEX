@@ -75,8 +75,7 @@
 #' @export
 
 MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
-               Method=c("IPOD","Mixture"),
-               use.susie=T,
+               Method=c("IPOD","Mixture"),use.susie=T,
                tauvec=seq(2.5,40,by=2.5),admm.rho=2,group.coef=0.25,
                main.cluster.thres=0.48,min.cluster.size=10,robust.se=T,
                tau=10,step.size=0.75,
@@ -101,7 +100,7 @@ A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres
 }
 ###########################################################################
 if(Method[1]=="Mixture"&use.susie==T){
-A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,tau=tau,step.size=step.size,ebic.en=ebic.en)
+A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,main.cluster.thres=main.cluster.thres,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,sampling.time=sampling.time,min.cluster.size=min.cluster.size,robust.se=robust.se,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,tau=tau,step.size=step.size,ebic.en=ebic.en,susie.iter=susie.iter)
 }
 
 return(A)
