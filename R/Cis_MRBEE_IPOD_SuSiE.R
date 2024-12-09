@@ -193,12 +193,12 @@ upsilon=by*0
 var_inf=1e-2
 var_error=1
 for(vv in 1:30){
-Hupsilon=solve(diag(m)/var_inf+LD)
-upsilon=as.vector(Hupsilon%*%res)
+Hupsilon=solve(diag(m)/var_inf+LD/var_error)
+upsilon=as.vector(Hupsilon%*%res)/var_error
 df=sum(diag(Hupsilon))
 var_inf=min((sum(upsilon^2)+df)/m,10)
 res_inf=res-matrixVectorMultiply(LD,upsilon)
-df=sum(diag(Hupsilon%*%LD))
+df=sum(diag(Hupsilon%*%LD))/var_error
 var_error=sum(res_inf*(Theta%*%res_inf))/(m-df-length(indtheta)-length(indgamma))
 var_error=max(1,var_error)
 }
