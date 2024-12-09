@@ -101,22 +101,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res=by-matrixVectorMultiply(bX,theta)-matrixVectorMultiply(LD,gamma)
-
-upsilon=by*0
-var_inf=1e-2
-var_error=1
-Hupsilon=diag(by)*0
-for(vv in 1:30){
-Hupsilon=solve(diag(m)/var_inf+LD)
-upsilon=as.vector(Hupsilon%*%res)
-df=sum(diag(Hupsilon))
-var_inf=min((sum(upsilon^2)+df)/m,10)
-res_inf=res-matrixVectorMultiply(LD,upsilon)
-df=sum(diag(Hupsilon%*%LD))
-var_error=sum(res_inf*(Theta%*%res_inf))/(m-df-p-length(indgamma))
+var_error=sum(res*(Theta%*%res))/(m-p-length(indgamma))
 var_error=max(1,var_error)
-}
-
 
 bZ=cbind(bX,as.matrix(LD[,indgamma]))
 TCbZ=as.matrix(TC%*%bZ)
@@ -124,7 +110,7 @@ Hinv=t(bZ)%*%(Theta%*%bZ)
 Hinv[1:p,1:p]=Hinv[1:p,1:p]-Rxysum[1:p,1:p]
 Hinv=as.matrix(Hinv)
 Hinv=positiveinv(as.matrix(Hinv))
-Hinv1=matrixListProduct(list(t(bZ),Theta,var_error*LD+var_inf*LD%*%LD,Theta,bZ))
+Hinv1=var_error*matrixListProduct(list(t(bZ),Theta,bZ))
 COV=Hinv%*%Hinv1%*%Hinv
 theta.cov=COV[1:p,1:p]
 theta.se=sqrt(diag(theta.cov))
