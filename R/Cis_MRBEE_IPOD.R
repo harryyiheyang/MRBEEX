@@ -127,7 +127,6 @@ A$gamma.ini=gamma.ini*byse1
 A$reliability.adjust=r
 A$theta.pratt=getPratt(bX=bX,by=by,bXse=bXse,byse=byse,Theta=Theta,theta=theta,Rxy=Rxy)
 A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
-A$var.inf=var_inf
 A$var.error=var_error
 return(A)
 }
