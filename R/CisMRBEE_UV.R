@@ -41,7 +41,7 @@
 #' @export
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,
-                     xQTL.max.L=10,xQTL.cred.thres=0.2,xQTL.pip.thres=0.5,
+                     xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
                      xQTL.pip.min=0.1,reliability.thres=0.75,
                      tauvec=seq(3,30,by=1.5),admm.rho=2,
                      use.susie=T,causal.pip.thres=0.3,
