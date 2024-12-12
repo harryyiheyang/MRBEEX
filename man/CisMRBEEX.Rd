@@ -16,7 +16,7 @@ CisMRBEEX(
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
   xQTL.max.L = 10,
-  xQTL.cred.thres = 0.2,
+  xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
   xQTL.pip.min = 0.1,
   xQTL.Nvec,

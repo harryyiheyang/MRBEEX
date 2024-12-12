@@ -13,7 +13,7 @@ CisMRBEE_UV(
   Rxy,
   xQTL.N,
   xQTL.max.L = 10,
-  xQTL.cred.thres = 0.2,
+  xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
   xQTL.pip.min = 0.1,
   reliability.thres = 0.75,
