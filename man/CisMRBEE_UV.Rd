@@ -14,7 +14,8 @@ CisMRBEE_UV(
   xQTL.N,
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.2,
-  xQTL.pip.thres = 0.3,
+  xQTL.pip.thres = 0.5,
+  xQTL.pip.min = 0.1,
   reliability.thres = 0.75,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
@@ -44,7 +45,9 @@ CisMRBEE_UV(
 
 \item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95}
 
-\item{xQTL.pip.thres}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.3}
+\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.}
+
+\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1}
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 

@@ -11,14 +11,15 @@
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95
-#' @param xQTL.pip.thres The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.3
+#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.
+#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1
 #' @param xQTL.Nvec The vector of sample sizes of exposures.
 #' @param model.infinitesimal An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
 #' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
-#' @param pip.thres A threshold of minimum posterior inclusion probability. Default is \code{0.2}.
+#' @param causal.pip.thres A threshold of minimum posterior inclusion probability. Default is \code{0.2}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
 #' @param susie.iter Number of iterations in SuSiE per iteration. Default is \code{500}.
@@ -59,8 +60,9 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-                 reliability.thres=0.75,Lvec=c(1:5),pip.thres=0.2,
-                 xQTL.max.L=10,xQTL.cred.thres=0.2,xQTL.pip.thres=0.3,
+                 reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+                 xQTL.max.L=10,xQTL.cred.thres=0.2,
+                 xQTL.pip.thres=0.5,xQTL.pip.min=0.1,
                  xQTL.Nvec,tauvec=seq(3,30,by=3),admm.rho=2,ridge.diff=1e3,
                  max.iter=100,max.eps=0.001,susie.iter=500,
                  ebic.theta=1,ebic.gamma=2,maxdiff=3,
@@ -80,8 +82,8 @@ for(i in 1:p){
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000)
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000)
 eQTLfitList[[i]]=fit
-causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.thres)
-indj=causal.cs$ind.keep
+causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
+indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
 if(length(indj)>0){
 betaj=coef.susie(fit)[-1]
 betaj[-indj]=0
@@ -103,8 +105,8 @@ bXestse[,i]=bXse[,i]
 }else{
 for(i in 1:p){
 fit=eQTLfitList[[i]]
-causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.thres)
-indj=causal.cs$ind.keep
+causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
+indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
 if(length(indj)>0){
 betaj=coef.susie(fit)[-1]
 betaj[-indj]=0
@@ -127,7 +129,7 @@ bXestse[,i]=bXse[,i]
 pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm)
 }
 ##########################################################################
 if(model.infinitesimal==T){

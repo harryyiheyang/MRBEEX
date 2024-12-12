@@ -11,7 +11,8 @@
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95
-#' @param xQTL.pip.thres The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.3
+#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.
+#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1
 #' @param xQTL.N The sample sizes of exposure.
 #' @param tauvec A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.
 #' @param admm.rho A parameter set in the ADMM algorithm. Default is 2.
@@ -40,8 +41,8 @@
 #' @export
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,
-                     xQTL.max.L=10,xQTL.cred.thres=0.2,xQTL.pip.thres=0.3,
-                     reliability.thres=0.75,
+                     xQTL.max.L=10,xQTL.cred.thres=0.2,xQTL.pip.thres=0.5,
+                     xQTL.pip.min=0.1,reliability.thres=0.75,
                      tauvec=seq(3,30,by=1.5),admm.rho=2,
                      use.susie=T,causal.pip.thres=0.3,
                      max.iter=100,max.eps=0.001,ebic.gamma=2
@@ -53,8 +54,8 @@ bXest0=bXestse0=bX*0
 bXestse=bXestse0=c(1000,m)
 fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=xQTL.max.L,max_iter=1000)
 fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(susie_get_cs(fit.susie,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000)
-causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.thres)
-indj=causal.cs$ind.keep
+causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
+indj=union(causal.cs$ind.keep,which(fit.susie$pip>xQTL.pip.thres))
 if(length(indj)>0){
 betaj=coef.susie(fit.susie)[-1]
 betaj[-indj]=0
