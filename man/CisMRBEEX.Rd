@@ -18,7 +18,7 @@ CisMRBEEX(
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  xQTL.pip.min = 0.1,
+  xQTL.pip.min = 0.2,
   xQTL.Nvec,
   tauvec = seq(3, 30, by = 3),
   admm.rho = 2,
@@ -57,11 +57,11 @@ CisMRBEEX(
 
 \item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95}
+\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
-\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.}
+\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
-\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1}
+\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
 \item{xQTL.Nvec}{The vector of sample sizes of exposures.}
 

@@ -15,7 +15,7 @@ CisMRBEE_UV(
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  xQTL.pip.min = 0.1,
+  xQTL.pip.min = 0.2,
   reliability.thres = 0.75,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
@@ -43,27 +43,27 @@ CisMRBEE_UV(
 
 \item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95}
+\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
-\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.}
+\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
-\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1}
+\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 
 \item{tauvec}{A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.}
 
-\item{admm.rho}{A parameter set in the ADMM algorithm. Default is 2.}
+\item{admm.rho}{A parameter set in the ADMM algorithm. Default is \code{2}.}
 
 \item{use.susie}{n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.}
 
 \item{causal.pip.thres}{When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.}
 
-\item{max.iter}{The maximum number of iterations for the ADMM algorithm. Default is 15.}
+\item{max.iter}{The maximum number of iterations for the ADMM algorithm. Default is \code{15}.}
 
-\item{max.eps}{The convergence tolerance for the ADMM algorithm. Default is 0.005.}
+\item{max.eps}{The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.}
 
-\item{ebic.gamma}{The extended BIC factor for model selection. Default is 2.}
+\item{ebic.gamma}{The extended BIC factor for model selection. Default is \code{2}.}
 }
 \value{
 A list containing:

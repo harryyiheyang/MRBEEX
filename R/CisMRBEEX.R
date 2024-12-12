@@ -10,9 +10,9 @@
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
-#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95
-#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.
-#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1
+#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
 #' @param xQTL.Nvec The vector of sample sizes of exposures.
 #' @param model.infinitesimal An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
@@ -62,7 +62,7 @@
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
                  reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
                  xQTL.max.L=10,xQTL.cred.thres=0.95,
-                 xQTL.pip.thres=0.5,xQTL.pip.min=0.1,
+                 xQTL.pip.thres=0.5,xQTL.pip.min=0.2,
                  xQTL.Nvec,tauvec=seq(3,30,by=3),admm.rho=2,ridge.diff=1e3,
                  max.iter=100,max.eps=0.001,susie.iter=500,
                  ebic.theta=1,ebic.gamma=2,maxdiff=3,

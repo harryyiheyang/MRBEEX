@@ -10,15 +10,15 @@
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
-#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to 0.95
-#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to 0.5.
-#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to 0.1
+#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+#' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
 #' @param xQTL.N The sample sizes of exposure.
 #' @param tauvec A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.
-#' @param admm.rho A parameter set in the ADMM algorithm. Default is 2.
-#' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is 15.
-#' @param max.eps The convergence tolerance for the ADMM algorithm. Default is 0.005.
-#' @param ebic.gamma The extended BIC factor for model selection. Default is 2.
+#' @param admm.rho A parameter set in the ADMM algorithm. Default is \code{2}.
+#' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is \code{15}.
+#' @param max.eps The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.
+#' @param ebic.gamma The extended BIC factor for model selection. Default is \code{2}.
 #' @param use.susie n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.
 #' @param causal.pip.thres When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.
 #'
@@ -42,7 +42,7 @@
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,
                      xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-                     xQTL.pip.min=0.1,reliability.thres=0.75,
+                     xQTL.pip.min=0.2,reliability.thres=0.75,
                      tauvec=seq(3,30,by=1.5),admm.rho=2,
                      use.susie=T,causal.pip.thres=0.3,
                      max.iter=100,max.eps=0.001,ebic.gamma=2
