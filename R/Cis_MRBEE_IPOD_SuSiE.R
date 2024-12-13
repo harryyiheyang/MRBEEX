@@ -10,8 +10,8 @@ m=nrow(bX)
 p=ncol(bX)
 LD=as.matrix(LD)
 Theta=matrixInverse(LD)
-bXinv=matrixMultiply(Theta,bX)
-Bt=t(bXinv)
+bXinv=matrixMultiply(matrixInverse(LD*0.975+diag(m)*0.025),bX)
+Bt=matrixMultiply(t(bX),Theta)
 BtB=matrixMultiply(Bt,bX)
 BtB=(t(BtB)+BtB)/2
 dBtB=sqrt(diag(BtB)/m)
@@ -181,7 +181,6 @@ var_error=max(1,var_error)
 }
 
 bZ=cbind(bX[,indtheta],as.matrix(LD[,indgamma]))
-TCbZ=TC%*%bZ
 Hinv=matrixListProduct(list(t(bZ),Theta,bZ))
 Hinv[1:length(indtheta),1:length(indtheta)]=Hinv[1:length(indtheta),1:length(indtheta)]-Rxysum[indtheta,indtheta]+ridge*Diff[indtheta,indtheta]
 Hinv=positiveinv(as.matrix(Hinv))
