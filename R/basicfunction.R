@@ -658,3 +658,14 @@ uniqueRows <- unique(which(nonZeroCounts>0))
 }
 return(uniqueRows)
 }
+
+center.classifying=function(theta,theta.source){
+p=length(theta)
+complement=cluster=theta*0
+for(i in 1:p){
+s=which.min(c(abs(theta[i]),abs(theta[i]-theta.source[i])))
+complement[i]=ifelse(s==1,0,theta.source[i])
+cluster[i]=ifelse(s==1,1,2)
+}
+return(list(complement=complement,cluster=cluster))
+}

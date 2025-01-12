@@ -76,7 +76,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                tauvec=seq(2.5,40,by=2.5),admm.rho=2,
                Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,
                max.iter=100,max.eps=0.001,susie.iter=100,
-               ebic.theta=1,ebic.gamma=1,ridge.diff=1e3,
+               ebic.theta=1,ebic.gamma=2,ridge.diff=1e3,
                sampling.time=100,sampling.iter=10,
                maxdiff=3,reliability.thres=0.75,
                theta.ini=F,gamma.ini=F){
