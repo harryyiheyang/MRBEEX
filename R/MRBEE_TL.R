@@ -31,7 +31,6 @@
 #' @importFrom CppMatrix matrixMultiply matrixVectorMultiply matrixListProduct
 #' @importFrom Matrix Matrix solve chol bdiag
 #' @importFrom MASS rlm
-#' @importFrom MRBEEX MRBEE_IMRP
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 #'

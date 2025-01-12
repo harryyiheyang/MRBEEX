@@ -24,7 +24,7 @@ MRBEEX(
   max.eps = 0.001,
   susie.iter = 100,
   ebic.theta = 1,
-  ebic.gamma = 1,
+  ebic.gamma = 2,
   ridge.diff = 1000,
   sampling.time = 100,
   sampling.iter = 10,
