@@ -9,6 +9,7 @@ byse=byse/byse
 m=nrow(bX)
 p=ncol(bX)
 if(LD[1]!="identity"){
+isLD=T
 LD=Matrix(LD,sparse=T)
 Theta=solve(LD)
 TC=chol(Theta)
@@ -20,6 +21,7 @@ Bt=t(bXinv)
 BtB=matrixMultiply(Bt,bX)
 Thetarho=solve(LD+rho*diag(m))
 }else{
+isLD=F
 LD=Theta=TC=Matrix(diag(m),sparse=T)
 RC=diag(m)
 bXinv=tilde.X=bX
@@ -42,7 +44,7 @@ gamma.ini=gamma.ini1=fit0$beta*(fit0$pip>0.5)
 theta.ini=theta.ini1=fit0$beta.cov[-1]
 }else{
 fit0=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,var.est="variance",FDR="Sidak",pv.thres=0.01)
-gamma.ini=gamma.ini1=fit0$gamma
+gamma.ini=gamma.ini1=fit0$gamma/byse
 theta.ini=theta.ini1=fit0$theta
 }
 }else{
@@ -76,10 +78,15 @@ if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
 ########################### update gamma ############################
+if(isLD){
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
 delta=delta+rho*(gamma-gamma1)
-
+}else{
+gamma=(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1)/(1+rho)
+gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
+delta=delta+rho*(gamma-gamma1)
+}
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
@@ -131,9 +138,13 @@ thetaj <- c(matrixVectorMultiply(Hinv, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
+if(isLD){
 gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
+}else{
+gammaj[indj]=gamma1j[indj]=mcp(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj),tauvec[jstar])
+}
 }
 ThetaList[j, ] <- thetaj
 GammaList[j, ] <- gamma1j

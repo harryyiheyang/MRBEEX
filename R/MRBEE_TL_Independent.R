@@ -1,4 +1,4 @@
-MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,sampling.time=100,sampling.iter=10){
+MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,sampling.time=100,sampling.iter=10){
 ######### Basic Processing  ##############
 fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
@@ -34,9 +34,10 @@ for(v in length(tauvec):1){
 error=2
 iter=0
 gamma=gamma.ini
+gamma1=u=gamma*0
 while(error>max.eps&iter<max.iter){
 delta1=delta
-indvalid=which(gamma==0)
+indvalid=which(gamma1==0)
 if(length(indvalid)==n){
 Rxysum=Rxyall
 }else{
@@ -72,8 +73,9 @@ delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
-gamma=by-matrixVectorMultiply(bX,theta)
-gamma=mcp(gamma,tauvec[v])
+gamma=(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1)/(1+admm.rho)
+gamma1=mcp(gamma+u/admm.rho,tauvec[v]/admm.rho)
+u=u+admm.rho*(gamma-gamma1)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -95,9 +97,10 @@ delta=theta.source-theta
 fit.susie=NULL
 error=2
 iter=0
+gamma1=u=gamma*0
 while(error>max.eps&iter<max.iter){
 delta1=delta
-indvalid=which(gamma==0)
+indvalid=which(gamma1==0)
 if(length(indvalid)==n){
 Rxysum=Rxyall
 }else{
@@ -133,8 +136,9 @@ delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
-gamma=by-matrixVectorMultiply(bX,theta)
-gamma=mcp(gamma,tauvec[vstar])
+gamma=(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1)/(1+admm.rho)
+gamma1=mcp(gamma+u/admm.rho,tauvec[vstar]/admm.rho)
+u=u+admm.rho*(gamma-gamma1)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -143,7 +147,7 @@ error=sqrt(sum((delta-delta1)^2))
 ############################### inference #########################
 names(delta)=colnames(bX)
 theta=theta.source+delta
-res=gamma*byse1
+res=gamma1*byse1
 names(res)=rownames(bX)
 ThetaList=DeltaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
@@ -169,8 +173,9 @@ indvalidj=which(gammaj==0)
 fit.susiej=fit.susie
 deltaj=theta.source-thetaj
 BtBj=matrixMultiply(t(bXj),bXj)
+gamma1j=uj=gammaj*0
 for(iterj in 1:sampling.iter){
-indvalidj=which(gammaj==0)
+indvalidj=which(gamma1j==0)
 if(length(indvalidj)==nj){
 Rxysumj=Rxyallj
 }else{
@@ -206,8 +211,9 @@ delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
 }
 deltaj=delta.latentj+delta.complementj
 thetaj=deltaj+theta.source
-gammaj=byj-matrixVectorMultiply(bXj,thetaj)
-gammaj=mcp(gammaj,tauvec[vstar])
+gammaj=(by-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j)/(1+admm.rho)
+gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
+uj=uj+admm.rho*(gammaj-gamma1j)
 }
 ThetaList[j,]=theta.source+deltaj
 DeltaList[j,]=deltaj

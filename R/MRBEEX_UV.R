@@ -26,6 +26,7 @@
 #' @importFrom MASS rlm
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
 #' @importFrom Matrix Matrix solve chol bdiag
+#' @importFrom MRBEE MRBEE.IMRP.UV
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom mixtools regmixEM
 #' @importFrom FDRestimation p.fdr
@@ -62,7 +63,7 @@
 
 MRBEEX_UV=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
         reliability.thres=0.8,
-        Method=c("IPOD","Mixture"),ebic.theta=0,
+        Method="IPOD",ebic.theta=0,
         tauvec=seq(3,30,by=3),rho=2,ebic.gamma=2,
         max.iter=100,max.eps=0.001,maxdiff=3,
         sampling.time=100,sampling.iter=10,

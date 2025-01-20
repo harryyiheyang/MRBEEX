@@ -20,7 +20,9 @@
 #'
 MRBEE_IMRP=function(by,bX,byse,bXse,Rxy,max.iter=30,max.eps=1e-4,pv.thres=0.05,var.est="variance",FDR=T,adjust.method="Sidak",maxdiff=1.5){
 if(is.vector(bX)==T){
-A=MRBEE_IMRP_UV(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,max.iter=max.iter,max.eps=max.eps,pv.thres=pv.thres,var.est=var.est,FDR=FDR,adjust.method=adjust.method)
+A=MRBEE.IMRP.UV(by=by,bx=bX,byse=byse,bxse=bXse,Rxy=Rxy,max.iter=max.iter,max.eps=max.eps,pv.thres=pv.thres,var.est=var.est,FDR=FDR,adjust.method=adjust.method)
+A$gamma=A$delta
+A$theta.se=sqrt(A$vartheta)
 }else{
 ######### Basic Processing  ##############
 by=by/byse

@@ -8,6 +8,7 @@ byse1=byse
 byse=byse/byse
 m=length(bX)
 if(LD[1]!="identity"){
+isLD=T
 LD=Matrix(LD,sparse=T)
 Theta=solve(LD)
 TC=chol(Theta)
@@ -20,6 +21,7 @@ Bt=t(bXinv)
 BtB=sum(Bt*bX)
 Thetarho=solve(LD+rho*diag(m))
 }else{
+isLD=F
 LD=Theta=TC=Matrix(diag(m),sparse=T)
 RC=diag(m)
 byinv=by
@@ -28,16 +30,16 @@ tilde.y=by
 tilde.X=bX
 Bt=t(bX)
 BtB=sum(bX*bX)
-Thetarho=diag(m)/(1+rho)
+Thetarho=Matrix(diag(m)/(1+rho),sparse=T)
 }
 r=reliability.adj.uv(bX,bXse,Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=varbvs(X=RC,Z=tilde.X,y=tilde.y,verbose=F,maxiter=100)
-gamma.ini=fit0$beta*(fit0$pip>0.5)
-theta.ini=fit0$beta.cov[-1]
+fit0=MRBEE.IMRP.UV(by=by,bx=bX,byse=byse,bxse=bXse,Rxy=Rxy)
+gamma.ini=fit0$delta/byse
+theta.ini=fit0$theta
 }
 ############################## Tuning Parameter ######################
 w=length(tauvec)
@@ -50,7 +52,7 @@ iter=1
 theta=theta.ini
 gamma=gamma.ini
 gamma1=gamma
-delta=gamma1
+delta=gamma1*0
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -58,10 +60,15 @@ Hinv=1/(BtB-sum(bXse[indvalid]^2)*Rxy[1,1])
 g=sum(Bt*(by-as.vector(LD%*%gamma)))-sum(bXse[indvalid])*Rxy[2,1]
 theta=g*Hinv
 ########################### update gamma ############################
-gamma=as.vector(Thetarho%*%c(by-bX*theta-delta+rho*gamma1))
+if(isLD){
+gamma=as.vector(Thetarho%*%(by-bX*theta-delta+rho*gamma1))
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
 delta=delta+rho*(gamma-gamma1)
-
+}else{
+gamma=as.vector((by-bX*theta-delta+rho*gamma1))/(rho+1)
+gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
+delta=delta+rho*(gamma-gamma1)
+}
 iter=iter+1
 if(iter>3){
 error=abs(theta-theta1)
@@ -104,10 +111,17 @@ indvalidj=intersect(indvalidj,indj)
 Hinv=1/(BtB-sum(bXse[indvalidj]^2)*Rxy[1,1])
 g=sum(bX[indj]*(by[indj]-as.vector(LD[indj,]%*%gammaj)))-sum(bXse[indvalidj])*Rxy[2,1]
 thetaj=g*Hinv
+if(isLD){
 resgammaj=as.vector(Thetarhoj%*%(by[indj]-bX[indj]*thetaj-deltaj[indj]+rho*gamma1j[indj]))
 gammaj[indj]=resgammaj
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
+}else{
+resgammaj=as.vector((by[indj]-bX[indj]*thetaj-deltaj[indj]+rho*gamma1j[indj]))/(1+rho)
+gammaj[indj]=resgammaj
+gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
+deltaj=deltaj+rho*(gammaj-gamma1j)
+}
 }
 ThetaList[j]=thetaj
 }

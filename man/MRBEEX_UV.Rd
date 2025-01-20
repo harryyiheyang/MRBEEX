@@ -13,7 +13,7 @@ MRBEEX_UV(
   Rxy,
   cluster.index = c(1:length(by)),
   reliability.thres = 0.8,
-  Method = c("IPOD", "Mixture"),
+  Method = "IPOD",
   ebic.theta = 0,
   tauvec = seq(3, 30, by = 3),
   rho = 2,

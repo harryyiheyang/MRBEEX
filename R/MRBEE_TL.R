@@ -195,7 +195,7 @@ error=sqrt(sum((delta-delta1)^2))
 ############################### inference #########################
 names(delta)=colnames(bX)
 theta=theta.source+delta
-res=gamma*byse1
+res=gamma1*byse1
 names(res)=rownames(bX)
 ThetaList=DeltaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
