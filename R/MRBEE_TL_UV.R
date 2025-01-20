@@ -268,6 +268,7 @@ A$Bic=Bic
 A$tau.optimal=tauvec[vstar]
 return(A)
 }else{
+A=list()
 A$theta=theta.source
 A$theta.se=sqrt(theta.source.cov)
 A$gamma=Bgamma_direct[which.min(Bic_direct),]/byse1
