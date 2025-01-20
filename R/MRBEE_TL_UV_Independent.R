@@ -20,8 +20,8 @@ Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
 ########## Iteration ###################
-Bic=Btheta=tauvec*0
-Bgamma=array(0,c(length(tauvec),n))
+Bic=Bic_direct=Btheta=tauvec*0
+Bgamma=Bgamma_direct=array(0,c(length(tauvec),n))
 theta=theta.ini
 for(v in length(tauvec):1){
 error=2
@@ -70,8 +70,18 @@ vare=sum(e^2)/(length(indvalid)-dftheta)
 Bic[v]=log(vare)+log(n)/n*dftheta+(1+ebic.gamma)*log(n)*(n-length(indvalid))/n
 Btheta[v]=theta
 Bgamma[v,]=gamma1
+
+gamma_direct=as.vector(by-bX*theta.source)
+gamma_direct=mcp(gamma_direct,tauvec[v])
+e=as.vector(by-bX*theta.source-as.vector(gamma_direct))
+vare=sum(e^2)/(sum(gamma_direct==0))
+Bic_direct[v]=log(vare)+(1+ebic.gamma)*log(n)*sum(gamma_direct!=0)/n
+Bgamma_direct[v,]=gamma_direct
 }
-############################### final estimate ##########################
+#########################################################################
+s1=min(Bic)
+s2=min(Bic_direct)
+if(s1<=s2){
 vstar=which.min(Bic)
 theta=theta.ini
 gamma=gamma.ini
@@ -199,4 +209,11 @@ A$theta.list=ThetaList
 A$Bic=Bic
 A$tau.optimal=tauvec[vstar]
 return(A)
+}else{
+A$theta=theta.source
+A$theta.se=sqrt(theta.source.cov)
+A$gamma=Bgamma_direct[which.min(Bic_direct),]/byse1
+cat("BIC shows that theta.source can be directly applied\n")
+return(A)
+}
 }
