@@ -36,7 +36,7 @@
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,sampling.time=100,sampling.iter=10){
 if(LD[1]=="identity"){
-A=MRBEE_TL_Independent(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec,Lvec,ebic.delta,ebic.gamma,transfer.coef,susie.iter,pip.thres,max.iter,max.eps,reliability.thres,ridge.diff,sampling.time,sampling.iter)
+A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,theta.source=theta.source,theta.source.cov=theta.source.cov,tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,max.iter=max.iter,max.eps=max.eps,reliability.thres=reliability.thres,ridge.diff=ridge.diff,sampling.time=sampling.time,sampling.iter=sampling.iter)
 return(A)
 }else{
 ######### Basic Processing  ##############

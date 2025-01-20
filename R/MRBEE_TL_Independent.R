@@ -4,6 +4,7 @@ fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
 theta.source.cov=transfer.coef^2*theta.source.cov
 theta.ini=fit.no.tran$theta
+gamma.ini=fit.no.tran$gamma/byse
 by=by/byse
 byseinv=1/byse
 bX=bX*byseinv
@@ -19,10 +20,6 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
 br=as.vector(by-bX%*%theta.source)
 BtB=t(bX)%*%bX
-########## Initial Estimation ############
-e=by-matrixVectorMultiply(bX,theta.ini)
-gamma.ini=e
-gamma.ini[which(abs(gamma.ini)<5)]=0
 ########## Iteration ###################
 Bic=matrix(0,length(Lvec),length(tauvec))
 Btheta=array(0,c(length(Lvec),length(tauvec),p))
@@ -211,7 +208,7 @@ delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
 }
 deltaj=delta.latentj+delta.complementj
 thetaj=deltaj+theta.source
-gammaj=(by-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j)/(1+admm.rho)
+gammaj=(byj-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j)/(1+admm.rho)
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
 }
