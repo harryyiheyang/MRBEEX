@@ -95,7 +95,6 @@ indgamma=which(gamma!=0)
 indvalid=which(gamma==0)
 res=by-bX*theta-as.vector(LD%*%gamma)
 var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
-var_inf=0
 
 if(max(cluster.index)>min.cluster){
 ThetaList=c(1:sampling.time)
@@ -135,26 +134,12 @@ theta.se=sd(ThetaList)*sqrt((m-length(theta))/(m-length(theta)-length(indgamma))
 LD=as.matrix(LD)
 Theta=as.matrix(Theta)
 
-upsilon=by*0
-var_inf=1
-var_error=1
-for(vv in 1:30){
-Hupsilon=solve(diag(m)/var_inf+LD/var_error)
-upsilon=as.vector(Hupsilon%*%res)/var_error
-df=sum(diag(Hupsilon))
-var_inf=min((sum(upsilon^2)+df)/m,10)
-res_inf=res-matrixVectorMultiply(LD,upsilon)
-df=sum(diag(Hupsilon%*%LD))/var_error
-var_error=sum(res_inf*(Theta%*%res_inf))/(m-df-1-length(indgamma))
-var_error=max(1,var_error)
-}
-
 if(sum(indgamma)>0){
 Z=cbind(bX,LD[,indgamma])
 Hinv=matrixMultiply(t(Z),matrixMultiply(Theta,Z))
 Hinv[1,1]=Hinv[1,1]-sum(bXse[indvalid])*Rxy[1,1]
 Hinv=positiveinv(Hinv)
-Hinv1=matrixListProduct(list(t(Z),Theta,var_error*LD+var_inf*matrixMultiply(LD,LD),Theta,Z))
+Hinv1=matrixListProduct(list(t(Z),Theta,var_error*LD,Theta,Z))
 COV=Hinv%*%Hinv1%*%Hinv
 covg=COV[1,1]
 covtheta=covg
@@ -162,7 +147,7 @@ covtheta=covg
 
 if(sum(indgamma)==0){
 bXest0=as.vector(Theta%*%bX)
-h0=sum(bXest0*((var_error*LD+var_inf*matrixMultiply(LD,LD))%*%bXest0))
+h0=sum(bXest0*((var_error*LD)%*%bXest0))
 h1=(sum(bXest0*bX)-sum(bXse[indvalid])*Rxy[1,1])
 covtheta=h0/h1/h1
 }
@@ -180,6 +165,5 @@ A$reliability.adjust=r
 A$theta.pratt=getPratt.uv(bX=bX,by=by,bXse=bXse,byse=byse,Theta=Theta,theta=theta,Rxy=Rxy)
 A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
 A$var_error=var_error
-A$var_inf=var_inf
 return(A)
 }
