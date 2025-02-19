@@ -130,7 +130,7 @@ ThetaList[j]=thetaj
 theta.se=sd(ThetaList)*sqrt((m-length(theta))/(m-length(theta)-length(indgamma)))
 }else{
 ########### estimate the SE using sandwich formula #######################
-var_error=sum(res*(Theta%*%res))/(indvalid-1)
+var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
 
 if(sum(indgamma)>0){
 Z=cbind(bX,LD[,indgamma])
