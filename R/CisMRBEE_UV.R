@@ -179,8 +179,8 @@ var_error=max(1,var_error)
 }
 
 if(sum(indgamma)>0){
-Z=cbind(bXest0,diag(m)[,indgamma])
-Hinv=matrixMultiply(t(Z),matrixMultiply(LD,Z))
+Z=cbind(bXest,LD[,indgamma])
+Hinv=matrixMultiply(t(Z),matrixMultiply(Theta,Z))
 Hinv[1,1]=Hinv[1,1]-sum(bXestse[indvalid])*Rxy[1,1]
 Hinv=positiveinv(Hinv)
 Hinv1=matrixListProduct(list(t(Z),Theta,var_error*LD+var_inf*LD%*%LD,Theta,Z))

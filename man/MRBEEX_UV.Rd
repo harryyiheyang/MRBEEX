@@ -24,7 +24,8 @@ MRBEEX_UV(
   sampling.time = 100,
   sampling.iter = 10,
   theta.ini = F,
-  gamma.ini = F
+  gamma.ini = F,
+  min.cluster = 10
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ MRBEEX_UV(
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
+
+\item{min.cluster}{The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \codt{10}.}
 }
 \value{
 A list containing the results of the MRBEEX.UV analysis:

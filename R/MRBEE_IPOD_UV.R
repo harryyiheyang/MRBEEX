@@ -1,4 +1,4 @@
-MRBEE_IPOD_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8){
+MRBEE_IPOD_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,min.cluster=10){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -94,6 +94,8 @@ names(gamma)=rownames(bX)
 indgamma=which(gamma!=0)
 indvalid=which(gamma==0)
 res=by-bX*theta-as.vector(LD%*%gamma)
+
+if(max(cluster.index)>min.cluster){
 ThetaList=c(1:sampling.time)
 for(j in 1:sampling.time){
 cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace = F)
@@ -126,6 +128,29 @@ deltaj=deltaj+rho*(gammaj-gamma1j)
 ThetaList[j]=thetaj
 }
 theta.se=sd(ThetaList)*sqrt((m-length(theta))/(m-length(theta)-length(indgamma)))
+}else{
+########### estimate the SE using sandwich formula #######################
+var_error=sum(res*(Theta%*%res))/(indvalid-1)
+
+if(sum(indgamma)>0){
+Z=cbind(bX,LD[,indgamma])
+Hinv=matrixMultiply(t(Z),matrixMultiply(Theta,Z))
+Hinv[1,1]=Hinv[1,1]-sum(bXse[indvalid])*Rxy[1,1]
+Hinv=positiveinv(Hinv)
+Hinv1=matrixListProduct(list(t(Z),Theta,var_error*LD,Theta,Z))
+COV=Hinv%*%Hinv1%*%Hinv
+covg=COV[1,1]
+covtheta=covg
+}
+
+if(sum(indgamma)==0){
+bXest0=as.vector(Theta%*%bX)
+h0=sum(bXest0*((var_error*LD+var_inf*LD%*%LD)%*%bXest0))
+h1=(sum(bXest0*bX)-sum(bXse[indvalid])*Rxy[1,1])
+covtheta=h0/h1/h1
+}
+theta.se=sqrt(covtheta)
+}
 
 A=list()
 A$theta=theta

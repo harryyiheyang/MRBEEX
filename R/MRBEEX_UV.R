@@ -20,6 +20,7 @@
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
 #' @param sampling.time Number of resampling times. Default is \code{100}.
 #' @param sampling.iter Number of iterations per resampling. Default is \code{5}.
+#' @param min.cluster The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \codt{10}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #'
@@ -67,18 +68,22 @@ MRBEEX_UV=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
         tauvec=seq(3,30,by=3),rho=2,ebic.gamma=2,
         max.iter=100,max.eps=0.001,maxdiff=3,
         sampling.time=100,sampling.iter=10,
-        theta.ini=F,gamma.ini=F){
+        theta.ini=F,gamma.ini=F,min.cluster=10){
 ##########################################################################
 if(Method[1]=="IPOD"){
-A=MRBEE_IPOD_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,tauvec=tauvec,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini)
+A=MRBEE_IPOD_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,tauvec=tauvec,reliability.thres=reliability.thres,rho=rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,min.cluster=min.cluster)
 }
 ##########################################################################
 if(Method[1]=="Mixture"){
+if(max(cluster.index)<min.cluster){
+cat("Cluster size is too small. Please try IPOD...\n")
+}else{
 A=MRBEE_Mixture_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter)
 if(A$IsIPOD==T){
 A=list()
 A$IsMixture="Initial check suggests only one pathway"
 print(A$IsMixture)
+}
 }
 }
 
