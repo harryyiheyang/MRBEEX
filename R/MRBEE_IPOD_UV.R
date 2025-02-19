@@ -145,7 +145,7 @@ covtheta=covg
 
 if(sum(indgamma)==0){
 bXest0=as.vector(Theta%*%bX)
-h0=sum(bXest0*((var_error*LD+var_inf*LD%*%LD)%*%bXest0))
+h0=var_error*sum(bXest0*bX)
 h1=(sum(bXest0*bX)-sum(bXse[indvalid])*Rxy[1,1])
 covtheta=h0/h1/h1
 }
