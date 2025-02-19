@@ -131,7 +131,7 @@ theta.se=sd(ThetaList)*sqrt((m-length(theta))/(m-length(theta)-length(indgamma))
 }else{
 ########### estimate the SE using sandwich formula #######################
 var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
-
+LD=as.matrix(LD)
 if(sum(indgamma)>0){
 Z=cbind(bX,LD[,indgamma])
 Hinv=matrixMultiply(t(Z),matrixMultiply(Theta,Z))
