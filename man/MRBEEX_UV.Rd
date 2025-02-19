@@ -69,7 +69,7 @@ MRBEEX_UV(
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
-\item{min.cluster}{The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \codt{10}.}
+\item{min.cluster}{The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \code{10}.}
 }
 \value{
 A list containing the results of the MRBEEX.UV analysis:

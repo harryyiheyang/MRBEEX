@@ -20,7 +20,7 @@
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
 #' @param sampling.time Number of resampling times. Default is \code{100}.
 #' @param sampling.iter Number of iterations per resampling. Default is \code{5}.
-#' @param min.cluster The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \codt{10}.
+#' @param min.cluster The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \code{10}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #'
