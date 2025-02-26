@@ -39,13 +39,8 @@
 #'
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
-#' @importFrom varbvs varbvs
 #' @importFrom Matrix Matrix solve chol bdiag
 #' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
-#' @importFrom utils setTxtProgressBar txtProgressBar
-#' @importFrom mixtools regmixEM
-#' @importFrom FDRestimation p.fdr
-#' @importFrom CARMA CARMA
 #'
 #' @return A list that contains the results of the MRBEEX with respect to different methods applied:
 #' \describe{
@@ -80,7 +75,6 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
                  ebic.theta=1,ebic.gamma=2,
                  theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
 
-cat("Note: susie_rss() will be used to estimate the xQTL effect sizes\n")
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
 p=ncol(bX)
@@ -150,6 +144,8 @@ w.list[[i]]=Annotation
 lambda.list[[i]]=1
 }
 cat("Running CARMA \n")
+cat("Please install CARMA on your side\n")
+library(CARMA)
 is.detect=F
 if(is.null(output.labels)==T){
 output.labels=tempfile("my_tmpdir_")
