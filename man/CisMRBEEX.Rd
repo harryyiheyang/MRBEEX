@@ -22,6 +22,7 @@ CisMRBEEX(
   xQTL.pip.thres = 0.5,
   xQTL.Nvec,
   tauvec = seq(3, 30, by = 3),
+  xQTL.weight = NULL,
   outlier.switch = T,
   Annotation = NULL,
   output.labels = NULL,
@@ -73,6 +74,8 @@ CisMRBEEX(
 \item{xQTL.Nvec}{When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.}
 
 \item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+
+\item{xQTL.weight}{When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.}
 
 \item{outlier.switch}{When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.}
 
