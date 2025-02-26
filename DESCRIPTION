@@ -23,6 +23,8 @@ Imports:
     CppMatrix,
     Matrix,
     MRBEE
+Suggests: 
+    CARMA
 Remotes:
     harryyiheyang/CppMatrix,
     noahlorinczcomi/MRBEE,

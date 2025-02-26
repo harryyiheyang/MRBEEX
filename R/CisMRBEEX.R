@@ -63,17 +63,17 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-                 reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-                 eQTL.method="SuSiE",xQTL.pip.min=0.2,
-                 xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-                 xQTL.Nvec,tauvec=seq(3,30,by=3),
-                 outlier.switch=T,Annotation=NULL,output.labels=NULL,
-                 carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
-                 carma.epsilon.threshold=1e-3,
-                 admm.rho=2,ridge.diff=1e3,
-                 max.iter=100,max.eps=0.001,susie.iter=500,
-                 ebic.theta=1,ebic.gamma=2,
-                 theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
+               reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+               eQTL.method="SuSiE",xQTL.pip.min=0.2,
+               xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+               xQTL.Nvec,tauvec=seq(3,30,by=3),
+               outlier.switch=T,Annotation=NULL,output.labels=NULL,
+               carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
+               carma.epsilon.threshold=1e-3,
+               admm.rho=2,ridge.diff=1e3,
+               max.iter=100,max.eps=0.001,susie.iter=500,
+               ebic.theta=1,ebic.gamma=2,
+               theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -136,6 +136,10 @@ bXestse[,i]=bXse[,i]
 }
 }
 if(eQTL.method=="CARMA"){
+if (!requireNamespace("CARMA", quietly = TRUE)) {
+  stop("Package 'CARMA' is required for eQTL.method='CARMA', but is not installed. ",
+       "Please install it with install.packages('CARMA').")
+}
 z.list=ld.list=w.list=lambda.list=list()
 for(i in 1:p){
 z.list[[i]]=bX[,i]/bXse[,i]
@@ -143,9 +147,6 @@ ld.list[[i]]=LD
 w.list[[i]]=Annotation
 lambda.list[[i]]=1
 }
-cat("Running CARMA \n")
-cat("Please install CARMA on your side\n")
-library(CARMA)
 is.detect=F
 if(is.null(output.labels)==T){
 output.labels=tempfile("my_tmpdir_")
@@ -153,7 +154,7 @@ dir.create(output.labels)
 is.delect=T
 }
 if(is.null(Annotation)==F){
-fiteQTL=CARMA(z.list,ld.list,w.list,lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
+fiteQTL=CARMA::CARMA(z.list,ld.list,w.list,lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
 }else{
 fiteQTL=CARMA(z.list,ld.list,lambda.list = lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
 }
