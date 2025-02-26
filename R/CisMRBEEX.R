@@ -63,17 +63,17 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-               reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-               eQTL.method="SuSiE",xQTL.pip.min=0.2,
-               xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-               xQTL.Nvec,tauvec=seq(3,30,by=3),
-               outlier.switch=T,Annotation=NULL,output.labels=NULL,
-               carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
-               carma.epsilon.threshold=1e-3,
-               admm.rho=2,ridge.diff=1e3,
-               max.iter=100,max.eps=0.001,susie.iter=500,
-               ebic.theta=1,ebic.gamma=2,
-               theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
+           reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+           eQTL.method="SuSiE",xQTL.pip.min=0.2,
+           xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+           xQTL.Nvec,tauvec=seq(3,30,by=3),
+           outlier.switch=T,Annotation=NULL,output.labels=NULL,
+           carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
+           carma.epsilon.threshold=1e-3,
+           admm.rho=2,ridge.diff=1e3,
+           max.iter=100,max.eps=0.001,susie.iter=500,
+           ebic.theta=1,ebic.gamma=2,
+           theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -136,9 +136,10 @@ bXestse[,i]=bXse[,i]
 }
 }
 if(eQTL.method=="CARMA"){
+if(is.null(eQTLfitList)==T){
 if (!requireNamespace("CARMA", quietly = TRUE)) {
-  stop("Package 'CARMA' is required for eQTL.method='CARMA', but is not installed. ",
-       "Please install it with install.packages('CARMA').")
+stop("Package 'CARMA' is required for eQTL.method='CARMA', but is not installed. ",
+   "Please install it with install.packages('CARMA').")
 }
 z.list=ld.list=w.list=lambda.list=list()
 for(i in 1:p){
@@ -186,6 +187,36 @@ bXestse[,i]=sqrt(diag(LDjj))*bXse[,i]
 }else{
 bXest[,i]=bX[,i]
 bXestse[,i]=bXse[,i]
+}
+}
+}else{
+fiteQTL=eQTLfitList
+for(i in 1:p){
+sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fiteQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+if(length(fiteQTL[[i]]$`Credible set`[[2]])!=0){
+for(l in 1:length(fiteQTL[[i]]$`Credible set`[[2]])){
+  sumstat.result$cs[fiteQTL[[i]]$`Credible set`[[2]][[l]]]=l
+}
+}
+indj=which(sumstat.result$cs!=0&sumstat.result$pip>xQTL.pip.min)
+if(length(indj)>0){
+fitjj=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=1+sum(sumstat.result$cs>0),max_iter=100)
+betaj=coef.susie(fitjj)[-1]
+Diff=generate_block_matrix_CARMA(sumstat.result,rep(1,m),betaj)
+Diff=Diff[indj,indj]
+LDj=LD[indj,indj]
+Thetaj=solve(LDj+Diff*1e3)
+bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+Thetajj=LD*0
+Thetajj[indj,indj]=Thetaj
+bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
+LDjj=LD%*%Thetajj%*%LD
+bXest[,i]=as.vector(LD%*%(bXest0[,i]/bXse[,i]))*bXse[,i]
+bXestse[,i]=sqrt(diag(LDjj))*bXse[,i]
+}else{
+bXest[,i]=bX[,i]
+bXestse[,i]=bXse[,i]
+}
 }
 }
 }
