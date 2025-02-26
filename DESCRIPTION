@@ -22,9 +22,11 @@ Imports:
     susieR,
     CppMatrix,
     Matrix,
+    CARMA,
     MRBEE
 Remotes:
     harryyiheyang/CppMatrix,
     noahlorinczcomi/MRBEE,
+    ZikunY/CARMA,
     stephenslab/susieR
 ORCID: 0000-0001-6563-3579

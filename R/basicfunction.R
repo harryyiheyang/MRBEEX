@@ -574,6 +574,23 @@ final_matrix[group_vars, group_vars]=D
 return(final_matrix)
 }
 
+generate_block_matrix_CARMA <- function(sumstat.result, s, theta) {
+ind=which(theta==0)
+concerned_vars <- sumstat.result[sumstat.result$cs >0, ]
+cs_values <- unique(concerned_vars$cs)
+max_var_index <- nrow(sumstat.result)
+final_matrix <- matrix(0, nrow = max_var_index, ncol = max_var_index)
+for (cs_val in cs_values) {
+group_vars <- concerned_vars$variable[concerned_vars$cs == cs_val]
+if (length(group_vars) > 1) {
+group_s <- s[group_vars]
+D <- generate_D_matrix(group_s,sign(theta[group_vars]))
+final_matrix[group_vars, group_vars]=D
+}
+}
+return(final_matrix)
+}
+
 group.pip.filter=function(pip.summary,xQTL.cred.thres=0.95,xQTL.pip.thres=0.1){
 ind=which(pip.summary$cs>0)
 if(length(ind)>0){

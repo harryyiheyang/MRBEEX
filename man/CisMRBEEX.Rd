@@ -15,12 +15,20 @@ CisMRBEEX(
   reliability.thres = 0.75,
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
+  eQTL.method = "SuSiE",
+  xQTL.pip.min = 0.2,
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  xQTL.pip.min = 0.2,
   xQTL.Nvec,
   tauvec = seq(3, 30, by = 3),
+  outlier.switch = T,
+  Annotation = NULL,
+  output.labels = NULL,
+  carma.iter = 5,
+  carma.inner.iter = 5,
+  xQTL.max.num = 10,
+  carma.epsilon.threshold = 0.001,
   admm.rho = 2,
   ridge.diff = 1000,
   max.iter = 100,
@@ -50,23 +58,37 @@ CisMRBEEX(
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 
-\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
-
 \item{causal.pip.thres}{A threshold of minimum posterior inclusion probability. Default is \code{0.2}.}
 
-\item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
-
-\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
-
-\item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
+\item{eQTL.method}{The method used in selecting the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
 
 \item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
-\item{xQTL.Nvec}{The vector of sample sizes of exposures.}
+\item{xQTL.max.L}{When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+\item{xQTL.cred.thres}{When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
-\item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
+\item{xQTL.pip.thres}{When choosing \code{"SuSiE"}, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
+
+\item{xQTL.Nvec}{When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.}
+
+\item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+
+\item{outlier.switch}{When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.}
+
+\item{Annotation}{When choosing \code{"CARMA"}, the annotation matrix of SNP. Default is NULL.}
+
+\item{output.labels}{When choosing \code{"CARMA"}, output directory where output will be written while CARMA is running. Defaults to \code{NULL}, meaning that a temporary folder will be created and automatically deleted upon completion of the computation.}
+
+\item{carma.iter}{When choosing \code{"CARMA"}, the maximum iterations for EM algorithm to run. Defaults to 5.}
+
+\item{carma.inner.iter}{When choosing \code{"CARMA"}, the maximum iterations for Shotgun algorithm to run per iteration within EM algorithm. Defaults to 5.}
+
+\item{xQTL.max.num}{When choosing \code{"CARMA"}, the maximum number of causal variants assumed per locus, which is similar to the number of single effects in SuSiE. Defaults to 10.}
+
+\item{carma.epsilon.threshold}{When choosing \code{"CARMA"}, the convergence threshold measured by average of Bayes factors. Defaults to \code{1e-3}.}
+
+\item{admm.rho}{The tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
 \item{ridge.diff}{A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
 
@@ -84,7 +106,9 @@ CisMRBEEX(
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
-\item{eQTLfitList}{Initial fits of xQTLs of exposures. Default is \code{NULL}.}
+\item{eQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when eQTL.method = "SuSiE". When eQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
+
+\item{The}{candidate vector for the number of single effects in the estimation of causal effects. Default is \code{c(1:min(10, nrow(bX)))}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:

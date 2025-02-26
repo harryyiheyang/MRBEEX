@@ -9,16 +9,24 @@
 #' @param LD The linkage disequilibrium (LD) matrix.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
-#' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
-#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
-#' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+#' @param eQTL.method The method used in selecting the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
-#' @param xQTL.Nvec The vector of sample sizes of exposures.
+#' @param xQTL.pip.thres When choosing \code{"SuSiE"}, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+#' @param xQTL.max.L When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
+#' @param xQTL.cred.thres When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+#' @param xQTL.Nvec When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
+#' @param outlier.switch When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.
+#' @param Annotation When choosing \code{"CARMA"}, the annotation matrix of SNP. Default is NULL.
+#' @param output.labels When choosing \code{"CARMA"}, output directory where output will be written while CARMA is running. Defaults to \code{NULL}, meaning that a temporary folder will be created and automatically deleted upon completion of the computation.
+#' @param carma.iter When choosing \code{"CARMA"}, the maximum iterations for EM algorithm to run. Defaults to 5.
+#' @param carma.inner.iter When choosing \code{"CARMA"}, the maximum iterations for Shotgun algorithm to run per iteration within EM algorithm. Defaults to 5.
+#' @param xQTL.max.num When choosing \code{"CARMA"}, the maximum number of causal variants assumed per locus, which is similar to the number of single effects in SuSiE. Defaults to 10.
+#' @param carma.epsilon.threshold When choosing \code{"CARMA"}, the convergence threshold measured by average of Bayes factors. Defaults to \code{1e-3}.
 #' @param model.infinitesimal An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
-#' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
-#' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
-#' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
+#' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+#' @param admm.rho The tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+#' @param The candidate vector for the number of single effects in the estimation of causal effects. Default is \code{c(1:min(10, nrow(bX)))}.
 #' @param causal.pip.thres A threshold of minimum posterior inclusion probability. Default is \code{0.2}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
@@ -27,7 +35,7 @@
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
-#' @param eQTLfitList Initial fits of xQTLs of exposures. Default is \code{NULL}.
+#' @param eQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when eQTL.method = "SuSiE". When eQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
 #'
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -37,6 +45,7 @@
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom mixtools regmixEM
 #' @importFrom FDRestimation p.fdr
+#' @importFrom CARMA CARMA
 #'
 #' @return A list that contains the results of the MRBEEX with respect to different methods applied:
 #' \describe{
@@ -60,9 +69,13 @@
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
                  reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-                 xQTL.max.L=10,xQTL.cred.thres=0.95,
-                 xQTL.pip.thres=0.5,xQTL.pip.min=0.2,
-                 xQTL.Nvec,tauvec=seq(3,30,by=3),admm.rho=2,ridge.diff=1e3,
+                 eQTL.method="SuSiE",xQTL.pip.min=0.2,
+                 xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+                 xQTL.Nvec,tauvec=seq(3,30,by=3),
+                 outlier.switch=T,Annotation=NULL,output.labels=NULL,
+                 carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
+                 carma.epsilon.threshold=1e-3,
+                 admm.rho=2,ridge.diff=1e3,
                  max.iter=100,max.eps=0.001,susie.iter=500,
                  ebic.theta=1,ebic.gamma=2,
                  theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
@@ -75,6 +88,8 @@ m=nrow(bX)
 bXest=bX
 bXest0=bXestse0=bX*0
 bXestse=bXestse0=matrix(1000,m,p)
+A=list()
+if(eQTL.method=="SuSiE"){
 if(is.null(eQTLfitList)==T){
 eQTLfitList=list()
 for(i in 1:p){
@@ -111,6 +126,58 @@ betaj=coef.susie(fit)[-1]
 betaj[-indj]=0
 Diff=generate_block_matrix(summary(fit)$vars,rep(1,m),betaj)
 LDj=LD[indj,indj]
+Thetaj=solve(LDj+Diff[indj,indj]*1e3)
+bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+Thetajj=LD*0
+Thetajj[indj,indj]=Thetaj
+bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
+LDjj=LD%*%Thetajj%*%LD
+bXest[,i]=as.vector(LD%*%(bXest0[,i]/bXse[,i]))*bXse[,i]
+bXestse[,i]=sqrt(diag(LDjj))*bXse[,i]
+}else{
+bXest[,i]=bX[,i]
+bXestse[,i]=bXse[,i]
+}
+}
+}
+}
+if(eQTL.method=="CARMA"){
+z.list=ld.list=w.list=lambda.list=list()
+for(i in 1:p){
+z.list[[i]]=bX[,i]/bXse[,i]
+ld.list[[i]]=LD
+w.list[[i]]=Annotation
+lambda.list[[i]]=1
+}
+cat("Running CARMA \n")
+is.detect=F
+if(is.null(output.labels)==T){
+output.labels=tempfile("my_tmpdir_")
+dir.create(output.labels)
+is.delect=T
+}
+if(is.null(Annotation)==F){
+fiteQTL=CARMA(z.list,ld.list,w.list,lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
+}else{
+fiteQTL=CARMA(z.list,ld.list,lambda.list = lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
+}
+if(is.delect==T){
+unlink(output.labels, recursive = TRUE, force = TRUE)
+}
+for(i in 1:p){
+sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fiteQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+if(length(fiteQTL[[i]]$`Credible set`[[2]])!=0){
+for(l in 1:length(fiteQTL[[i]]$`Credible set`[[2]])){
+sumstat.result$cs[fiteQTL[[i]]$`Credible set`[[2]][[l]]]=l
+}
+}
+indj=which(sumstat.result$cs!=0&sumstat.result$pip>xQTL.pip.min)
+if(length(indj)>0){
+fitjj=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=1+sum(sumstat.result$cs>0),max_iter=100)
+betaj=coef.susie(fitjj)[-1]
+Diff=generate_block_matrix_CARMA(sumstat.result,rep(1,m),betaj)
+Diff=Diff[indj,indj]
+LDj=LD[indj,indj]
 Thetaj=solve(LDj+Diff*1e3)
 bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
 Thetajj=LD*0
@@ -132,12 +199,17 @@ A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.t
 }
 ##########################################################################
 if(model.infinitesimal==T){
-cat("awaiting development\n")}
+cat("awaiting development\n")
+}
 A$bXest=bXest
 A$bXestse=bXestse
 A$bXest0=bXest0
 A$bXestse0=bXestse0
+if(eQTL.method=="SuSiE"){
 A$eQTLfitList=eQTLfitList
+}else{
+A$eQTLfitList=fiteQTL
+}
 return(A)
 }
 
