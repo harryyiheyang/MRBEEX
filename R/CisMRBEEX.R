@@ -15,6 +15,7 @@
 #' @param xQTL.max.L When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
 #' @param xQTL.Nvec When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
+#' @param xQTL.weight When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.
 #' @param outlier.switch When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.
 #' @param Annotation When choosing \code{"CARMA"}, the annotation matrix of SNP. Default is NULL.
 #' @param output.labels When choosing \code{"CARMA"}, output directory where output will be written while CARMA is running. Defaults to \code{NULL}, meaning that a temporary folder will be created and automatically deleted upon completion of the computation.
@@ -66,7 +67,7 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
            reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
            eQTL.method="SuSiE",xQTL.pip.min=0.2,
            xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-           xQTL.Nvec,tauvec=seq(3,30,by=3),
+           xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
            outlier.switch=T,Annotation=NULL,output.labels=NULL,
            carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
            carma.epsilon.threshold=1e-3,
@@ -86,9 +87,12 @@ A=list()
 if(eQTL.method=="SuSiE"){
 if(is.null(eQTLfitList)==T){
 eQTLfitList=list()
+if(is.null(xQTL.weight)==T){
+xQTL.weight=rep(1,m)
+}
 for(i in 1:p){
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000)
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000)
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight)
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight)
 eQTLfitList[[i]]=fit
 causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
