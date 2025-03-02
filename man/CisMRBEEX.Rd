@@ -16,6 +16,8 @@ CisMRBEEX(
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
   eQTL.method = "SuSiE",
+  xQTL.selection.rule = "top_K",
+  top_K = 1,
   xQTL.pip.min = 0.2,
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
@@ -59,9 +61,15 @@ CisMRBEEX(
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 
+\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
+
 \item{causal.pip.thres}{A threshold of minimum posterior inclusion probability. Default is \code{0.2}.}
 
-\item{eQTL.method}{The method used in selecting the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
+\item{eQTL.method}{The method used in purifying the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
+
+\item{xQTL.selection.rule}{The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".}
+
+\item{top_K}{The maximum number of variables selected in each credible sets. Defaults to 1.}
 
 \item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
@@ -110,8 +118,6 @@ CisMRBEEX(
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
 \item{eQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when eQTL.method = "SuSiE". When eQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
-
-\item{The}{candidate vector for the number of single effects in the estimation of causal effects. Default is \code{c(1:min(10, nrow(bX)))}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:

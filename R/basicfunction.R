@@ -686,3 +686,25 @@ cluster[i]=ifelse(s==1,1,2)
 }
 return(list(complement=complement,cluster=cluster))
 }
+
+top_K_pip=function(susie_summary,top_K=1,pip.min.thres=0.01){
+ind=which(susie_summary$cs>0&susie_summary$variable_prob>=pip.min.thres)
+susie_summary=susie_summary[ind,]
+J=max(susie_summary$cs)
+index=c()
+for(j in 1:J){
+indj=which(susie_summary$cs==j)
+g=susie_summary[indj,]
+if(length(indj)<=top_K){
+index=c(index,g$variable)
+}
+if(length(indj)>top_K){
+index=c(index,g$variable[top_K_indices(g$variable_prob,k=top_K)])
+}
+}
+return(index)
+}
+
+top_K_indices <- function(vec, k=1) {
+return(order(vec, decreasing = TRUE)[1:k])
+}
