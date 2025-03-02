@@ -72,7 +72,7 @@ bX[,2]=-bX[,2]
 Rxy[-2,2]=-Rxy[-2,2];Rxy[2,-2]=-Rxy[2,-2];
 bX[,3]=LD%*%A$bX0[,1]+(A$bX[,3]-LD%*%A$bX0[,3])
 
-fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,top_K=2)
+fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,top_K=3)
 fit3$theta
 #fit4=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,eQTL.method="CARMA")
 #fit4$theta

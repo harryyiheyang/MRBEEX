@@ -691,6 +691,7 @@ top_K_pip=function(susie_summary,top_K=1,pip.min.thres=0.01){
 ind=which(susie_summary$cs>0&susie_summary$variable_prob>=pip.min.thres)
 susie_summary=susie_summary[ind,]
 J=max(susie_summary$cs)
+if(J>0){
 index=c()
 for(j in 1:J){
 indj=which(susie_summary$cs==j)
@@ -701,6 +702,9 @@ index=c(index,g$variable)
 if(length(indj)>top_K){
 index=c(index,g$variable[top_K_indices(g$variable_prob,k=top_K)])
 }
+}
+}else{
+index=c()
 }
 return(index)
 }
