@@ -622,7 +622,7 @@ Varinf=LD
 Var2=LD2
 V=Theta/var.res
 AT=matrixMultiply(t(A),V)
-P=V-matrixMultiply(t(AT),matrixMultiply(matrixGeneralizedInverse(matrixMultiply(AT,A)),AT))
+P=V-matrixMultiply(t(AT),matrixMultiply(CppMatrix::matrixGeneralizedInverse(matrixMultiply(AT,A)),AT))
 u=sum(res.inf^2)/2
 PVar2=matrixMultiply(P,Var2)
 e=sum(diag(PVar2))/2
@@ -689,9 +689,9 @@ return(list(complement=complement,cluster=cluster))
 
 top_K_pip=function(susie_summary,top_K=1,pip.min.thres=0.01){
 ind=which(susie_summary$cs>0&susie_summary$variable_prob>=pip.min.thres)
+if(length(ind)>0){
 susie_summary=susie_summary[ind,]
 J=max(susie_summary$cs)
-if(J>0){
 index=c()
 for(j in 1:J){
 indj=which(susie_summary$cs==j)

@@ -15,7 +15,7 @@ CisMRBEEX(
   reliability.thres = 0.75,
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
-  eQTL.method = "SuSiE",
+  xQTL.method = "SuSiE",
   xQTL.selection.rule = "top_K",
   top_K = 1,
   xQTL.pip.min = 0.2,
@@ -41,7 +41,7 @@ CisMRBEEX(
   ebic.gamma = 2,
   theta.ini = F,
   gamma.ini = F,
-  eQTLfitList = NULL
+  xQTLfitList = NULL
 )
 }
 \arguments{
@@ -65,7 +65,7 @@ CisMRBEEX(
 
 \item{causal.pip.thres}{A threshold of minimum posterior inclusion probability. Default is \code{0.2}.}
 
-\item{eQTL.method}{The method used in purifying the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
+\item{xQTL.method}{The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
 
 \item{xQTL.selection.rule}{The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".}
 
@@ -117,7 +117,7 @@ CisMRBEEX(
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
-\item{eQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when eQTL.method = "SuSiE". When eQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
+\item{xQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:

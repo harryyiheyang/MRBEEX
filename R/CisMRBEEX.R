@@ -9,7 +9,7 @@
 #' @param LD The linkage disequilibrium (LD) matrix.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
-#' @param eQTL.method The method used in purifying the eQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
+#' @param xQTL.method The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
 #' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
 #' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
@@ -38,7 +38,7 @@
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
-#' @param eQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when eQTL.method = "SuSiE". When eQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
+#' @param xQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
 #'
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -67,7 +67,7 @@
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
      reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-     eQTL.method="SuSiE",xQTL.selection.rule="top_K",
+     xQTL.method="SuSiE",xQTL.selection.rule="top_K",
      top_K=1,xQTL.pip.min=0.2,
      xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
      xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
@@ -77,7 +77,7 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
      admm.rho=2,ridge.diff=1e3,
      max.iter=100,max.eps=0.001,susie.iter=500,
      ebic.theta=1,ebic.gamma=2,
-     theta.ini=F,gamma.ini=F,eQTLfitList=NULL){
+     theta.ini=F,gamma.ini=F,xQTLfitList=NULL){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -87,16 +87,16 @@ bXest=bX
 bXest0=bXestse0=bX*0
 bXestse=bXestse0=matrix(1000,m,p)
 A=list()
-if(eQTL.method=="SuSiE"){
-if(is.null(eQTLfitList)==T){
-eQTLfitList=list()
+if(xQTL.method=="SuSiE"){
+if(is.null(xQTLfitList)==T){
+xQTLfitList=list()
 if(is.null(xQTL.weight)==T){
 xQTL.weight=rep(1,m)
 }
 for(i in 1:p){
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight)
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight)
-eQTLfitList[[i]]=fit
+xQTLfitList[[i]]=fit
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit)$vars,top_K=top_K)
 }else{
@@ -123,7 +123,7 @@ bXestse[,i]=bXse[,i]
 }
 }else{
 for(i in 1:p){
-fit=eQTLfitList[[i]]
+fit=xQTLfitList[[i]]
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit)$vars,top_K=top_K)
 }else{
@@ -150,10 +150,10 @@ bXestse[,i]=bXse[,i]
 }
 }
 }
-if(eQTL.method=="CARMA"){
-if(is.null(eQTLfitList)==T){
+if(xQTL.method=="CARMA"){
+if(is.null(xQTLfitList)==T){
 if (!requireNamespace("CARMA", quietly = TRUE)) {
-stop("Package 'CARMA' is required for eQTL.method='CARMA', but is not installed. ",
+stop("Package 'CARMA' is required for xQTL.method='CARMA', but is not installed. ",
 "Please install it with install.packages('CARMA').")
 }
 z.list=ld.list=w.list=lambda.list=list()
@@ -170,18 +170,18 @@ dir.create(output.labels)
 is.delect=T
 }
 if(is.null(Annotation)==F){
-fiteQTL=CARMA::CARMA(z.list,ld.list,w.list,lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
+fitxQTL=CARMA::CARMA(z.list,ld.list,w.list,lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
 }else{
-fiteQTL=CARMA::CARMA(z.list,ld.list,lambda.list = lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
+fitxQTL=CARMA::CARMA(z.list,ld.list,lambda.list = lambda.list,outlier.switch=outlier.switch,num.causal=xQTL.max.num,printing.log=F,all.iter=carma.iter,all.inner.iter=carma.inner.iter,epsilon.threshold=carma.epsilon.threshold,output.labels=output.labels)
 }
 if(is.delect==T){
 unlink(output.labels, recursive = TRUE, force = TRUE)
 }
 for(i in 1:p){
-sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fiteQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
-if(length(fiteQTL[[i]]$`Credible set`[[2]])!=0){
-for(l in 1:length(fiteQTL[[i]]$`Credible set`[[2]])){
-sumstat.result$cs[fiteQTL[[i]]$`Credible set`[[2]][[l]]]=l
+sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+if(length(fitxQTL[[i]]$`Credible set`[[2]])!=0){
+for(l in 1:length(fitxQTL[[i]]$`Credible set`[[2]])){
+sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
 }
 }
 if(xQTL.selection.rule=="top_K"){
@@ -209,12 +209,12 @@ bXestse[,i]=bXse[,i]
 }
 }
 }else{
-fiteQTL=eQTLfitList
+fitxQTL=xQTLfitList
 for(i in 1:p){
-sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fiteQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
-if(length(fiteQTL[[i]]$`Credible set`[[2]])!=0){
-for(l in 1:length(fiteQTL[[i]]$`Credible set`[[2]])){
-sumstat.result$cs[fiteQTL[[i]]$`Credible set`[[2]][[l]]]=l
+sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+if(length(fitxQTL[[i]]$`Credible set`[[2]])!=0){
+for(l in 1:length(fitxQTL[[i]]$`Credible set`[[2]])){
+sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
 }
 }
 if(xQTL.selection.rule=="top_K"){
@@ -256,10 +256,10 @@ A$bXest=bXest
 A$bXestse=bXestse
 A$bXest0=bXest0
 A$bXestse0=bXestse0
-if(eQTL.method=="SuSiE"){
-A$eQTLfitList=eQTLfitList
+if(xQTL.method=="SuSiE"){
+A$xQTLfitList=xQTLfitList
 }else{
-A$eQTLfitList=fiteQTL
+A$xQTLfitList=fitxQTL
 }
 return(A)
 }

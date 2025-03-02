@@ -52,7 +52,7 @@ max.iter=100;max.eps=0.001;susie.iter=100;
 ebic.theta=1;ebic.gamma=2;maxdiff=3;
 theta.ini=F;gamma.ini=F
 Rxy=A$Rxy
-eQTLfitList=NULL
+xQTLfitList=NULL
 xQTL.cred.thres=0.95
 xQTL.pip.min=0.2
 outlier.switch=F
@@ -62,9 +62,10 @@ output.labels=NULL;
 carma.iter=5;carma.inner.iter=5;xQTL.max.num=10;
 carma.epsilon.threshold=1e-3;
 
-fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1)
+fitxQTL=Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),ridge.diff=1000)
+fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=fitxQTL$xQTLfitList)
 fit1$theta
-#fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,eQTL.method="CARMA")
+#fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,xQTL.method="CARMA")
 #fit2$theta
 
 bX[,2]=LD%*%A$bX0[,1]+(A$bX[,2]-LD%*%A$bX0[,2])
@@ -72,9 +73,10 @@ bX[,2]=-bX[,2]
 Rxy[-2,2]=-Rxy[-2,2];Rxy[2,-2]=-Rxy[2,-2];
 bX[,3]=LD%*%A$bX0[,1]+(A$bX[,3]-LD%*%A$bX0[,3])
 
-fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,top_K=3)
+fitxQTL=Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),ridge.diff=1000)
+fit3=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,top_K=3,xQTLfitList=fitxQTL$xQTLfitList)
 fit3$theta
-#fit4=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,eQTL.method="CARMA")
+#fit4=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,xQTL.method="CARMA")
 #fit4$theta
 
 Btheta[iter,,]=cbind(fit1$theta,fit2$theta,fit3$theta,fit4$theta)#,fit5$theta,fit6$theta,fit7$theta,fit8$theta)
