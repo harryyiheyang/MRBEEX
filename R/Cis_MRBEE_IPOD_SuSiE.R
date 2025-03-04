@@ -9,7 +9,11 @@ byse=byse/byse
 m=nrow(bX)
 p=ncol(bX)
 LD=as.matrix(LD)
+if(m<=1000){
 Theta=matrixInverse(LD)
+}else{
+Theta=matrixGeneralizedInverse(LD)
+}
 bXinv=matrixMultiply(matrixInverse(LD*0.975+diag(m)*0.025),bX)
 Bt=matrixMultiply(t(bX),Theta)
 BtB=matrixMultiply(Bt,bX)

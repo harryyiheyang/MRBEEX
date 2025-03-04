@@ -42,7 +42,7 @@
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #'
 #' @importFrom MASS rlm ginv
-#' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
+#' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct matrixGeneralizedInverse
 #' @importFrom Matrix Matrix solve chol bdiag
 #' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
 #'
