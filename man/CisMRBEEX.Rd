@@ -41,7 +41,8 @@ CisMRBEEX(
   ebic.gamma = 2,
   theta.ini = F,
   gamma.ini = F,
-  xQTLfitList = NULL
+  xQTLfitList = NULL,
+  verbose = T
 )
 }
 \arguments{
@@ -118,6 +119,8 @@ CisMRBEEX(
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
 \item{xQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
+
+\item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:

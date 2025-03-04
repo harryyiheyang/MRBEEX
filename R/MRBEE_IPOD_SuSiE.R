@@ -1,5 +1,6 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T){
 ########################### Basic information #######################
+t1=Sys.time()
 by=by/byse
 byseinv=1/byse
 bX=bX*byseinv
@@ -55,7 +56,13 @@ theta.ini=theta.ini1=fit0$theta
 gamma.ini=gamma.ini1=gamma.ini/byse1
 theta.ini=theta.ini1=theta.ini
 }
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Initialization ends: ",time_to_print," secs\n"))
+}
 ############################## Tuning Parameter ######################
+t1=Sys.time()
 w=length(tauvec)
 q=length(Lvec)
 Btheta=array(0,c(p,w,q))
@@ -178,7 +185,13 @@ if(iter>3){
 error=max(abs(theta-theta1))
 }
 }
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Estimation ends: ",time_to_print," secs\n"))
+}
 ############################### inference #########################
+t1=Sys.time()
 gamma=gamma1
 theta=theta
 names(theta)=colnames(bX)
@@ -191,7 +204,7 @@ ThetaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(bX)
 GammaList=matrix(0,sampling.time,m)
 colnames(GammaList)=rownames(bX)
-cat("Bootstrapping process:\n")
+cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 for(j in 1:sampling.time) {
 setTxtProgressBar(pb, j)
@@ -247,6 +260,11 @@ ThetaList[j, ] <- thetaj
 GammaList[j, ] = gamma1j
 }
 close(pb)
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+}
 theta.se=colSD(ThetaList)*sqrt((m-length(indtheta))/(m-length(indtheta)-length(indgamma)))
 theta.cov=cov(ThetaList)*(m-length(indtheta))/(m-length(indtheta)-length(indgamma))
 colnames(theta.cov)=rownames(theta.cov)=names(theta.se)=colnames(bX)

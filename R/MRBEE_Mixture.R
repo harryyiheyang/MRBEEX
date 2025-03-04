@@ -1,5 +1,6 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T){
 ########################### Basic information #######################
+  t1=Sys.time()
 by=by/byse
 byseinv=1/byse
 bX=bX*byseinv
@@ -44,7 +45,13 @@ cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
 m2=length(cluster2)
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+  cat(paste0("Initialization ends: ",time_to_print," secs\n"))
+}
 ############################## Tuning Parameter ######################
+t1=Sys.time()
 iter=0
 error=1
 while(iter<max.iter&error>max.eps){
@@ -82,12 +89,17 @@ error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 Bic=MRFit(by=tilde.y,bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=p,df2=p)+2*p*(log(p*2)*ebic.theta+log(m))+log(m)
 Bic=Bic/m
 }
-
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+  cat(paste0("Estimation ends: ",time_to_print," secs\n"))
+}
 ############################### inference #########################
+t1=Sys.time()
 names(theta1)=names(theta2)=colnames(bX)
 ThetaList1=ThetaList2=matrix(0,sampling.time,p)
 colnames(ThetaList1)=colnames(ThetaList2)=colnames(bX)
-cat("Bootstrapping process:\n")
+cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
 while(j<=sampling.time){
@@ -152,6 +164,11 @@ next  # Retry the current iteration
 }
 }
 close(pb)
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+  cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+}
 indtheta1=which(theta1!=0)
 indtheta2=which(theta2!=0)
 

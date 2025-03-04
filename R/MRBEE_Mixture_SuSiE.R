@@ -1,5 +1,6 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,verbose=T){
 ########################### Basic information #######################
+t1=Sys.time()
 by=by/byse
 byseinv=1/byse
 bX=bX*byseinv
@@ -51,7 +52,13 @@ cluster.ini.1=which(Voting.ini$Cluster[,1]==1)
 cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
 m1=length(cluster.ini.1)
 m2=length(cluster.ini.2)
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Initialization ends: ",time_to_print," secs\n"))
+}
 ############################## Tuning Parameter ######################
+t1=Sys.time()
 q=length(Lvec)
 Btheta1=array(0,c(p,q,q))
 Btheta2=array(0,c(p,q,q))
@@ -217,7 +224,7 @@ sigma1=max(0.25,sigma1)
 Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
 cluster2=which(Voting$Cluster[,2]==1)
 if(length(cluster2)==0){
-  cluster2=c(1:min.cluster.size)
+cluster2=c(1:min.cluster.size)
 }
 cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
@@ -228,8 +235,14 @@ if(iter>3){
 error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
 }
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Estimation ends: ",time_to_print," secs\n"))
+}
 ############################### inference #########################
-cat("Bootstrapping process:\n")
+t1=Sys.time()
+cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 names(theta1)=names(theta2)=colnames(bX)
 ThetaList1=ThetaList2=matrix(0,sampling.time,p)
@@ -302,7 +315,7 @@ sigma1j=max(0.25,sigma1j)
 Votingj=cluster_voting(by=tilde.yj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
 cluster2j=which(Votingj$Cluster[,2]==1)
 if(length(cluster2j)==0){
-  cluster2j=c(1:2)
+cluster2j=c(1:2)
 }
 cluster1j=which(Votingj$Cluster[,1]==1)
 m1j=length(cluster1j)
@@ -327,6 +340,11 @@ next  # Retry the current iteration
 }
 }
 close(pb)
+t2=Sys.time()
+time_to_print=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+}
 indtheta1=which(theta1!=0)
 indtheta2=which(theta2!=0)
 

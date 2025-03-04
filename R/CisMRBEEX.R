@@ -39,6 +39,7 @@
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param xQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
+#' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #'
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -66,18 +67,18 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-     reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-     xQTL.method="SuSiE",xQTL.selection.rule="top_K",
-     top_K=1,xQTL.pip.min=0.2,
-     xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-     xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
-     outlier.switch=T,Annotation=NULL,output.labels=NULL,
-     carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
-     carma.epsilon.threshold=1e-3,
-     admm.rho=2,ridge.diff=1e3,
-     max.iter=100,max.eps=0.001,susie.iter=500,
-     ebic.theta=1,ebic.gamma=2,
-     theta.ini=F,gamma.ini=F,xQTLfitList=NULL){
+   reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+   xQTL.method="SuSiE",xQTL.selection.rule="top_K",
+   top_K=1,xQTL.pip.min=0.2,
+   xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+   xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
+   outlier.switch=T,Annotation=NULL,output.labels=NULL,
+   carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
+   carma.epsilon.threshold=1e-3,
+   admm.rho=2,ridge.diff=1e3,
+   max.iter=100,max.eps=0.001,susie.iter=500,
+   ebic.theta=1,ebic.gamma=2,
+   theta.ini=F,gamma.ini=F,xQTLfitList=NULL,verbose=T){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -86,6 +87,8 @@ m=nrow(bX)
 bXest=bX
 bXest0=bXestse0=bX*0
 bXestse=bXestse0=matrix(1000,m,p)
+
+t1=Sys.time()
 A=list()
 if(xQTL.method=="SuSiE"){
 if(is.null(xQTLfitList)==T){
@@ -243,14 +246,25 @@ bXestse[,i]=bXse[,i]
 }
 }
 }
+t2=Sys.time()
+sparse_prediction_time=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Sparse prediction ends: ",sparse_prediction_time," secs\n"))
+}
 pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
+t1=Sys.time()
 A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm)
+t2=Sys.time()
+causal_estimation_time=round(difftime(t2, t1, units = "secs"),3)
+if(verbose==T){
+cat(paste0("Causal effect estimation ends: ",causal_estimation_time," secs\n"))
+}
 }
 ##########################################################################
 if(model.infinitesimal==T){
-cat("awaiting development\n")
+cat("Awaiting development\n")
 }
 A$bXest=bXest
 A$bXestse=bXestse

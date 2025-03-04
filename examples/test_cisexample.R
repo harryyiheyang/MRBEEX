@@ -62,8 +62,8 @@ output.labels=NULL;
 carma.iter=5;carma.inner.iter=5;xQTL.max.num=10;
 carma.epsilon.threshold=1e-3;
 
-fitxQTL=Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),ridge.diff=1000)
-fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=fitxQTL$xQTLfitList)
+#fitxQTL=Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),ridge.diff=1000)
+fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1)
 fit1$theta
 #fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge=100,causal.pip.thres=0.1,xQTL.method="CARMA")
 #fit2$theta

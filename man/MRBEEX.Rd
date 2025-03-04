@@ -31,7 +31,8 @@ MRBEEX(
   maxdiff = 3,
   reliability.thres = 0.75,
   theta.ini = F,
-  gamma.ini = F
+  gamma.ini = F,
+  verbose = T
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ MRBEEX(
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
+
+\item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:
