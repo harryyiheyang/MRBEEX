@@ -12,7 +12,7 @@ LD=as.matrix(LD)
 if(m<=1000){
 Theta=matrixInverse(LD)
 }else{
-Theta=matrixGeneralizedInverse(LD)
+Theta=positiveinv(LD)
 }
 bXinv=matrixMultiply(matrixInverse(LD*0.975+diag(m)*0.025),bX)
 Bt=matrixMultiply(t(bX),Theta)

@@ -67,7 +67,7 @@ return(B)
 }
 
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen
-positiveinv=function(A,min.eps=0){
+positiveinv=function(A,min.eps=1e-8){
 a=matrixEigen(A)
 d=c(a$values)
 d1=1/d
