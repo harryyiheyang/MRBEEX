@@ -78,7 +78,7 @@ CisMRBEEX(
 
 \item{xQTL.cred.thres}{When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
-\item{xQTL.pip.thres}{When choosing \code{"SuSiE"}, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
+\item{xQTL.pip.thres}{The threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
 \item{xQTL.Nvec}{When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.}
 

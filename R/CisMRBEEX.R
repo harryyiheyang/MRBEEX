@@ -13,7 +13,7 @@
 #' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
 #' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
-#' @param xQTL.pip.thres When choosing \code{"SuSiE"}, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+#' @param xQTL.pip.thres The threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
 #' @param xQTL.max.L When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
 #' @param xQTL.Nvec When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
@@ -101,7 +101,7 @@ fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,p
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight)
 xQTLfitList[[i]]=fit
 if(xQTL.selection.rule=="top_K"){
-indj=top_K_pip(summary(fit)$vars,top_K=top_K)
+indj=top_K_pip(summary(fit)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
 causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
@@ -128,7 +128,7 @@ bXestse[,i]=bXse[,i]
 for(i in 1:p){
 fit=xQTLfitList[[i]]
 if(xQTL.selection.rule=="top_K"){
-indj=top_K_pip(summary(fit)$vars,top_K=top_K)
+indj=top_K_pip(summary(fit)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
 causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
@@ -188,7 +188,7 @@ sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
 }
 }
 if(xQTL.selection.rule=="top_K"){
-indj=top_K_pip(sumstat.result,top_K=top_K)
+indj=top_K_pip(sumstat.result,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
 indj=which(sumstat.result$cs!=0&sumstat.result$pip>xQTL.pip.min)
 }
@@ -221,7 +221,7 @@ sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
 }
 }
 if(xQTL.selection.rule=="top_K"){
-indj=top_K_pip(sumstat.result,top_K=top_K)
+indj=top_K_pip(sumstat.result,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
 indj=which(sumstat.result$cs!=0&sumstat.result$pip>xQTL.pip.min)
 }
