@@ -689,9 +689,6 @@ return(list(complement=complement,cluster=cluster))
 
 top_K_pip=function(susie_summary,top_K=1,pip.min.thres=0.01,xQTL.pip.thres=0.5){
 ind=which(susie_summary$cs>0&susie_summary$variable_prob>=pip.min.thres)
-if(length(ind)==0){
-ind=which(susie_summary$variable_prob>=xQTL.pip.thres)
-}
 if(length(ind)>0){
 susie_summary=susie_summary[ind,]
 J=max(susie_summary$cs)
@@ -706,8 +703,9 @@ if(length(indj)>top_K){
 index=c(index,g$variable[top_K_indices(g$variable_prob,k=top_K)])
 }
 }
-}else{
-index=c()
+}
+if(length(ind)==0){
+ind=which(susie_summary$variable_prob>=xQTL.pip.thres)
 }
 return(index)
 }
