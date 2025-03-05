@@ -705,7 +705,7 @@ index=c(index,g$variable[top_K_indices(g$variable_prob,k=top_K)])
 }
 }
 if(length(ind)==0){
-ind=which(susie_summary$variable_prob>=xQTL.pip.thres)
+index=which(susie_summary$variable_prob>=xQTL.pip.thres)
 }
 return(index)
 }

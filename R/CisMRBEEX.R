@@ -181,7 +181,7 @@ if(is.delect==T){
 unlink(output.labels, recursive = TRUE, force = TRUE)
 }
 for(i in 1:p){
-sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+sumstat.result = data.frame(variable=c(1:nrow(bX)),variable_prob = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
 if(length(fitxQTL[[i]]$`Credible set`[[2]])!=0){
 for(l in 1:length(fitxQTL[[i]]$`Credible set`[[2]])){
 sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
@@ -214,7 +214,7 @@ bXestse[,i]=bXse[,i]
 }else{
 fitxQTL=xQTLfitList
 for(i in 1:p){
-sumstat.result = data.frame(variable=c(1:nrow(bX)),pip = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
+sumstat.result = data.frame(variable=c(1:nrow(bX)),variable_prob = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
 if(length(fitxQTL[[i]]$`Credible set`[[2]])!=0){
 for(l in 1:length(fitxQTL[[i]]$`Credible set`[[2]])){
 sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
