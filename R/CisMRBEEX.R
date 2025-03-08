@@ -77,7 +77,7 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
    carma.epsilon.threshold=1e-3,
    admm.rho=2,ridge.diff=1e3,
    max.iter=100,max.eps=0.001,susie.iter=500,
-   ebic.theta=1,ebic.gamma=2,
+   ebic.theta=0,ebic.gamma=1,
    theta.ini=F,gamma.ini=F,xQTLfitList=NULL,verbose=T){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
