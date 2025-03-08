@@ -180,6 +180,7 @@ fitxQTL=CARMA::CARMA(z.list,ld.list,lambda.list = lambda.list,outlier.switch=out
 if(is.delect==T){
 unlink(output.labels, recursive = TRUE, force = TRUE)
 }
+CARMA_Summary=list()
 for(i in 1:p){
 sumstat.result = data.frame(variable=c(1:nrow(bX)),variable_prob = fitxQTL[[i]]$PIPs, cs = rep(0,nrow(bX)))
 if(length(fitxQTL[[i]]$`Credible set`[[2]])!=0){
@@ -187,6 +188,7 @@ for(l in 1:length(fitxQTL[[i]]$`Credible set`[[2]])){
 sumstat.result$cs[fitxQTL[[i]]$`Credible set`[[2]][[l]]]=l
 }
 }
+CARMA_Summary[[i]]=sumstat.result
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(sumstat.result,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
@@ -211,6 +213,7 @@ bXest[,i]=bX[,i]
 bXestse[,i]=bXse[,i]
 }
 }
+fitxQTL$Summary_Result=CARMA_Summary
 }else{
 fitxQTL=xQTLfitList
 for(i in 1:p){
