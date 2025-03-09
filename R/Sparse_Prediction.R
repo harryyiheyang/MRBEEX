@@ -38,9 +38,9 @@
 #' }
 #' @export
 
-Sparse_Prediction=function(bX,bXse,LD,xQTL.method="SuSiE",xQTL.selection.rule="top_K",
+Sparse_Prediction=function(bX,bXse,LD,xQTL.Nvec,xQTL.method="SuSiE",xQTL.selection.rule="top_K",
                            top_K=1,xQTL.pip.min=0.2,ridge.diff=100,
-                           xQTL.Nvec,xQTL.max.L=10,xQTL.cred.thres=0.95,
+                           xQTL.max.L=10,xQTL.cred.thres=0.95,
                            xQTL.pip.thres=0.5,xQTL.weight=NULL,
                            outlier.switch=T,Annotation=NULL,output.labels=NULL,
                            carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
