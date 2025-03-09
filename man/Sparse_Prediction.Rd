@@ -8,16 +8,11 @@ Sparse_Prediction(
   bX,
   bXse,
   LD,
-  xQTL.method = "SuSiE",
-  xQTL.selection.rule = "top_K",
-  top_K = 1,
-  xQTL.pip.min = 0.2,
-  ridge.diff = 100,
-  xQTL.max.L = 10,
-  xQTL.cred.thres = 0.95,
-  xQTL.pip.thres = 0.5,
   xQTL.Nvec,
+  xQTL.method = "SuSiE",
+  xQTL.max.L = 10,
   xQTL.weight = NULL,
+  xQTL.cred.thres = 0.95,
   outlier.switch = T,
   Annotation = NULL,
   output.labels = NULL,
@@ -34,25 +29,15 @@ Sparse_Prediction(
 
 \item{LD}{The linkage disequilibrium (LD) matrix.}
 
+\item{xQTL.Nvec}{When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.}
+
 \item{xQTL.method}{The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.}
-
-\item{xQTL.selection.rule}{The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".}
-
-\item{top_K}{The maximum number of variables selected in each credible sets. Defaults to 1.}
-
-\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
-
-\item{ridge.diff}{A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.}
 
 \item{xQTL.max.L}{When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{xQTL.cred.thres}{When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
-
-\item{xQTL.pip.thres}{When choosing \code{"SuSiE"}, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
-
-\item{xQTL.Nvec}{When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.}
-
 \item{xQTL.weight}{When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.}
+
+\item{xQTL.cred.thres}{When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
 \item{outlier.switch}{When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.}
 
