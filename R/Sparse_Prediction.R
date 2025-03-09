@@ -40,8 +40,8 @@
 
 Sparse_Prediction=function(bX,bXse,LD,xQTL.method="SuSiE",xQTL.selection.rule="top_K",
                            top_K=1,xQTL.pip.min=0.2,ridge.diff=100,
-                           xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-                           xQTL.Nvec,xQTL.weight=NULL,
+                           xQTL.Nvec,xQTL.max.L=10,xQTL.cred.thres=0.95,
+                           xQTL.pip.thres=0.5,xQTL.weight=NULL,
                            outlier.switch=T,Annotation=NULL,output.labels=NULL,
                            carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
                            carma.epsilon.threshold=1e-3){
