@@ -1,0 +1,1169 @@
+\nonstopmode{}
+\documentclass[a4paper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\makeatletter\@ifl@t@r\fmtversion{2018/04/01}{}{\usepackage[utf8]{inputenc}}\makeatother
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `MRBEEX'}}
+\par\bigskip{\large \today}
+\end{center}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdftitle = {MRBEEX: Mendelian Randomization using Bias-Correction Estimating Equations with Extended Functions}}}{}
+\begin{description}
+\raggedright{}
+\item[Type]\AsIs{Package}
+\item[Title]\AsIs{Mendelian Randomization using Bias-Correction Estimating Equations with Extended Functions}
+\item[Version]\AsIs{0.1.0}
+\item[Author]\AsIs{Yihe Yang}
+\item[Maintainer]\AsIs{Yihe Yang }\email{yxy1234@case.edu}\AsIs{}
+\item[Description]\AsIs{MRBEEX extends the functionality of the MRBEE package by incorporating advanced methods for Mendelian Randomization (MR) analysis. It introduces the MRBEEX function, which uses bias-corrected estimating equations to mitigate weak instrument bias due to estimation errors in GWAS effect estimates for exposures and outcomes. For addressing horizontal pleiotropy, the package employs the IPOD algorithm to identify uncorrelated horizontal pleiotropy (UHP) and a two-mixture regression model for correlated horizontal pleiotropy (CHP). Additionally, it integrates SuSiE for exposure selection, enhancing interpretability (UseSuSiE=T). The package also includes MRBEEX.UV for univariable MR analysis, offering similar methods for managing UHP and CHP. Both functions support the inclusion of correlated instrumental variables using an LD matrix and provide advanced options for exposure selection and horizontal pleiotropy correction. Furthermore, it offers CisMRBEEX for performing multivariable cis-Mendelian randomization.}
+\item[License]\AsIs{MIT LICENSE}
+\item[Encoding]\AsIs{UTF-8}
+\item[LazyData]\AsIs{true}
+\item[RoxygenNote]\AsIs{7.3.2}
+\item[Imports]\AsIs{MASS,
+Rcpp (>= 1.0.0),
+RcppArmadillo,
+FDRestimation,
+mvtnorm,
+mixtools,
+utils,
+data.table,
+varbvs,
+susieR,
+CppMatrix,
+Matrix,
+MRBEE}
+\item[Suggests]\AsIs{CARMA}
+\item[Remotes]\AsIs{harryyiheyang/CppMatrix,
+noahlorinczcomi/MRBEE,
+stephenslab/susieR}
+\item[ORCID]\AsIs{0000-0001-6563-3579}
+\end{description}
+\Rdcontents{Contents}
+\HeaderA{CisMRBEEX}{Cis Multivariable Mendelian Randomization using Bias-corrected Estimating Equations}{CisMRBEEX}
+%
+\begin{Description}
+This function performs multivariable cis-Mendelian randomization that removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP). Additionally, it integrates SuSiE for exposure selection, enhancing interpretability.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+CisMRBEEX(
+  by,
+  bX,
+  byse,
+  bXse,
+  LD,
+  Rxy,
+  model.infinitesimal = F,
+  reliability.thres = 0.75,
+  Lvec = c(1:5),
+  causal.pip.thres = 0.2,
+  xQTL.method = "SuSiE",
+  xQTL.selection.rule = "top_K",
+  top_K = 1,
+  xQTL.pip.min = 0.2,
+  xQTL.max.L = 10,
+  xQTL.cred.thres = 0.95,
+  xQTL.pip.thres = 0.5,
+  xQTL.Nvec,
+  tauvec = seq(3, 30, by = 3),
+  xQTL.weight = NULL,
+  outlier.switch = T,
+  Annotation = NULL,
+  output.labels = NULL,
+  carma.iter = 5,
+  carma.inner.iter = 5,
+  xQTL.max.num = 10,
+  carma.epsilon.threshold = 0.001,
+  admm.rho = 2,
+  ridge.diff = 1000,
+  max.iter = 100,
+  max.eps = 0.001,
+  susie.iter = 500,
+  ebic.theta = 0,
+  ebic.gamma = 1,
+  theta.ini = F,
+  gamma.ini = F,
+  xQTLfitList = NULL,
+  verbose = T
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix.
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
+
+\item[\code{model.infinitesimal}] An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.
+
+\item[\code{reliability.thres}] A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+
+\item[\code{Lvec}] When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
+
+\item[\code{causal.pip.thres}] A threshold of minimum posterior inclusion probability. Default is \code{0.2}.
+
+\item[\code{xQTL.method}] The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
+
+\item[\code{xQTL.selection.rule}] The method for purifying informative xQTLs within each credible set. Options include "minimum\_pip", which selects all variables with PIPs exceeding a specified threshold, and "top\_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top\_K".
+
+\item[\code{top\_K}] The maximum number of variables selected in each credible sets. Defaults to 1.
+
+\item[\code{xQTL.pip.min}] The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
+
+\item[\code{xQTL.max.L}] When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
+
+\item[\code{xQTL.cred.thres}] When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+
+\item[\code{xQTL.pip.thres}] The threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+
+\item[\code{xQTL.Nvec}] When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
+
+\item[\code{tauvec}] The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+
+\item[\code{xQTL.weight}] When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.
+
+\item[\code{outlier.switch}] When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.
+
+\item[\code{Annotation}] When choosing \code{"CARMA"}, the annotation matrix of SNP. Default is NULL.
+
+\item[\code{output.labels}] When choosing \code{"CARMA"}, output directory where output will be written while CARMA is running. Defaults to \code{NULL}, meaning that a temporary folder will be created and automatically deleted upon completion of the computation.
+
+\item[\code{carma.iter}] When choosing \code{"CARMA"}, the maximum iterations for EM algorithm to run. Defaults to 5.
+
+\item[\code{carma.inner.iter}] When choosing \code{"CARMA"}, the maximum iterations for Shotgun algorithm to run per iteration within EM algorithm. Defaults to 5.
+
+\item[\code{xQTL.max.num}] When choosing \code{"CARMA"}, the maximum number of causal variants assumed per locus, which is similar to the number of single effects in SuSiE. Defaults to 10.
+
+\item[\code{carma.epsilon.threshold}] When choosing \code{"CARMA"}, the convergence threshold measured by average of Bayes factors. Defaults to \code{1e-3}.
+
+\item[\code{admm.rho}] The tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+
+\item[\code{ridge.diff}] A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Defaults to \code{0.001}.
+
+\item[\code{susie.iter}] Number of iterations in SuSiE per iteration. Default is \code{500}.
+
+\item[\code{ebic.theta}] EBIC factor on causal effect. Default is \code{1}.
+
+\item[\code{ebic.gamma}] EBIC factor on horizontal pleiotropy Default is \code{2}.
+
+\item[\code{theta.ini}] Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
+
+\item[\code{gamma.ini}] Initial value of gamma. Default is \code{FALSE}.
+
+\item[\code{xQTLfitList}] Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
+
+\item[\code{verbose}] A logical indicator of whether to display the execution time of the method. Default is \code{T}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list that contains the results of the MRBEEX with respect to different methods applied:
+\begin{description}
+
+\item[\code{theta}] Causal effect estimate.
+\item[\code{theta.se}] Standard error of the causal effect estimate.
+\item[\code{theta.cov}] Covariance matrix of the causal effect estimate.
+\item[\code{theta.pip}] Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.
+\item[\code{theta.pratt}] Pratt index estimate of exposure.
+\item[\code{gamma}] Estimate of horizontal pleiotropy.
+\item[\code{gamma.pratt}] Pratt index estimate of horizontal pleiotropy.
+\item[\code{Bic}] A vector or matrix recording the Bayesian Information Criterion (BIC) values.
+\item[\code{theta.ini}] Initial value of \code{theta} used in the estimation procedure.
+\item[\code{gamma.ini}] Initial value of \code{gamma} used in the estimation procedure.
+\item[\code{reliability.adjust}] Estimated reliability-adjusted values.
+\item[\code{thetalist}] List of \code{theta} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{gammalist}] List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.
+\item[var.error] The variance of residuals.
+\item[var.error] The variance of infinitesimal effect.
+\item[estimated.reliability.ratio] The estimated reliability ratios of exposures.
+\item[xQTLfitList] The results of sparse predictions of exposures, yielded by SuSiE or CARMA.
+
+\end{description}
+
+\end{Value}
+\HeaderA{CisMRBEE\_UV}{CisMRBEE\_UV: Cis Univariable Mendelian Randomization using Bias-corrected Estimating Equations}{CisMRBEE.Rul.UV}
+%
+\begin{Description}
+This function performs univariable cis-Mendelian randomization that removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP).
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+CisMRBEE_UV(
+  by,
+  bX,
+  byse,
+  bXse,
+  LD,
+  Rxy,
+  xQTL.N,
+  xQTL.selection.rule = "top_K",
+  top_K = 1,
+  xQTL.pip.min = 0.2,
+  xQTL.max.L = 10,
+  xQTL.cred.thres = 0.95,
+  xQTL.pip.thres = 0.5,
+  reliability.thres = 0.75,
+  tauvec = seq(3, 30, by = 1.5),
+  admm.rho = 2,
+  use.susie = T,
+  causal.pip.thres = 0.3,
+  max.iter = 100,
+  max.eps = 0.001,
+  ebic.gamma = 2,
+  xQTLfit = NULL
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{LD}] The LD matrix of variants.
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
+
+\item[\code{xQTL.N}] The sample sizes of exposure.
+
+\item[\code{xQTL.selection.rule}] The method for purifying informative xQTLs within each credible set. Options include "minimum\_pip", which selects all variables with PIPs exceeding a specified threshold, and "top\_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top\_K".
+
+\item[\code{top\_K}] The maximum number of variables selected in each credible sets. Defaults to 1.
+
+\item[\code{xQTL.pip.min}] The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
+
+\item[\code{xQTL.max.L}] The maximum number of L in estimating the xQTL effects. Defaults to 10.
+
+\item[\code{xQTL.cred.thres}] The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+
+\item[\code{xQTL.pip.thres}] If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
+
+\item[\code{reliability.thres}] A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+
+\item[\code{tauvec}] A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.
+
+\item[\code{admm.rho}] A parameter set in the ADMM algorithm. Default is \code{2}.
+
+\item[\code{use.susie}] n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.
+
+\item[\code{causal.pip.thres}] When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.
+
+\item[\code{max.iter}] The maximum number of iterations for the ADMM algorithm. Default is \code{15}.
+
+\item[\code{max.eps}] The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.
+
+\item[\code{ebic.gamma}] The extended BIC factor for model selection. Default is \code{2}.
+
+\item[\code{xQTLfit}] Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing:
+\begin{description}
+
+\item[\code{theta}] The estimated effect size of the tissue-gene pair.
+\item[\code{gamma}] The estimated effect sizes of the direct causal variants.
+\item[\code{theta.cov}] The variance of the estimated effect size `theta`.
+\item[\code{theta.se}] The standard error of the estimated effect size `theta`.
+\item[\code{theta.z}] The z-score of the estimated effect size `theta`.
+\item[\code{Bic}] The BIC values for each tuning parameter.
+\item[\code{eQTL.fit}] The SuSiE result of xQLT selection of exposure.
+\item[\code{var.error}] The variance of residuals.
+\item[\code{var.error}] The variance of infinitesimal effect.
+\item[\code{causal.fit}] The SuSiE result of causal effect calibration of exposure.
+\item[\code{reliability.adjust}] Estimated reliability-adjusted values.
+
+\end{description}
+
+\end{Value}
+\HeaderA{clump\_cluster}{Clustering second data frame based on closest SNP centers from first data frame}{clump.Rul.cluster}
+%
+\begin{Description}
+This function performs clustering of SNPs in a second data.frame based on the closest SNP centers defined in a first data.frame.
+Both data.frames should include SNP, BP, and CHR columns. This function scales CHR and BP to ensure distinctiveness across chromosomes
+and employs Euclidean distance to find the nearest cluster centers from the first data.frame for each SNP in the second data.frame.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+clump_cluster(df1, df2)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df1}] A data.frame representing the output of a plink clump with parameters r2=0.01.
+It contains columns for SNP, BP (base pair position), CHR (chromosome), and P (p-value).
+
+\item[\code{df2}] A data.frame similar to df1, representing a plink output with a less stringent r2 value, typically r2=0.5,
+including columns for SNP, BP, CHR, and P.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The function first standardizes the CHR and BP columns by multiplying CHR by 10000 and dividing BP by 1e6.
+This standardization helps to manage the scale differences between chromosome numbers and base pair positions.
+After standardization, it calculates the Euclidean distances between each SNP in df2 to all SNP centers in df1,
+assigns each SNP in df2 to the nearest center from df1, and adds a new column 'cluster' to df2 to reflect this assignment.
+\end{Details}
+%
+\begin{Value}
+A modified version of df2 where each SNP is annotated with a 'cluster' index corresponding to the closest
+SNP center from df1 based on scaled CHR and BP values.
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+df1 <- data.frame(SNP=c("rs1", "rs2"), CHR=c(1, 1), BP=c(150000, 250000), P=c(0.001, 0.002))
+df2 <- data.frame(SNP=c("rs1", "rs3", "rs2", "rs4"), CHR=c(1,1,1,1),
+                  BP=c(150000,160000,250000,260000),
+                  P=c(0.001,0.003,0.002, 0.004))
+clustered_df2 <- clump_cluster(df1, df2)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{cluster\_snps}{Clustering SNPs based on p-value and proximity with a PLINK C+T file.}{cluster.Rul.snps}
+%
+\begin{Description}
+This function clusters SNPs within a given window size based on their P-value and proximity. It iterates through
+each chromosome, finds the SNP with the smallest P-value, and groups all SNPs within the specified window size
+around this SNP into a cluster.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+cluster_snps(df, window_size = 1e+06)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df}] A data.frame containing SNP data with columns for SNP (SNP ID), CHR (chromosome), BP (base pair position), and P (p-value).
+
+\item[\code{window\_size}] An integer specifying the window size around each SNP (in base pairs) within which other SNPs are considered for clustering. Default to 1e6.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The function processes each chromosome independently. It orders the SNPs by their base pair positions, identifies
+the SNP with the smallest P-value, and clusters all SNPs within the specified window size around this SNP. The process
+is repeated until all SNPs are assigned to a cluster.
+\end{Details}
+%
+\begin{Value}
+A data.frame containing the clustered SNPs with an additional column 'ClusterSize' indicating the number of SNPs in each cluster.
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+df <- data.frame(SNP=c("rs1", "rs2", "rs3", "rs4", "rs5"),
+                 CHR=c(1, 1, 1, 1, 2),
+                 BP=c(100000, 150000, 200000, 250000, 300000),
+                 P=c(0.01, 0.02, 0.03, 0.04, 0.05))
+window_size <- 50000
+clustered_snps <- cluster_snps(df, window_size)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{errorCov}{Estimate Error Covariance Matrix Using GWAS Insignificant Effects}{errorCov}
+%
+\begin{Description}
+This function estimates the error covariance matrix by subsampling a proportion of insignificant GWAS effects and calculating their correlation coefficients.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+errorCov(
+  ZMatrix,
+  Zscore.cutoff = 2,
+  subsampling.ratio = 0.1,
+  subsampling.time = 1000
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{ZMatrix}] A matrix of Z-scores for exposure and outcome, with the outcome GWAS in the last column.
+
+\item[\code{Zscore.cutoff}] The cutoff for significance. Defaults to 2.
+
+\item[\code{subsampling.ratio}] The proportion of effects to subsample for each iteration. Defaults to 0.1.
+
+\item[\code{subsampling.time}] The number of subsampling iterations. Defaults to 1000.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A matrix representing the estimated error covariance.
+\end{Value}
+\HeaderA{filter\_align}{Filter and Align GWAS Data to a Reference Panel}{filter.Rul.align}
+%
+\begin{Description}
+The \code{filter\_align} function processes a list of GWAS summary statistics data frames, harmonizes alleles according to a reference panel, removes duplicates, and aligns data to common SNPs. It's used to prepare data for further analysis such as LDSC.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+filter_align(gwas_data_list, ref_panel, allele_match = T)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{gwas\_data\_list}] A list of data.frames where each data.frame contains GWAS summary statistics for a trait. Each data.frame should include columns for SNP identifiers, Z-scores of effect size estimates, sample sizes (N), effect allele (A1), and reference allele (A2).
+
+\item[\code{ref\_panel}] A data.frame containing the reference panel data. It must include columns for SNP, A1, and A2.
+
+\item[\code{allele\_match}] An indicator of whether matching the effect alleles of GWAS files to the reference panel.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The function performs several key steps: adjusting alleles according to a reference panel, removing duplicate SNPs, and aligning all GWAS data frames to a set of common SNPs. This is often a necessary preprocessing step before performing genetic correlation and heritability analyses.
+\end{Details}
+%
+\begin{Value}
+A list of data.frames, each corresponding to an input GWAS summary statistics data frame, but filtered, harmonized, and aligned to the common SNPs found across all data frames.
+\end{Value}
+\HeaderA{GWPT}{Genome-Wide Pleiotropy Test}{GWPT}
+%
+\begin{Description}
+This function performs a genome-wide pleiotropy test (GWPT) after Mendelian randomization. It offers an option for a two-mixture model, where the residual is chosen as the smaller one resulting from the two causal effect estimates from two mixtures.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+GWPT(by, byse, bX, bXse, Rxy, theta, theta.cov)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
+
+\item[\code{theta}] The causal effect estimate.
+
+\item[\code{theta.cov}] The covariance matrix of the causal effect estimate.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list with two components:
+\begin{ldescription}
+\item[\code{BETA}] The estimated residual values.
+\item[\code{SE}] The standard errors of the residual estimates.
+\end{ldescription}
+\end{Value}
+\HeaderA{GWPT\_Mixture}{Genome-Wide Pleiotropy Test for mixture model}{GWPT.Rul.Mixture}
+%
+\begin{Description}
+This function performs a genome-wide pleiotropy test (GWPT) after Mendelian randomization. It offers an option for a two-mixture model, where the residual is chosen as the smaller one resulting from the two causal effect estimates from two mixtures.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+GWPT_Mixture(
+  by,
+  byse,
+  bX,
+  bXse,
+  Rxy,
+  theta1,
+  theta.cov1,
+  theta2,
+  theta.cov2,
+  LD.block
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
+
+\item[\code{theta1}] The causal effect estimate of the first mixture.
+
+\item[\code{theta.cov1}] The covariance matrix of the causal effect estimate of the first mixture.
+
+\item[\code{theta2}] The causal effect estimate of the second mixture.
+
+\item[\code{theta.cov2}] The covariance matrix of the causal effect estimate of the second mixture.
+
+\item[\code{LD.block}] A vector of indices of LD blocks.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list with two components:
+\begin{ldescription}
+\item[\code{BETA}] The estimated residual values.
+\item[\code{SE}] The standard errors of the residual estimates.
+\end{ldescription}
+\end{Value}
+\HeaderA{MRBEEX}{Multivariable Mendelian Randomization using Bias-corrected Estimating Equations}{MRBEEX}
+%
+\begin{Description}
+This function removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP) and correlated horizontal pleiotropy (CHP) through two distinct methods. UHP is detected using the IPOD algorithm, where outliers are interpreted as UHP. For CHP, a two-mixture regression model (Mixture) is implemented by the mixtools R package. Additionally, it integrates SuSiE for exposure selection, enhancing interpretability (use.susie=T). Both the IPOD algorithm and the Mixture method support the inclusion of correlated instrumental variables using an LD matrix and provide advanced options for exposure selection and horizontal pleiotropy correction.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MRBEEX(
+  by,
+  bX,
+  byse,
+  bXse,
+  LD = "identity",
+  Rxy,
+  cluster.index = c(1:length(by)),
+  method = c("IPOD", "Mixture"),
+  use.susie = T,
+  main.cluster.thres = 0.48,
+  min.cluster.size = 5,
+  tauvec = seq(2.5, 40, by = 2.5),
+  admm.rho = 2,
+  Lvec = c(1:min(10, nrow(bX))),
+  pip.thres = 0.5,
+  max.iter = 100,
+  max.eps = 0.001,
+  susie.iter = 100,
+  ebic.theta = 1,
+  ebic.gamma = 2,
+  ridge.diff = 1000,
+  sampling.time = 100,
+  sampling.iter = 10,
+  maxdiff = 3,
+  reliability.thres = 0.75,
+  theta.ini = F,
+  gamma.ini = F,
+  verbose = T
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
+
+\item[\code{cluster.index}] A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
+
+\item[\code{method}] Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.
+
+\item[\code{use.susie}] An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
+
+\item[\code{main.cluster.thres}] When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.
+
+\item[\code{min.cluster.size}] When choosing \code{"Mixture"}, a minimum sample size of the second mixture.  Default is \code{5}.
+
+\item[\code{tauvec}] When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+
+\item[\code{admm.rho}] When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+
+\item[\code{Lvec}] When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
+
+\item[\code{pip.thres}] Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Defaults to \code{0.001}.
+
+\item[\code{susie.iter}] Number of iterations in SuSiE per iteration. Default is \code{100}.
+
+\item[\code{ebic.theta}] EBIC factor on causal effect. Default is \code{1}.
+
+\item[\code{ebic.gamma}] EBIC factor on horizontal pleiotropy. Default is \code{1}.
+
+\item[\code{ridge.diff}] A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
+
+\item[\code{sampling.time}] Number of blockwise bootstrapping times. Default is \code{100}.
+
+\item[\code{sampling.iter}] Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
+
+\item[\code{maxdiff}] The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.
+
+\item[\code{reliability.thres}] A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+
+\item[\code{theta.ini}] Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
+
+\item[\code{gamma.ini}] Initial value of gamma. Default is \code{FALSE}.
+
+\item[\code{verbose}] A logical indicator of whether to display the execution time of the method. Default is \code{T}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list that contains the results of the MRBEEX with respect to different methods applied:
+\begin{description}
+
+\item[\code{theta}] Causal effect estimate.
+\item[\code{theta.se}] Standard error of the causal effect estimate.
+\item[\code{theta.cov}] Covariance matrix of the causal effect estimate.
+\item[\code{theta.pip}] Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.
+\item[\code{theta.pratt}] Pratt index estimate of exposure.
+\item[\code{gamma}] Estimate of horizontal pleiotropy.
+\item[\code{gamma.pratt}] Pratt index estimate of horizontal pleiotropy.
+\item[\code{Bic}] A vector or matrix recording the Bayesian Information Criterion (BIC) values.
+\item[\code{theta.ini}] Initial value of \code{theta} used in the estimation procedure.
+\item[\code{gamma.ini}] Initial value of \code{gamma} used in the estimation procedure.
+\item[\code{reliability.adjust}] Estimated reliability-adjusted values.
+\item[\code{thetalist}] List of \code{theta} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{gammalist}] List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{theta1}] Causal effect estimate for the first mixture component (when \code{method="Mixture"}).
+\item[\code{theta2}] Causal effect estimate for the second mixture component (when \code{method="Mixture"}).
+\item[\code{theta.se1}] Standard error of \code{theta1}.
+\item[\code{theta.se2}] Standard error of \code{theta2}.
+\item[\code{theta.cov1}] Covariance matrix of \code{theta1}.
+\item[\code{theta.cov2}] Covariance matrix of \code{theta2}.
+\item[\code{theta.pratt1}] Pratt index estimates of exposures in the first mixture.
+\item[\code{theta.pratt2}] Pratt index estimates of exposures in the second mixture.
+\item[\code{theta.pip1}] Empirical PIP of \code{theta1} in the subsampling procedure.
+\item[\code{theta.pip2}] Empirical PIP of \code{theta2} in the subsampling procedure.
+\item[\code{thetalist1}] List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{thetalist2}] List of \code{theta2} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{Voting}] A list that contains (1) the weights of two mixtures and (2) the voting results of two mixture based on main.cluster.thres.
+
+\end{description}
+
+\end{Value}
+\HeaderA{MRBEEX\_UV}{Univariable Mendelian Randomization using Bias-corrected Estimating Equations}{MRBEEX.Rul.UV}
+%
+\begin{Description}
+This function removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP) and correlated horizontal pleiotropy (CHP) through two distinct methods. UHP is detected using the IPOD algorithm, where outliers are interpreted as UHP. For CHP, a two-mixture regression model is applied. Both the IPOD algorithm and the Mixture method support the inclusion of correlated instrumental variables using an LD matrix and provide advanced options for exposure selection and horizontal pleiotropy correction.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MRBEEX_UV(
+  by,
+  bX,
+  byse,
+  bXse,
+  LD = "identity",
+  Rxy,
+  cluster.index = c(1:length(by)),
+  reliability.thres = 0.8,
+  Method = "IPOD",
+  ebic.theta = 0,
+  tauvec = seq(3, 30, by = 3),
+  rho = 2,
+  ebic.gamma = 2,
+  max.iter = 100,
+  max.eps = 0.001,
+  maxdiff = 3,
+  sampling.time = 100,
+  sampling.iter = 10,
+  theta.ini = F,
+  gamma.ini = F,
+  min.cluster = 10
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector of effect estimates from the outcome GWAS.
+
+\item[\code{bX}] A vector of effect estimates from the exposure GWAS.
+
+\item[\code{byse}] A vector of standard errors of effect estimates from the outcome GWAS.
+
+\item[\code{bXse}] A vector of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
+
+\item[\code{Rxy}] The correlation matrix of estimation errors of exposures and outcome GWAS. The last element corresponds to the outcome.
+
+\item[\code{cluster.index}] A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
+
+\item[\code{reliability.thres}] A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+
+\item[\code{Method}] Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.
+
+\item[\code{ebic.theta}] EBIC factor on causal effect. Default is \code{0}.
+
+\item[\code{tauvec}] When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+
+\item[\code{rho}] When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+
+\item[\code{ebic.gamma}] EBIC factor on horizontal pleiotropy Default is \code{2}.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Defaults to \code{0.001}.
+
+\item[\code{maxdiff}] The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.
+
+\item[\code{sampling.time}] Number of resampling times. Default is \code{100}.
+
+\item[\code{sampling.iter}] Number of iterations per resampling. Default is \code{5}.
+
+\item[\code{theta.ini}] Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
+
+\item[\code{gamma.ini}] Initial value of gamma. Default is \code{FALSE}.
+
+\item[\code{min.cluster}] The minimum number of clusters to perform bootstrap, below which a sandwich formula will be applied. Default to \code{10}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing the results of the MRBEEX.UV analysis:
+\begin{description}
+
+\item[\code{theta}] Causal effect estimate.
+\item[\code{theta.se}] Standard error of the causal effect estimate.
+\item[\code{theta.cov}] Covariance matrix of the causal effect estimate.
+\item[\code{theta.pratt}] Pratt index estimate of exposure.
+\item[\code{gamma}] Estimate of horizontal pleiotropy.
+\item[\code{gamma.pratt}] Pratt index estimate of horizontal pleiotropy.
+\item[\code{Bic}] A vector or matrix recording the Bayesian Information Criterion (BIC) values.
+\item[\code{theta.ini}] Initial value of \code{theta} used in the estimation procedure.
+\item[\code{gamma.ini}] Initial value of \code{gamma} used in the estimation procedure.
+\item[\code{reliability.adjust}] Estimated reliability-adjusted values.
+\item[\code{thetalist}] List of \code{theta} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{gammalist}] List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{theta1}] Causal effect estimate for the first mixture component (when \code{Method="Mixture"}).
+\item[\code{theta2}] Causal effect estimate for the second mixture component (when \code{Method="Mixture"}).
+\item[\code{theta.se1}] Standard error of \code{theta1}.
+\item[\code{theta.se2}] Standard error of \code{theta2}.
+\item[\code{theta.cov1}] Covariance matrix of \code{theta1}.
+\item[\code{theta.cov2}] Covariance matrix of \code{theta2}.
+\item[\code{theta.pratt1}] Pratt index estimates of exposures in the first mixture.
+\item[\code{theta.pratt2}] Pratt index estimates of exposures in the second mixture.
+\item[\code{thetalist1}] List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{thetalist2}] List of \code{theta2} estimates recorded during each iteration in the subsampling procedure.
+\item[\code{cluster1}] Indices of individual IVs in the first mixture component.
+\item[\code{cluster2}] Indices of individual IVs in the second mixture component.
+
+\end{description}
+
+\end{Value}
+\HeaderA{MRBEE\_IMRP}{Mendelian randomization with bias-correction estimating equation: detecting horizontal pleiotropy via hypothesis test.}{MRBEE.Rul.IMRP}
+%
+\begin{Description}
+This function estimates the causal effect using a bias-correction estimating equation, considering potential pleiotropy and measurement errors.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MRBEE_IMRP(
+  by,
+  bX,
+  byse,
+  bXse,
+  Rxy,
+  max.iter = 30,
+  max.eps = 1e-04,
+  pv.thres = 0.05,
+  var.est = "variance",
+  FDR = T,
+  adjust.method = "Sidak",
+  maxdiff = 1.5
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector (n x 1) of the GWAS effect size of outcome.
+
+\item[\code{bX}] A matrix (n x p) of the GWAS effect sizes of p exposures.
+
+\item[\code{byse}] A vector (n x 1) of the GWAS effect size SE of outcome.
+
+\item[\code{bXse}] A matrix (n x p) of the GWAS effect size SEs of p exposures.
+
+\item[\code{Rxy}] A matrix (p+1 x p+1) of the correlation matrix of the p exposures and outcome. The last one should be the outcome.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Defaults to 30.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Defaults to 1e-4.
+
+\item[\code{pv.thres}] P-value threshold in pleiotropy detection. Defaults to 0.05.
+
+\item[\code{var.est}] Method for estimating the variance of residual in pleiotropy test. Can be "robust", "variance", or "ordinal". Defaults is "variance" that estimates the variance of residual using median absolute deviation (MAD).
+
+\item[\code{FDR}] Logical. Whether to apply the FDR to convert the p-value to q-value. Defaults to TRUE.
+
+\item[\code{adjust.method}] Method for estimating q-value. Defaults to "Sidak".
+
+\item[\code{maxdiff}] The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to 1.5.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing the estimated causal effect, its covariance, and pleiotropy
+\end{Value}
+\HeaderA{MRBEE\_TL}{Estimate Non-Transferable Causal Effect with MRBEE and SuSiE}{MRBEE.Rul.TL}
+%
+\begin{Description}
+This function estimates the non-transferable causal effect using a bias-correction estimating equation, considering potential pleiotropy and measurement errors, and using SuSiE to select the non-transferable causal effect.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MRBEE_TL(
+  by,
+  bX,
+  byse,
+  bXse,
+  Rxy,
+  LD = "identity",
+  cluster.index = c(1:length(by)),
+  theta.source,
+  theta.source.cov,
+  tauvec = seq(3, 30, 3),
+  Lvec = c(1:6),
+  admm.rho = 3,
+  ebic.delta = 1,
+  ebic.gamma = 2,
+  transfer.coef = 1,
+  susie.iter = 200,
+  pip.thres = 0.3,
+  max.iter = 50,
+  max.eps = 1e-04,
+  reliability.thres = 0.8,
+  ridge.diff = 100,
+  sampling.time = 100,
+  sampling.iter = 10
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector (n x 1) of the GWAS effect size of outcome.
+
+\item[\code{bX}] A matrix (n x p) of the GWAS effect sizes of p exposures.
+
+\item[\code{byse}] A vector (n x 1) of the GWAS effect size SE of outcome.
+
+\item[\code{bXse}] A matrix (n x p) of the GWAS effect size SEs of p exposures.
+
+\item[\code{Rxy}] A matrix (p+1 x p+1) of the correlation matrix of the p exposures and outcome. The first one should be the transferred linear predictor and last one should be the outcome.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
+
+\item[\code{cluster.index}] A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
+
+\item[\code{theta.source}] A vector (p x 1) of the causal effect estimate learning from the source data.
+
+\item[\code{theta.source.cov}] A matrix (p x p) of the covariance matrix of the causal effect estimate learning from the source data.
+
+\item[\code{tauvec}] The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+
+\item[\code{Lvec}] A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
+
+\item[\code{admm.rho}] When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+
+\item[\code{ebic.delta}] A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.
+
+\item[\code{ebic.gamma}] A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.
+
+\item[\code{transfer.coef}] A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.
+
+\item[\code{susie.iter}] A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
+
+\item[\code{pip.thres}] A scale of PIP theshold for calibyating causality used in SuSiE. Default is \code{0.3}.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Default is \code{50}.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Default is \code{1e-4}.
+
+\item[\code{reliability.thres}] A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.
+
+\item[\code{ridge.diff}] A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
+
+\item[\code{sampling.time}] A scale of number of subsampling in estimating the standard error. Default is \code{100}.
+
+\item[\code{sampling.iter}] A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing the estimated causal effect, its covariance, and pleiotropy.
+\end{Value}
+\HeaderA{MRBEE\_TL\_UV}{Estimate Non-Transferable Causal Effect with MRBEE and SuSiE in UVMR}{MRBEE.Rul.TL.Rul.UV}
+%
+\begin{Description}
+This function estimates the non-transferable causal effect using a bias-correction estimating equation in a univariable MR model, considering potential pleiotropy and measurement errors, and using SuSiE to select the non-transferable causal effect.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MRBEE_TL_UV(
+  by,
+  bX,
+  byse,
+  bXse,
+  Rxy,
+  LD = "identity",
+  cluster.index = c(1:length(by)),
+  theta.source,
+  theta.source.cov,
+  tauvec = seq(3, 30, 3),
+  admm.rho = 3,
+  ebic.delta = 1,
+  ebic.gamma = 2,
+  transfer.coef = 1,
+  susie.iter = 200,
+  pip.thres = 0.3,
+  max.iter = 50,
+  max.eps = 1e-04,
+  reliability.thres = 0.8,
+  sampling.time = 100,
+  sampling.iter = 10
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{by}] A vector (n x 1) of the GWAS effect size of outcome.
+
+\item[\code{bX}] A matrix (n x p) of the GWAS effect sizes of p exposures.
+
+\item[\code{byse}] A vector (n x 1) of the GWAS effect size SE of outcome.
+
+\item[\code{bXse}] A matrix (n x p) of the GWAS effect size SEs of p exposures.
+
+\item[\code{Rxy}] A matrix (p+1 x p+1) of the correlation matrix of the p exposures and outcome. The first one should be the transferred linear predictor and last one should be the outcome.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
+
+\item[\code{cluster.index}] A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
+
+\item[\code{theta.source}] A vector (p x 1) of the causal effect estimate learning from the source data.
+
+\item[\code{theta.source.cov}] A matrix (p x p) of the covariance matrix of the causal effect estimate learning from the source data.
+
+\item[\code{tauvec}] The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+
+\item[\code{admm.rho}] When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+
+\item[\code{ebic.delta}] A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.
+
+\item[\code{ebic.gamma}] A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.
+
+\item[\code{transfer.coef}] A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.
+
+\item[\code{susie.iter}] A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
+
+\item[\code{pip.thres}] A scale of PIP theshold for calibyating causality used in SuSiE. Default is \code{0.3}.
+
+\item[\code{max.iter}] Maximum number of iterations for causal effect estimation. Default is \code{50}.
+
+\item[\code{max.eps}] Tolerance for stopping criteria. Default is \code{1e-4}.
+
+\item[\code{reliability.thres}] A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.
+
+\item[\code{sampling.time}] A scale of number of subsampling in estimating the standard error. Default is \code{100}.
+
+\item[\code{sampling.iter}] A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing the estimated causal effect, its covariance, and pleiotropy.
+\end{Value}
+\HeaderA{Sparse\_Prediction}{Sparse Prediction of xQTL Effects using SuSiE and CARMA}{Sparse.Rul.Prediction}
+%
+\begin{Description}
+This function performs infomative xQTL selection and sparse prediction using SuSiE and CARMA.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+Sparse_Prediction(
+  bX,
+  bXse,
+  LD,
+  xQTL.Nvec,
+  xQTL.method = "SuSiE",
+  xQTL.max.L = 10,
+  xQTL.weight = NULL,
+  xQTL.cred.thres = 0.95,
+  outlier.switch = T,
+  Annotation = NULL,
+  output.labels = NULL,
+  carma.iter = 5,
+  carma.inner.iter = 5,
+  xQTL.max.num = 10,
+  carma.epsilon.threshold = 0.001
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{bX}] A matrix of effect estimates from the exposure GWAS.
+
+\item[\code{bXse}] A matrix of standard errors of effect estimates from the exposure GWAS.
+
+\item[\code{LD}] The linkage disequilibrium (LD) matrix.
+
+\item[\code{xQTL.Nvec}] When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
+
+\item[\code{xQTL.method}] The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
+
+\item[\code{xQTL.max.L}] When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
+
+\item[\code{xQTL.weight}] When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.
+
+\item[\code{xQTL.cred.thres}] When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+
+\item[\code{outlier.switch}] When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.
+
+\item[\code{Annotation}] When choosing \code{"CARMA"}, the annotation matrix of SNP. Default is NULL.
+
+\item[\code{output.labels}] When choosing \code{"CARMA"}, output directory where output will be written while CARMA is running. Defaults to \code{NULL}, meaning that a temporary folder will be created and automatically deleted upon completion of the computation.
+
+\item[\code{carma.iter}] When choosing \code{"CARMA"}, the maximum iterations for EM algorithm to run. Defaults to 5.
+
+\item[\code{carma.inner.iter}] When choosing \code{"CARMA"}, the maximum iterations for Shotgun algorithm to run per iteration within EM algorithm. Defaults to 5.
+
+\item[\code{xQTL.max.num}] When choosing \code{"CARMA"}, the maximum number of causal variants assumed per locus, which is similar to the number of single effects in SuSiE. Defaults to 10.
+
+\item[\code{carma.epsilon.threshold}] When choosing \code{"CARMA"}, the convergence threshold measured by average of Bayes factors. Defaults to \code{1e-3}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing the results of the MRBEEX analysis using different methods:
+\begin{description}
+
+\item[\code{bXest}] A matrix where each column represents \code{R * beta\_PLS} for each exposure.
+\item[\code{bXestse}] A matrix where each column contains the standard errors of \code{R * beta\_PLS} for each exposure.
+\item[\code{bXest0}] A matrix where each column represents \code{beta\_PLS} for each exposure.
+\item[\code{bXestse0}] A matrix where each column contains the standard errors of \code{beta\_PLS} for each exposure.
+\item[\code{xQTLfitList}] A list containing the xQTL selection results, which can be used in \code{CisMRBEEX} by setting \code{xQTLfitList = xQTLfitList}.
+
+\end{description}
+
+\end{Value}
+\HeaderA{summary\_generation}{Generating simulated data for Mendelian randomization simulation}{summary.Rul.generation}
+%
+\begin{Description}
+This function generates simulated data for Mendelian Randomization (MR) analysis,
+considering genetic effects, estimation errors, and horizontal pleiotropy.
+It allows for different distributions of genetic effects and pleiotropy,
+and accommodates both independent and correlated instrumental variables (IVs).
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+summary_generation(
+  theta,
+  m,
+  Rbb,
+  Ruv,
+  Rnn,
+  Nxy,
+  Hxy,
+  LD = "identity",
+  non.zero.frac,
+  UHP.frac = 0,
+  CHP.frac = 0,
+  UHP.var = 0.5,
+  UHP.dis = "uniform",
+  CHP.effect = c(1, rep(0, length(theta) - 1)),
+  effect.dis = "normal",
+  cluster.index
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{theta}] An (px1) vector of causal effects.
+
+\item[\code{m}] The number of instrumental variables (IVs).
+
+\item[\code{Rbb}] An (pxp) correlation matrix of genetic effects.
+
+\item[\code{Ruv}] An ((p+1)x(p+1)) correlation matrix of residuals in outcome and exposures; the outcome is the first one.
+
+\item[\code{Rnn}] An ((p+1)x(p+1)) correlation matrix of sample overlap; the outcome is the first one.
+
+\item[\code{Nxy}] An ((p+1)x1) vector of GWAS sample sizes; the sample size of the outcome is the first one.
+
+\item[\code{Hxy}] An ((p+1)x1) vector of heritabilities; the outcome is the first one.
+
+\item[\code{LD}] An (mxm) correlation matrix of the IVs or "identity" indicating independent IVs.
+
+\item[\code{non.zero.frac}] An (px1) vector with all entries in (0,1]; each entry is the probability of deltaj such that betaj=betaj'*deltaj.
+
+\item[\code{UHP.frac}] A number indicating the fraction of IVs affected by UHP.
+
+\item[\code{CHP.frac}] A number indicating the fraction of IVs affected by CHP.
+
+\item[\code{UHP.var}] A number indicating the variance attributed to UHP.
+
+\item[\code{UHP.dis}] Distribution of pleiotropy effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).
+
+\item[\code{CHP.effect}] A vector of effects corresponding to the variables correlated with the correlated horizontal pleiotropy.
+
+\item[\code{effect.dis}] Distribution of genetic effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).
+
+\item[\code{cluster.index}] The indices of LD block.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing simulated GWAS effect sizes for exposures (bX), their standard errors (bXse),
+the GWAS effect size for the outcome (by), its standard error (byse), the pleiotropy effects (pleiotropy), and the true effects.
+\end{Value}
+\printindex{}
+\end{document}

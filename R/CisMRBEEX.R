@@ -69,18 +69,18 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
-xQTL.method="SuSiE",xQTL.selection.rule="top_K",
-top_K=1,xQTL.pip.min=0.2,
-xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
-outlier.switch=T,Annotation=NULL,output.labels=NULL,
-carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
-carma.epsilon.threshold=1e-3,
-admm.rho=2,ridge.diff=1e3,
-max.iter=100,max.eps=0.001,susie.iter=500,
-ebic.theta=0,ebic.gamma=1,
-theta.ini=F,gamma.ini=F,xQTLfitList=NULL,verbose=T){
+                    reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+                    xQTL.method="SuSiE",xQTL.selection.rule="top_K",
+                    top_K=1,xQTL.pip.min=0.2,
+                    xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+                    xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
+                    outlier.switch=T,Annotation=NULL,output.labels=NULL,
+                    carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
+                    carma.epsilon.threshold=1e-3,
+                    admm.rho=2,ridge.diff=1e3,
+                    max.iter=100,max.eps=0.001,susie.iter=500,
+                    ebic.theta=0,ebic.gamma=1,
+                    theta.ini=F,gamma.ini=F,xQTLfitList=NULL,verbose=T){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################

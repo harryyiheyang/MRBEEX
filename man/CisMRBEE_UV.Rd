@@ -12,10 +12,12 @@ CisMRBEE_UV(
   LD,
   Rxy,
   xQTL.N,
+  xQTL.selection.rule = "top_K",
+  top_K = 1,
+  xQTL.pip.min = 0.2,
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  xQTL.pip.min = 0.2,
   reliability.thres = 0.75,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
@@ -42,13 +44,17 @@ CisMRBEE_UV(
 
 \item{xQTL.N}{The sample sizes of exposure.}
 
+\item{xQTL.selection.rule}{The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".}
+
+\item{top_K}{The maximum number of variables selected in each credible sets. Defaults to 1.}
+
+\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
+
 \item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
 \item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
 \item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
-
-\item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 

@@ -14,6 +14,8 @@
 #' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
 #' @param xQTL.N The sample sizes of exposure.
+#' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
+#' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
 #' @param tauvec A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.
 #' @param admm.rho A parameter set in the ADMM algorithm. Default is \code{2}.
 #' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is \code{15}.
@@ -40,14 +42,15 @@
 #' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
 #' @export
 #'
-CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,
-                 xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
-                 xQTL.pip.min=0.2,reliability.thres=0.75,
-                 tauvec=seq(3,30,by=1.5),admm.rho=2,
-                 use.susie=T,causal.pip.thres=0.3,
-                 max.iter=100,max.eps=0.001,ebic.gamma=2,
-                 xQTLfit=NULL
-                 ){
+CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
+                     top_K=1,xQTL.pip.min=0.2,
+                     xQTL.max.L=10,xQTL.cred.thres=0.95,
+                     xQTL.pip.thres=0.5,reliability.thres=0.75,
+                     tauvec=seq(3,30,by=1.5),admm.rho=2,
+                     use.susie=T,causal.pip.thres=0.3,
+                     max.iter=100,max.eps=0.001,ebic.gamma=2,
+                     xQTLfit=NULL
+                     ){
 m=length(by)
 Theta=solve(LD)
 bXest=bX
@@ -57,7 +60,12 @@ if(is.null(xQTLfit)==T){
 fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=xQTL.max.L,max_iter=1000)
 fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(susie_get_cs(fit.susie,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000)
 causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
+if(xQTL.selection.rule=="top_K"){
+indj=top_K_pip(summary(fit.susie)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
+}else{
+causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 indj=union(causal.cs$ind.keep,which(fit.susie$pip>xQTL.pip.thres))
+}
 if(length(indj)>0){
 betaj=coef.susie(fit.susie)[-1]
 betaj[-indj]=0
@@ -81,7 +89,12 @@ bXestse=bXse
 }else{
 fit.susie=xQTLfit
 causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
+if(xQTL.selection.rule=="top_K"){
+indj=top_K_pip(summary(fit.susie)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
+}else{
+causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 indj=union(causal.cs$ind.keep,which(fit.susie$pip>xQTL.pip.thres))
+}
 if(length(indj)>0){
 betaj=coef.susie(fit.susie)[-1]
 betaj[-indj]=0
