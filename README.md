@@ -100,6 +100,6 @@ We also provide a real locus data analysis code and data for
 cis-MRBEE.  
 The data can be downloaded from
 [example-data.zip](https://www.dropbox.com/scl/fi/s2xepxdvquz94nm0dsqd8/CisMRBEE_Real_Data.zip?rlkey=0lio3ou8y1jno8kh51uln7lun&st=g49z2v0j&dl=0).  
-For a step-by-step guide on how to use TGVIS for data analysis, please
-refer to the tutorial:
-[Tutorial-of-CisMRBEE.html](file/Tutorial-of-CisMRBEE.html).
+For a step-by-step guide on how to use cis-MRBEE for data analysis,
+please refer to the tutorial:
+[Tutorial-of-CisMRBEE.pdf](file/Tutorial-of-CisMRBEE.pdf).
