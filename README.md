@@ -93,3 +93,13 @@ MRBEE-IPOD to estimate the causal effects and control the horizontal
 pleiotropy. In cis-MVMR, there should only be one causal pathway and
 hence the CHP should not present. As a result, we dot not extend the
 MRBEE-Mixture int cis-MRBEE.
+
+## Tutorial
+
+We also provide a real locus data analysis code and data for
+cis-MRBEE.  
+The data can be downloaded from
+[example-data.zip](https://www.dropbox.com/scl/fi/s2xepxdvquz94nm0dsqd8/CisMRBEE_Real_Data.zip?rlkey=0lio3ou8y1jno8kh51uln7lun&st=g49z2v0j&dl=0).  
+For a step-by-step guide on how to use TGVIS for data analysis, please
+refer to the tutorial:
+[Tutorial-of-CisMRBEE.html](file/Tutorial-of-CisMRBEE.html).

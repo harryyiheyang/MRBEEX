@@ -130,6 +130,7 @@ A list that contains the results of the MRBEEX with respect to different methods
   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
   \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.}
   \item{\code{theta.pratt}}{Pratt index estimate of exposure.}
+  \item{\code{susie.theta}}{The fit of causal effect resulted from susie.}
   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
   \item{\code{gamma.pratt}}{Pratt index estimate of horizontal pleiotropy.}
   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
