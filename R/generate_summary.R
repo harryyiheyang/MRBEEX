@@ -8,10 +8,10 @@
 #' @param theta An (px1) vector of causal effects.
 #' @param m The number of instrumental variables (IVs).
 #' @param Rbb An (pxp) correlation matrix of genetic effects.
-#' @param Ruv An ((p+1)x(p+1)) correlation matrix of residuals in outcome and exposures; the outcome is the first one.
-#' @param Rnn An ((p+1)x(p+1)) correlation matrix of sample overlap; the outcome is the first one.
-#' @param Nxy An ((p+1)x1) vector of GWAS sample sizes; the sample size of the outcome is the first one.
-#' @param Hxy An ((p+1)x1) vector of heritabilities; the outcome is the first one.
+#' @param Ruv An ((p+1)x(p+1)) correlation matrix of residuals in outcome and exposures; the outcome is the last one.
+#' @param Rnn An ((p+1)x(p+1)) correlation matrix of sample overlap; the outcome is the last one.
+#' @param Nxy An ((p+1)x1) vector of GWAS sample sizes; the sample size of the outcome is the last one.
+#' @param Hxy An ((p+1)x1) vector of heritabilities; the outcome is the last one.
 #' @param LD An (mxm) correlation matrix of the IVs or "identity" indicating independent IVs.
 #' @param non.zero.frac An (px1) vector with all entries in (0,1]; each entry is the probability of deltaj such that betaj=betaj'*deltaj.
 #' @param UHP.frac A number indicating the fraction of IVs affected by UHP.
