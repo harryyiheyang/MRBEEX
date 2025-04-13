@@ -40,7 +40,7 @@ Btheta=array(0,c(50,p,4))
 while(iter<51){
 A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.8,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="normal",cluster.index=cluster.index)
 bX=A$bX
-bX[,5]=bX[,5]-LD%*%A$bX0[,5]+LD%*%A$bX0[,1]
+#bX[,5]=bX[,5]-LD%*%A$bX0[,5]+LD%*%A$bX0[,1]
 by=A$by
 bXse=A$bXse
 byse=A$byse

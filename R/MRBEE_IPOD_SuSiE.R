@@ -92,6 +92,9 @@ Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
+theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive=theta.cs$ind.keep
+theta[-pip.alive]=0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
@@ -156,6 +159,9 @@ Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
+theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive=theta.cs$ind.keep
+theta[-pip.alive]=0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
@@ -231,6 +237,9 @@ Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=BtBj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.thres/sqrt(2),0.1))
+theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
+pip.alivej=theta.csj$ind.keep
+thetaj[-pip.alivej]=0
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){

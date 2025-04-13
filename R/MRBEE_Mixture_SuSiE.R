@@ -86,6 +86,9 @@ Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
 fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.thres)
+theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive1=theta.cs1$ind.keep
+theta1[-pip.alive1]=0
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
@@ -94,6 +97,9 @@ Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
 fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[l],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.thres)
+theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive2=theta.cs2$ind.keep
+theta2[-pip.alive2]=0
 Diff2=generate_block_matrix(summary(fit.susie2)$vars,length(cluster2)/diag(XtX2),theta2)
 }else{
 theta2=theta1*0
@@ -181,6 +187,9 @@ Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
 fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.thres)
+theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive1=theta.cs1$ind.keep
+theta1[-pip.alive1]=0
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
@@ -189,6 +198,9 @@ Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
 fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[lstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.thres)
+theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive2=theta.cs2$ind.keep
+theta2[-pip.alive2]=0
 Diff2=generate_block_matrix(summary(fit.susie2)$vars,length(cluster2)/diag(XtX2),theta2)
 }else{
 theta2=theta1*0
@@ -272,6 +284,9 @@ Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])
 yty1j=sum(tilde.yj[cluster1j]^2)
 fit.susie1j=susie_suff_stat(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.thres)
+theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive1j=theta.cs1j$ind.keep
+theta1j[-pip.alive1j]=0
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
 XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
@@ -280,6 +295,9 @@ Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])
 yty2j=sum(tilde.yj[cluster2j]^2)
 fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.thres)
+theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+pip.alive2j=theta.cs2j$ind.keep
+theta2j[-pip.alive2j]=0
 Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j),theta2j)
 }else{
 theta2j=theta1j*0

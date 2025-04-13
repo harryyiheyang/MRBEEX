@@ -124,6 +124,7 @@ theta=delta+theta.source
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1))
 gamma1=mcp(gamma+u/admm.rho,tauvec[v]/admm.rho)
 u=u+admm.rho*(gamma-gamma1)
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -187,6 +188,7 @@ theta=delta+theta.source
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1))
 gamma1=mcp(gamma+u/admm.rho,tauvec[vstar]/admm.rho)
 u=u+admm.rho*(gamma-gamma1)
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -270,6 +272,7 @@ thetaj=deltaj+theta.source
 gammaj=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j))
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
+gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j,]=theta.source+deltaj
 DeltaList[j,]=deltaj

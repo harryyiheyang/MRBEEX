@@ -30,13 +30,13 @@ summary_generation(
 
 \item{Rbb}{An (pxp) correlation matrix of genetic effects.}
 
-\item{Ruv}{An ((p+1)x(p+1)) correlation matrix of residuals in outcome and exposures; the outcome is the first one.}
+\item{Ruv}{An ((p+1)x(p+1)) correlation matrix of residuals in outcome and exposures; the outcome is the last one.}
 
-\item{Rnn}{An ((p+1)x(p+1)) correlation matrix of sample overlap; the outcome is the first one.}
+\item{Rnn}{An ((p+1)x(p+1)) correlation matrix of sample overlap; the outcome is the last one.}
 
-\item{Nxy}{An ((p+1)x1) vector of GWAS sample sizes; the sample size of the outcome is the first one.}
+\item{Nxy}{An ((p+1)x1) vector of GWAS sample sizes; the sample size of the outcome is the last one.}
 
-\item{Hxy}{An ((p+1)x1) vector of heritabilities; the outcome is the first one.}
+\item{Hxy}{An ((p+1)x1) vector of heritabilities; the outcome is the last one.}
 
 \item{LD}{An (mxm) correlation matrix of the IVs or "identity" indicating independent IVs.}
 

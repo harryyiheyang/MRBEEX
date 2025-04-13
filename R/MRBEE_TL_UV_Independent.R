@@ -59,6 +59,7 @@ theta=0
 gamma=as.vector(by-bX*theta-u+admm.rho*gamma1)/(1+admm.rho)
 gamma1=mcp(gamma+u/admm.rho,tauvec[v]/admm.rho)
 u=u+admm.rho*(gamma-gamma1)
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((theta-theta1)^2))
@@ -70,13 +71,10 @@ vare=sum(e^2)/(length(indvalid)-dftheta)
 Bic[v]=log(vare)+log(n)/n*dftheta+(1+ebic.gamma)*log(n)*(n-length(indvalid))/n
 Btheta[v]=theta
 Bgamma[v,]=gamma1
-
-gamma_direct=as.vector(by-bX*theta.source)
-gamma_direct=mcp(gamma_direct,tauvec[v])
-e=as.vector(by-bX*theta.source-as.vector(gamma_direct))
-vare=sum(e^2)/(sum(gamma_direct==0))
-Bic_direct[v]=log(vare)+(1+ebic.gamma)*log(n)*sum(gamma_direct!=0)/n
-Bgamma_direct[v,]=gamma_direct
+e=as.vector(by-bX*theta.source-as.vector(gamma))
+vare=sum(e^2)/(sum(gamma==0))
+Bic_direct[v]=log(vare)+(1+ebic.gamma)*log(n)*sum(gamma!=0)/n
+Bgamma_direct[v,]=gamma
 }
 #########################################################################
 s1=min(Bic)
@@ -118,6 +116,7 @@ theta=0
 }
 gamma=as.vector(by-bX*theta-u+admm.rho*gamma1)/(1+admm.rho)
 gamma1=mcp(gamma+u/admm.rho,tauvec[vstar]/admm.rho)
+gamma=gamma*(gamma1!=0)
 u=u+admm.rho*(gamma-gamma1)
 iter=iter+1
 if(iter>5){
@@ -125,7 +124,7 @@ error=sqrt(sum((theta-theta1)^2))
 }
 }
 ############################### inference #########################
-res=gamma1*byse1
+res=gamma*byse1
 names(res)=rownames(bX)
 ThetaList=c(1:sampling.time)
 cat("Bootstrapping process:\n")
@@ -178,6 +177,7 @@ thetaj=0
 gammaj=as.vector(byj-bXj*thetaj-uj+admm.rho*gamma1j)/(1+admm.rho)
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
+gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j]=thetaj
 j=j+1
