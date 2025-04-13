@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -91,8 +91,8 @@ XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
+theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
 theta[-pip.alive]=0
 indtheta=which(theta!=0)
@@ -158,8 +158,8 @@ XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
+theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
+theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
 theta[-pip.alive]=0
 indtheta=which(theta!=0)
@@ -236,8 +236,8 @@ XtXj=BtBj
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=BtBj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
-thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.thres/sqrt(2),0.1))
-theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
+thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
+theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
 pip.alivej=theta.csj$ind.keep
 thetaj[-pip.alivej]=0
 indthetaj=which(thetaj!=0)
