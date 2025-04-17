@@ -21,7 +21,9 @@ MRBEE_TL(
   ebic.gamma = 2,
   transfer.coef = 1,
   susie.iter = 200,
-  pip.thres = 0.3,
+  pip.thres = 0.5,
+  pip.min = 0.1,
+  cred.pip.thres = 0.95,
   max.iter = 50,
   max.eps = 1e-04,
   reliability.thres = 0.8,
@@ -63,7 +65,11 @@ MRBEE_TL(
 
 \item{susie.iter}{A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.}
 
-\item{pip.thres}{A scale of PIP theshold for calibyating causality used in SuSiE. Default is \code{0.3}.}
+\item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.}
+
+\item{pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.}
+
+\item{cred.pip.thres}{The threshold of PIP of each credible set. Defaults to \code{0.95}.}
 
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Default is \code{50}.}
 

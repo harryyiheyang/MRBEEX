@@ -58,3 +58,25 @@ Cis-MRBEE will first sparsely predict the GWAS effect sizes of exposures using t
 We also provide a real locus data analysis code and data for cis-MRBEE.  
 The data can be downloaded from [example-data.zip](https://www.dropbox.com/scl/fi/s2xepxdvquz94nm0dsqd8/CisMRBEE_Real_Data.zip?rlkey=0lio3ou8y1jno8kh51uln7lun&st=g49z2v0j&dl=0).  
 For a step-by-step guide on how to use cis-MRBEE for data analysis, please refer to the tutorial: [Tutorial-of-CisMRBEE.pdf](Tutorial-of-CisMRBEE.pdf).
+
+# MRBEE-TL
+
+![](OverViewofMRBEETL.png)
+
+## Motivation of MRBEE-TL
+
+Multivariable Mendelian randomization (MVMR) methods are typically developed and validated in European ancestry populations. However, many researchers are now interested in applying MR to underrepresented populations, such as East Asian or African groups. In these populations, the smaller sample sizes and different genetic architectures make it challenging to obtain stable and accurate causal effect estimates.
+
+MRBEE-TL addresses this issue by improving power in the target population through information sharing. Specifically, it leverages causal effect estimates from a well-powered European (source) population to guide estimation in a smaller or less-powered target population. At the same time, MRBEE-TL is designed to detect which effects are truly transferable and which ones are population-specific, helping avoid misleading generalizations across ancestries.
+
+## Advantages of MRBEE-TL
+
+MRBEE-TL is particularly useful for researchers aiming to generalize findings beyond European cohorts, and for identifying population-specific risk factors that may inform targeted interventions or therapies.
+
+- Improved estimation in underrepresented populations: MRBEE-TL increases power and accuracy by borrowing strength from large source data.
+
+- Identification of transferable vs. non-transferable effects: The method separates shared causal effects from population-specific signals, providing more interpretable results.
+
+- Robustness to weak instruments and pleiotropy: MRBEE-TL inherits the bias-correction properties of MRBEE, reducing the impact of common sources of bias.
+
+- Automatic selection of causal exposures: Through integrated variable selection, MRBEE-TL highlights exposures with the strongest and most reliable evidence.

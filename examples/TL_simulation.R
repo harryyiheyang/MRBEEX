@@ -49,7 +49,7 @@ bXse_eas=A_eas$bXse
 byse_eas=A_eas$byse
 Rxy_eas=A_eas$Rxy
 
-fit_eur_mrbee=MRBEE_IPOD_SuSiE(by=by_eur,bX=bX_eur,byse=byse_eur,bXse=bXse_eur,Rxy=Rxy_eur)
+fit_eur_mrbee=MRBEE_IPOD_SuSiE(by=by_eur,bX=bX_eur,byse=byse_eur,bXse=bXse_eur,Rxy=Rxy_eur,LD=diag(m_eur))
 
 t1=Sys.time()
 fit_mrbee=MRBEE_IMRP(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas)
@@ -57,7 +57,7 @@ t2=Sys.time()
 imrp.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit_mrbee_susie=MRBEE_IPOD_SuSiE(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas)
+fit_mrbee_susie=MRBEE_IPOD_SuSiE(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas,LD=diag(m_eas))
 t2=Sys.time()
 mrbee.susie.time=difftime(t2, t1, units = "secs")
 
