@@ -574,6 +574,19 @@ final_matrix[group_vars, group_vars]=D
 return(final_matrix)
 }
 
+generate_group_matrix <- function(group_index,COV) {
+J=max(group_index)
+p=length(COV[1,])
+G=diag(p)*0
+for(j in 1:J){
+indj=which(group_index==j)
+s=diag(COV)[indj]
+theta=COV[indj[1],indj]
+G[indj,indj]=generate_D_matrix(s,sign(theta))
+}
+return(G)
+}
+
 generate_block_matrix_CARMA <- function(sumstat.result, s, theta) {
 ind=which(theta==0)
 concerned_vars <- sumstat.result[sumstat.result$cs >0, ]

@@ -1,4 +1,4 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ########################### Basic information #######################
   t1=Sys.time()
 by=by/byse
@@ -60,12 +60,20 @@ theta22=theta2
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
 XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
-theta1=c(solve(XtX1-Rxysum1[1:p,1:p])%*%(Xty1-Rxysum1[1:p,p+1]))
+Diff_matrix1=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
+}
+theta1=c(solve(XtX1-Rxysum1[1:p,1:p]+Diff_matrix1)%*%(Xty1-Rxysum1[1:p,p+1]))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
-theta2=c(solve(XtX2-Rxysum2[1:p,1:p])%*%(Xty2-Rxysum2[1:p,p+1]))
+Diff_matrix2=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
+}
+theta2=c(solve(XtX2-Rxysum2[1:p,1:p]+Diff_matrix2)%*%(Xty2-Rxysum2[1:p,p+1]))
 }else{
 theta2=0*theta1
 cluster2=c(1:min.cluster.size)
@@ -122,12 +130,20 @@ for(iterj in 1:sampling.iter){
 Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
 XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
 Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])
-theta1j=c(solve(XtX1j-Rxysum1j[1:p,1:p])%*%(Xty1j-Rxysum1j[1:p,p+1]))
+Diff_matrix1=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
+}
+theta1j=c(solve(XtX1j-Rxysum1j[1:p,1:p]+Diff_matrix1)%*%(Xty1j-Rxysum1j[1:p,p+1]))
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
 XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])
-theta2j=c(solve(XtX2j-Rxysum2j[1:p,1:p])%*%(Xty2j-Rxysum2j[1:p,p+1]))
+Diff_matrix2=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
+}
+theta2j=c(solve(XtX2j-Rxysum2j[1:p,1:p]+Diff_matrix2)%*%(Xty2j-Rxysum2j[1:p,p+1]))
 }else{
 theta2j=0*theta1j
 cluster2j=c(1:4)

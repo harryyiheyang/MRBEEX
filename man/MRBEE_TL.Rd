@@ -12,6 +12,9 @@ MRBEE_TL(
   Rxy,
   LD = "identity",
   cluster.index = c(1:length(by)),
+  group.penalize = F,
+  group.index = c(1:ncol(bX)[1]),
+  group.diff = 10,
   theta.source,
   theta.source.cov,
   tauvec = seq(3, 30, 3),
@@ -46,6 +49,12 @@ MRBEE_TL(
 \item{LD}{The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).}
 
 \item{cluster.index}{A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.}
+
+\item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
+
+\item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
+
+\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
 
 \item{theta.source}{A vector (p x 1) of the causal effect estimate learning from the source data.}
 

@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -41,6 +41,10 @@ r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
+Diff_matrix=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+}
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
 if(length(tilde.y)<2000){
@@ -87,7 +91,7 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB
+XtX=BtB+Diff_matrix
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
@@ -103,7 +107,7 @@ xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
+XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]+Diff_matrix[indtheta,indtheta]
 Xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=c(solve(XtX)%*%Xty)
 }
@@ -154,7 +158,7 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB
+XtX=BtB+Diff_matrix
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
@@ -170,7 +174,7 @@ xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
+XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]+Diff_matrix[indtheta,indtheta]
 Xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=c(solve(XtX)%*%Xty)
 }
@@ -232,7 +236,7 @@ indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
 res.thetaj=by[indj]-as.vector(LD[indj,indj]%*%gammaj[indj])
-XtXj=BtBj
+XtXj=BtBj+Diff_matrix
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=BtBj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
@@ -248,7 +252,7 @@ xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,p+1]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
-XtXj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]
+XtXj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]+Diff_matrix[indthetaj,indthetaj]
 Xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,p+1]
 thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
 }

@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -84,7 +84,11 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
-fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
+Diff_matrix1=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
+}
+fit.susie1=susie_suff_stat(XtX=XtX1+Diff_matrix1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.min)
 theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1=theta.cs1$ind.keep
@@ -95,7 +99,11 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[l],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+Diff_matrix2=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
+}
+fit.susie2=susie_suff_stat(XtX=XtX2+Diff_matrix2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[l],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.min)
 theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2=theta.cs2$ind.keep
@@ -113,7 +121,7 @@ xty1=Xty1[indtheta1]-Rxysum1[indtheta1,p+1]
 theta1[indtheta1]=xty1/xtx1
 }
 if(length(indtheta1)>1){
-XtX1=XtX1[indtheta1,indtheta1]-Rxysum1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]
+XtX1=XtX1[indtheta1,indtheta1]-Rxysum1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]+Diff_matrix1[indtheta1,indtheta1]
 Xty1=Xty1[indtheta1]-Rxysum1[indtheta1,p+1]
 theta1[indtheta1]=as.vector(solve(XtX1)%*%Xty1)
 }
@@ -124,7 +132,7 @@ xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=xty2/xtx2
 }
 if(length(indtheta2)>1){
-XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]
+XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix2[indtheta2,indtheta2]
 Xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=as.vector(solve(XtX2)%*%Xty2)
 }
@@ -185,7 +193,11 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=t(XtX1)/2+XtX1/2
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 yty1=sum(tilde.y[cluster1]^2)
-fit.susie1=susie_suff_stat(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
+Diff_matrix1=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
+}
+fit.susie1=susie_suff_stat(XtX=XtX1+Diff_matrix1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie1)
 theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.min)
 theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1=theta.cs1$ind.keep
@@ -196,7 +208,11 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=t(XtX2)/2+XtX2/2
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 yty2=sum(tilde.y[cluster2]^2)
-fit.susie2=susie_suff_stat(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[lstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
+Diff_matrix2=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
+}
+fit.susie2=susie_suff_stat(XtX=XtX2+Diff_matrix2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[lstar],max_iter=susie.iter,intercept=F,estimate_prior_method="EM",s_init=fit.susie2)
 theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.min)
 theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2=theta.cs2$ind.keep
@@ -214,7 +230,7 @@ xty1=Xty1[indtheta1]-Rxysum1[indtheta1,p+1]
 theta1[indtheta1]=xty1/xtx1
 }
 if(length(indtheta1)>1){
-XtX1=XtX1[indtheta1,indtheta1]-Rxysum1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]
+XtX1=XtX1[indtheta1,indtheta1]-Rxysum1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]+Diff_matrix1[indtheta1,indtheta1]
 Xty1=Xty1[indtheta1]-Rxysum1[indtheta1,p+1]
 theta1[indtheta1]=c(solve(XtX1)%*%Xty1)
 }
@@ -225,7 +241,7 @@ xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=xty2/xtx2
 }
 if(length(indtheta2)>1){
-XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]
+XtX2=XtX2[indtheta2,indtheta2]-Rxysum2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix2[indtheta2,indtheta2]
 Xty2=Xty2[indtheta2]-Rxysum2[indtheta2,p+1]
 theta2[indtheta2]=c(solve(XtX2)%*%Xty2)
 }
@@ -282,7 +298,11 @@ XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
 XtX1j=t(XtX1j)/2+XtX1j/2
 Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])
 yty1j=sum(tilde.yj[cluster1j]^2)
-fit.susie1j=susie_suff_stat(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
+Diff_matrix1=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
+}
+fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
 theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1j=theta.cs1j$ind.keep
@@ -293,7 +313,11 @@ XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])
 yty2j=sum(tilde.yj[cluster2j]^2)
-fit.susie2j=susie_suff_stat(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
+Diff_matrix2=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
+}
+fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
 theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2j=theta.cs2j$ind.keep
@@ -311,7 +335,7 @@ xty1j=Xty1j[indtheta1j]-Rxysum1j[indtheta1j,p+1]
 theta1j[indtheta1j]=xty1j/xtx1j
 }
 if(length(indtheta1j)>1){
-XtX1j=XtX1j[indtheta1j,indtheta1j]-Rxysum1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]
+XtX1j=XtX1j[indtheta1j,indtheta1j]-Rxysum1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]
 Xty1j=Xty1j[indtheta1j]-Rxysum1j[indtheta1j,p+1]
 theta1j[indtheta1j]=c(solve(XtX1j)%*%Xty1j)
 }
@@ -322,7 +346,7 @@ xty2j=Xty2j[indtheta2j]-Rxysum2j[indtheta2j,p+1]
 theta2j[indtheta2j]=xty2j/xtx2j
 }
 if(length(indtheta2j)>1){
-XtX2j=XtX2j[indtheta2j,indtheta2j]-Rxysum2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]
+XtX2j=XtX2j[indtheta2j,indtheta2j]-Rxysum2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]
 Xty2j=Xty2j[indtheta2j]-Rxysum2j[indtheta2j,p+1]
 theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
 }

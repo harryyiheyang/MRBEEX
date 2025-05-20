@@ -1,4 +1,4 @@
-MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T){
+MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -37,6 +37,10 @@ r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
+Diff_matrix=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+}
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
 if(length(tilde.y)<2000){
@@ -78,7 +82,7 @@ Rxysum=Rxyall
 }else{
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
-Hinv=matrixInverse(BtB-Rxysum[1:p,1:p])
+Hinv=matrixInverse(BtB-Rxysum[1:p,1:p]+Diff_matrix)
 g=matrixVectorMultiply(Bt,as.vector(by-LD%*%gamma))-Rxysum[1:p,p+1]
 theta=c(matrixVectorMultiply(Hinv,g))
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
@@ -145,7 +149,7 @@ for(jiter in 1:sampling.iter){
 indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
-Hinv <- solve(BtB - Rxysumj[1:p, 1:p])
+Hinv <- solve(BtB - Rxysumj[1:p, 1:p]+Diff_matrix)
 g <- matrixVectorMultiply(Bt, by[indj] - as.vector(LD[indj,indj]%*%gammaj[indj])) - Rxysumj[1:p, p + 1]
 thetaj <- c(matrixVectorMultiply(Hinv, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {

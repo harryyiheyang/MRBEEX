@@ -15,6 +15,9 @@
 #' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
 #' @param Lvec A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
+#' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
+#' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
+#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
@@ -37,6 +40,7 @@
 #' @export
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
+                  group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,
                   theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
                   admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,
                   pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,
@@ -45,9 +49,10 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
                        theta.source=theta.source,theta.source.cov=theta.source.cov,
+                       group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
                        tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
-                       transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=0.5,
-                       pip.min=0.1,cred.pip.thres=0.95,max.iter=max.iter,max.eps=max.eps,
+                       transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
+                       pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
                        reliability.thres=reliability.thres,ridge.diff=ridge.diff,
                        sampling.time=sampling.time,sampling.iter=sampling.iter)
 return(A)
@@ -84,6 +89,10 @@ Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
 br=as.vector(by-bX%*%theta.source)
+Diff_matrix=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+}
 ########## Iteration ###################
 Bic=matrix(0,length(Lvec),length(tauvec))
 Btheta=array(0,c(length(Lvec),length(tauvec),p))
@@ -109,7 +118,7 @@ delta.complement=fit.cluster$complement
 delta.cluster=fit.cluster$cluster
 br.complement=as.vector(br-bX%*%delta.complement-as.vector(LD%*%gamma))
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
-XtX=BtB-Rxysum[1:p,1:p]
+XtX=BtB-Rxysum[1:p,1:p]+Diff_matrix
 XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
@@ -131,7 +140,7 @@ xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]
+xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
@@ -176,7 +185,7 @@ delta.complement=fit.cluster$complement
 delta.cluster=fit.cluster$cluster
 br.complement=as.vector(br-bX%*%delta.complement-as.vector(LD%*%gamma))
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
-XtX=BtB-Rxysum[1:p,1:p]
+XtX=BtB-Rxysum[1:p,1:p]+Diff_matrix
 XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
@@ -198,7 +207,7 @@ xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]
+xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
@@ -263,7 +272,7 @@ delta.complementj=fit.clusterj$complement
 delta.clusterj=fit.clusterj$clusterj
 br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
-XtXj=BtBj-Rxysumj[1:p,1:p]
+XtXj=BtBj-Rxysumj[1:p,1:p]+Diff_matrix[inddelta,inddelta]
 XtXj=t(XtXj)/2+XtXj/2
 Xtyj=matrixVectorMultiply(Btj,br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum(br.complementj*(Thetaj%*%br.complementj))
@@ -285,7 +294,7 @@ xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=xtyj/xtxj
 }
 if(length(inddeltaj)>1){
-xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]
+xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]+Diff_matrix[inddeltaj,inddeltaj]
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
 }

@@ -1,4 +1,4 @@
-MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.5,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,sampling.time=100,sampling.iter=10){
+MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.5,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,sampling.time=100,sampling.iter=10,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ######### Basic Processing  ##############
 fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
@@ -20,6 +20,10 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
 br=as.vector(by-bX%*%theta.source)
 BtB=t(bX)%*%bX
+Diff_matrix=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+}
 ########## Iteration ###################
 Bic=matrix(0,length(Lvec),length(tauvec))
 Btheta=array(0,c(length(Lvec),length(tauvec),p))
@@ -46,7 +50,7 @@ delta.cluster=fit.cluster$cluster
 br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
-XtX=t(XtX)/2+XtX/2
+XtX=t(XtX)/2+XtX/2+Diff_matrix
 Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
@@ -67,7 +71,7 @@ xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]
+xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
@@ -112,7 +116,7 @@ delta.cluster=fit.cluster$cluster
 br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
-XtX=t(XtX)/2+XtX/2
+XtX=t(XtX)/2+XtX/2+Diff_matrix
 Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
@@ -133,7 +137,7 @@ xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]
+xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(solve(xtx)%*%xty)
 }
@@ -190,7 +194,7 @@ delta.clusterj=fit.clusterj$clusterj
 br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
 XtXj=BtBj-Rxysumj[1:p,1:p]
-XtXj=t(XtXj)/2+XtXj/2
+XtXj=t(XtXj)/2+XtXj/2+Diff_matrix
 Xtyj=matrixVectorMultiply(t(bXj),br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum((br.complementj)^2)
 tryCatch({
@@ -211,7 +215,7 @@ xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=xtyj/xtxj
 }
 if(length(inddeltaj)>1){
-xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]
+xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]+Diff_matrix[inddeltaj,inddeltaj]
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
 }

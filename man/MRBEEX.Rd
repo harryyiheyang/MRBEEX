@@ -14,11 +14,14 @@ MRBEEX(
   cluster.index = c(1:length(by)),
   method = c("IPOD", "Mixture"),
   use.susie = T,
+  group.penalize = F,
+  group.index = c(1:ncol(bX)[1]),
+  group.diff = 10,
   main.cluster.thres = 0.48,
   min.cluster.size = 5,
   tauvec = seq(2.5, 40, by = 2.5),
   admm.rho = 2,
-  Lvec = c(1:min(10, nrow(bX))),
+  Lvec = c(1:min(10, ncol(bX))),
   pip.thres = 0.5,
   pip.min = 0.1,
   cred.pip.thres = 0.95,
@@ -55,6 +58,12 @@ MRBEEX(
 \item{method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.}
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
+
+\item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
+
+\item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
+
+\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
 
 \item{main.cluster.thres}{When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.}
 
