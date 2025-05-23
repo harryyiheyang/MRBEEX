@@ -80,9 +80,9 @@ while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
-XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
+XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])-Rxysum1[1:p,1:p]
 XtX1=t(XtX1)/2+XtX1/2
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
+Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])-Rxysum1[1:p,1+p]
 yty1=sum(tilde.y[cluster1]^2)
 Diff_matrix1=diag(p)*0
 if(group.penalize==T){
@@ -95,9 +95,9 @@ pip.alive1=theta.cs1$ind.keep
 theta1[-pip.alive1]=0
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
-XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
+XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])-Rxysum2[1:p,1:p]
 XtX2=t(XtX2)/2+XtX2/2
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
+Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])-Rxysum2[1:p,1+p]
 yty2=sum(tilde.y[cluster2]^2)
 Diff_matrix2=diag(p)*0
 if(group.penalize==T){
@@ -189,9 +189,9 @@ while(iter<(max.iter*2)&error>max.eps){
 theta11=theta1
 theta22=theta2
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
-XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
+XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])-Rxysum1[1:p,1:p]
 XtX1=t(XtX1)/2+XtX1/2
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
+Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])-Rxysum1[1:p,1+p]
 yty1=sum(tilde.y[cluster1]^2)
 Diff_matrix1=diag(p)*0
 if(group.penalize==T){
@@ -204,9 +204,9 @@ pip.alive1=theta.cs1$ind.keep
 theta1[-pip.alive1]=0
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
-XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
+XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])-Rxysum2[1:p,1:p]
 XtX2=t(XtX2)/2+XtX2/2
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
+Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])-Rxysum2[1:p,1+p]
 yty2=sum(tilde.y[cluster2]^2)
 Diff_matrix2=diag(p)*0
 if(group.penalize==T){
@@ -294,9 +294,9 @@ m1j=length(cluster1j)
 m2j=length(cluster2j)
 for(iterj in 1:sampling.iter){
 Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
+XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])-Rxysum1j[1:p,1:p]
 XtX1j=t(XtX1j)/2+XtX1j/2
-Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])
+Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])-Rxysum1j[1:p,1+p]
 yty1j=sum(tilde.yj[cluster1j]^2)
 Diff_matrix1=diag(p)*0
 if(group.penalize==T){
@@ -309,9 +309,9 @@ pip.alive1j=theta.cs1j$ind.keep
 theta1j[-pip.alive1j]=0
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
+XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum12[1:p,1:p]
 XtX2j=XtX2j/2+t(XtX2j)/2
-Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])
+Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])-Rxysum2j[1:p,1+p]
 yty2j=sum(tilde.yj[cluster2j]^2)
 Diff_matrix2=diag(p)*0
 if(group.penalize==T){

@@ -81,7 +81,7 @@ gamma1=gamma
 delta=gamma1*0
 error=1
 iter=1
-empirical.variance=5
+empirical.variance=3
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -148,7 +148,7 @@ gamma=gamma1=gamma.ini
 delta=0*gamma
 error=1
 iter=1
-empirical.variance=5
+empirical.variance=3
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
