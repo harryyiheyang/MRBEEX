@@ -143,7 +143,7 @@ for(jiter in 1:sampling.iter){
 indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
-Hinv <- solve(BtB - Rxysumj[1:p, 1:p]+Diff_matrix)
+Hinv <- solve(BtB - Rxysumj[1:p, 1:p]+Diff_matrix/2)
 g <- matrixVectorMultiply(Bt, by[indj] - as.vector(LD[indj,indj]%*%gammaj[indj])) - Rxysumj[1:p, p + 1]
 thetaj <- c(matrixVectorMultiply(Hinv, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {

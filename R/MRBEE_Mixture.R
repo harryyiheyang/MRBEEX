@@ -134,7 +134,7 @@ Diff_matrix1=diag(p)*0
 if(group.penalize==T){
   Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
 }
-theta1j=c(solve(XtX1j-Rxysum1j[1:p,1:p]+Diff_matrix1)%*%(Xty1j-Rxysum1j[1:p,p+1]))
+theta1j=c(solve(XtX1j-Rxysum1j[1:p,1:p]+Diff_matrix1/2)%*%(Xty1j-Rxysum1j[1:p,p+1]))
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
 XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
@@ -143,7 +143,7 @@ Diff_matrix2=diag(p)*0
 if(group.penalize==T){
   Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
 }
-theta2j=c(solve(XtX2j-Rxysum2j[1:p,1:p]+Diff_matrix2)%*%(Xty2j-Rxysum2j[1:p,p+1]))
+theta2j=c(solve(XtX2j-Rxysum2j[1:p,1:p]+Diff_matrix2/2)%*%(Xty2j-Rxysum2j[1:p,p+1]))
 }else{
 theta2j=0*theta1j
 cluster2j=c(1:4)

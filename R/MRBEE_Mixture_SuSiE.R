@@ -302,7 +302,7 @@ Diff_matrix1=diag(p)*0
 if(group.penalize==T){
   Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
 }
-fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
+fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM")
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
 theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1j=theta.cs1j$ind.keep
@@ -317,7 +317,7 @@ Diff_matrix2=diag(p)*0
 if(group.penalize==T){
   Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
 }
-fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
+fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM")
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
 theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2j=theta.cs2j$ind.keep
@@ -335,7 +335,7 @@ xty1j=Xty1j[indtheta1j]-Rxysum1j[indtheta1j,p+1]
 theta1j[indtheta1j]=xty1j/xtx1j
 }
 if(length(indtheta1j)>1){
-XtX1j=XtX1j[indtheta1j,indtheta1j]-Rxysum1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]
+XtX1j=XtX1j[indtheta1j,indtheta1j]-Rxysum1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]/2
 Xty1j=Xty1j[indtheta1j]-Rxysum1j[indtheta1j,p+1]
 theta1j[indtheta1j]=c(solve(XtX1j)%*%Xty1j)
 }
@@ -346,7 +346,7 @@ xty2j=Xty2j[indtheta2j]-Rxysum2j[indtheta2j,p+1]
 theta2j[indtheta2j]=xty2j/xtx2j
 }
 if(length(indtheta2j)>1){
-XtX2j=XtX2j[indtheta2j,indtheta2j]-Rxysum2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]
+XtX2j=XtX2j[indtheta2j,indtheta2j]-Rxysum2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]/2
 Xty2j=Xty2j[indtheta2j]-Rxysum2j[indtheta2j,p+1]
 theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
 }

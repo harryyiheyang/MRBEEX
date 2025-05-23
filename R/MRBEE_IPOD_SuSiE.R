@@ -230,7 +230,7 @@ indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
 res.thetaj=by[indj]-as.vector(LD[indj,indj]%*%gammaj[indj])
-XtXj=BtBj+Diff_matrix-Rxysumj[1:p,1:p]
+XtXj=BtBj+Diff_matrix/2-Rxysumj[1:p,1:p]
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,1+p]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
@@ -246,7 +246,7 @@ xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,p+1]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
-XtXj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]+Diff_matrix[indthetaj,indthetaj]
+XtXj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]+Diff_matrix[indthetaj,indthetaj]/2
 Xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,p+1]
 thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
 }
