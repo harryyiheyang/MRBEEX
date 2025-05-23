@@ -213,6 +213,7 @@ A$theta.pratt2=getPratt(bX=bX[cluster2,],by=by[cluster2],bXse=bXse[cluster2,],by
 A$IsIPOD=F
 A$Voting=Voting
 A$Bic=Bic
-A$Group_Penalty=Diff_matrix
+A$Group_Penalty1=Diff_matrix1
+A$Group_Penalty2=Diff_matrix2
 return(A)
 }

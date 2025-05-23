@@ -309,7 +309,7 @@ pip.alive1j=theta.cs1j$ind.keep
 theta1j[-pip.alive1j]=0
 if(length(cluster2j)>(min.cluster.size/2)){
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum12[1:p,1:p]
+XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum2j[1:p,1:p]
 XtX2j=XtX2j/2+t(XtX2j)/2
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])-Rxysum2j[1:p,1+p]
 yty2j=sum(tilde.yj[cluster2j]^2)

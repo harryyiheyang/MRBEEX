@@ -38,7 +38,6 @@
 
 #' @importFrom MASS rlm
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
-#' @importFrom varbvs varbvs
 #' @importFrom Matrix Matrix solve chol bdiag
 #' @importFrom susieR susie_suff_stat coef.susie susie
 #' @importFrom utils setTxtProgressBar txtProgressBar

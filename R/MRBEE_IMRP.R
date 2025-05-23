@@ -14,11 +14,15 @@
 #' @param FDR Logical. Whether to apply the FDR to convert the p-value to q-value. Defaults to TRUE.
 #' @param adjust.method Method for estimating q-value. Defaults to "Sidak".
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to 1.5.
+#' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
+#' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
+#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
+
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy
 #' @importFrom MASS rlm
 #' @export
 #'
-MRBEE_IMRP=function(by,bX,byse,bXse,Rxy,max.iter=30,max.eps=1e-4,pv.thres=0.05,var.est="variance",FDR=T,adjust.method="Sidak",maxdiff=1.5){
+MRBEE_IMRP=function(by,bX,byse,bXse,Rxy,max.iter=30,max.eps=1e-4,pv.thres=0.05,var.est="variance",FDR=T,adjust.method="Sidak",maxdiff=1.5,group.penalize=F,group.index=NULL,group.diff=1000){
 if(is.vector(bX)==T){
 A=MRBEE.IMRP.UV(by=by,bx=bX,byse=byse,bxse=bXse,Rxy=Rxy,max.iter=max.iter,max.eps=max.eps,pv.thres=pv.thres,var.est=var.est,FDR=FDR,adjust.method=adjust.method)
 A$gamma=A$delta
@@ -35,6 +39,10 @@ n=length(by)
 p=ncol(bX)
 RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
+Diff_matrix=diag(p)*0
+if(group.penalize==T){
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=matrixMultiply(t(bX),bX/n))
+}
 ########## Initial Estimation ############
 fit=MASS::rlm(by~bX-1)
 theta.ini=fit$coefficient
@@ -60,7 +68,7 @@ Rxysum=Rxyall
 }else{
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:n,indvalid))
 }
-Hinv=t(bX[indvalid,])%*%bX[indvalid,]-Rxysum[1:p,1:p]
+Hinv=t(bX[indvalid,])%*%bX[indvalid,]-Rxysum[1:p,1:p]+Diff_matrix
 Hinv=solve(Hinv)
 theta=Hinv%*%(t(bX[indvalid,])%*%by[indvalid]-Rxysum[1+p,1:p])
 

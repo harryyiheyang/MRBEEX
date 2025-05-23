@@ -47,15 +47,9 @@ if(group.penalize==T){
 }
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-if(length(tilde.y)<2000){
-fit0=varbvs(X=RC,Z=tilde.X,y=tilde.y,verbose=F,maxiter=100)
-gamma.ini=gamma.ini1=fit0$beta*(fit0$pip>0.5)
-theta.ini=theta.ini1=fit0$beta.cov[-1]
-}else{
-fit0=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,var.est="variance",FDR="Sidak",pv.thres=0.01)
+fit0=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,var.est="variance",FDR="Sidak",pv.thres=0.01,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff)
 gamma.ini=gamma.ini1=fit0$gamma/byse1
 theta.ini=theta.ini1=fit0$theta
-}
 }else{
 gamma.ini=gamma.ini1=gamma.ini/byse1
 theta.ini=theta.ini1=theta.ini
