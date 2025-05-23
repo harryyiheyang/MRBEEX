@@ -531,6 +531,7 @@ return(cluster_indices)
 
 generate_D_matrix <- function(s, sign_vec) {
 p <- length(s)
+s=s/median(s)
 if (length(sign_vec) != p) {
 stop("Length of sign_vec must match length of s.")
 }

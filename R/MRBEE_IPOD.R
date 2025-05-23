@@ -189,5 +189,6 @@ A$thetalist=ThetaList
 A$gammalist=GammaList
 A$theta.pratt=getPratt(bX=bX,by=by,bXse=bXse,byse=byse,Theta=Theta,theta=theta,Rxy=Rxy)
 A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
+A$Group_Penalty=Diff_matrix
 return(A)
 }

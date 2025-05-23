@@ -418,5 +418,7 @@ A$susie.theta1=fit.susie1
 A$susie.theta2=fit.susie2
 A$Diff1=Diff1
 A$Diff2=Diff2
+A$Group_Penalty1=Diff_matrix1
+A$Group_Penalty2=Diff_matrix2
 return(A)
 }
