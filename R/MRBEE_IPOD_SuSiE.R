@@ -94,7 +94,7 @@ res.theta=by-as.vector(LD%*%gamma)
 XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
+fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
@@ -161,7 +161,7 @@ res.theta=by-as.vector(LD%*%gamma)
 XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,p+1]
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
+fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
@@ -239,7 +239,7 @@ res.thetaj=by[indj]-as.vector(LD[indj,indj]%*%gammaj[indj])
 XtXj=BtBj+Diff_matrix-Rxysumj[1:p,1:p]
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,1+p]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
-fit.thetaj=susie_suff_stat(XtX=BtBj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
+fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
 pip.alivej=theta.csj$ind.keep
