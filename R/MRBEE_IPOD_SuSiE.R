@@ -75,7 +75,7 @@ gamma1=gamma
 delta=gamma1*0
 error=1
 iter=1
-empirical.variance=3
+
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -88,7 +88,7 @@ res.theta=by-as.vector(LD%*%gamma)
 XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
+fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
@@ -142,7 +142,7 @@ gamma=gamma1=gamma.ini
 delta=0*gamma
 error=1
 iter=1
-empirical.variance=3
+
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -155,7 +155,7 @@ res.theta=by-as.vector(LD%*%gamma)
 XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,p+1]
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
+fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep

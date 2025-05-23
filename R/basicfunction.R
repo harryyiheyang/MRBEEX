@@ -531,7 +531,6 @@ return(cluster_indices)
 
 generate_D_matrix <- function(s, sign_vec) {
 p <- length(s)
-s=s/median(s)
 if (length(sign_vec) != p) {
 stop("Length of sign_vec must match length of s.")
 }
@@ -582,6 +581,7 @@ G=diag(p)*0
 for(j in 1:J){
 indj=which(group_index==j)
 s=diag(COV)[indj]
+s=median(s)/s
 theta=COV[indj[1],indj]
 G[indj,indj]=generate_D_matrix(s,sign(theta))
 }
