@@ -91,8 +91,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix
-Xty=matrixVectorMultiply(Bt,res.theta)
+XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
+Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
@@ -158,8 +158,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix
-Xty=matrixVectorMultiply(Bt,res.theta)
+XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
+Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,p+1]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=BtB,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=empirical.variance,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
@@ -236,8 +236,8 @@ indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
 res.thetaj=by[indj]-as.vector(LD[indj,indj]%*%gammaj[indj])
-XtXj=BtBj+Diff_matrix
-Xtyj=matrixVectorMultiply(Btj,res.thetaj)
+XtXj=BtBj+Diff_matrix-Rxysumj[1:p,1:p]
+Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,1+p]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=BtBj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
