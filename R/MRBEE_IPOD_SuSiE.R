@@ -85,8 +85,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
-Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
+XtX=BtB+Diff_matrix
+Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter,s_init=fit.theta)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
@@ -96,13 +96,13 @@ theta[-pip.alive]=0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=XtX[indtheta,indtheta]
-xty=Xty[indtheta]
+xtx=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]
+xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
-Xty=Xty[indtheta]
+XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]-Rxysum[indtheta,indtheta]
+Xty=Xty[indtheta]-Rxysum[indtheta,p+1]
 theta[indtheta]=c(solve(XtX)%*%Xty)
 }
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
@@ -152,8 +152,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
-Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,p+1]
+XtX=BtB+Diff_matrix
+Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
@@ -163,13 +163,13 @@ theta[-pip.alive]=0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=XtX[indtheta,indtheta]
-xty=Xty[indtheta]
+xtx=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]
+xty=Xty[indtheta]-Rxysum[indtheta,1+p]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
-Xty=Xty[indtheta]
+XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]-Rxysum[indtheta,indtheta]
+Xty=Xty[indtheta]-Rxysum[indtheta,1+p]
 theta[indtheta]=c(solve(XtX)%*%Xty)
 }
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
@@ -230,8 +230,8 @@ indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
 res.thetaj=by[indj]-as.vector(LD[indj,indj]%*%gammaj[indj])
-XtXj=BtBj+Diff_matrix/2-Rxysumj[1:p,1:p]
-Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,1+p]
+XtXj=BtBj+Diff_matrix/2
+Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
@@ -241,13 +241,13 @@ thetaj[-pip.alivej]=0
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){
-xtxj=XtXj[indthetaj,indthetaj]
-xtyj=Xtyj[indthetaj]
+xtxj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]
+xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,1+p]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
-XtXj=XtXj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]
-Xtyj=Xtyj[indthetaj]
+XtXj=XtXj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]
+Xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,1+p]
 thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
 }
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
