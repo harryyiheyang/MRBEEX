@@ -13,11 +13,7 @@ if(LD[1]!="identity"){
 isLD=T
 LD=Matrix(LD,sparse=T)
 Theta=solve(LD)
-TC=chol(Theta)
-RC=as.matrix(TC%*%LD)
 bXinv=as.matrix(Theta%*%bX)
-tilde.y=as.vector(TC%*%by)
-tilde.X=as.matrix(TC%*%bX)
 Bt=t(bXinv)
 BtB=matrixMultiply(Bt,bX)
 BtB=t(BtB)/2+BtB/2
@@ -26,7 +22,6 @@ Thetarho=solve(LD+rho*diag(m))
 }else{
 isLD=F
 LD=Theta=TC=Matrix(diag(m),sparse=T)
-RC=diag(m)
 bXinv=tilde.X=bX
 Bt=t(bX)
 BtB=matrixMultiply(t(bX),bX)
@@ -47,9 +42,9 @@ if(group.penalize==T){
 }
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,var.est="variance",FDR="Sidak",pv.thres=0.01,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff)
-gamma.ini=gamma.ini1=fit0$gamma/byse1
-theta.ini=theta.ini1=fit0$theta
+fit0=susie_suff_stat(XtX=BtB,Xty=matrixVectorMultiply(t(bXinv),by),yty=sum(by*(Theta%*%by)),L=10,n=m)
+theta.ini=theta.ini1=coef(fit0)[-1]
+gamma.ini=gamma.ini1=by*0
 }else{
 gamma.ini=gamma.ini1=gamma.ini/byse1
 theta.ini=theta.ini1=theta.ini
