@@ -16,14 +16,14 @@
 #' @param Lvec A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
-#' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
+#' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
 #' @param cred.pip.thres The threshold of PIP of each credible set. Defaults to \code{0.95}.
-#' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.
-#' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.
+#' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.
+#' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.
@@ -40,9 +40,9 @@
 #' @export
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
-                  group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,
+                  group.penalize=F,group.index=NULL,group.diff=100,
                   theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
-                  admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,
+                  admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
                   pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,
                   max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
                   sampling.time=100,sampling.iter=10){
@@ -272,7 +272,7 @@ delta.complementj=fit.clusterj$complement
 delta.clusterj=fit.clusterj$clusterj
 br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
-XtXj=BtBj-Rxysumj[1:p,1:p]+Diff_matrix[inddelta,inddelta]
+XtXj=BtBj-Rxysumj[1:p,1:p]+Diff_matrix
 XtXj=t(XtXj)/2+XtXj/2
 Xtyj=matrixVectorMultiply(Btj,br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum(br.complementj*(Thetaj%*%br.complementj))

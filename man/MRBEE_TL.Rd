@@ -13,15 +13,15 @@ MRBEE_TL(
   LD = "identity",
   cluster.index = c(1:length(by)),
   group.penalize = F,
-  group.index = c(1:ncol(bX)[1]),
-  group.diff = 10,
+  group.index = NULL,
+  group.diff = 100,
   theta.source,
   theta.source.cov,
   tauvec = seq(3, 30, 3),
   Lvec = c(1:6),
   admm.rho = 3,
-  ebic.delta = 1,
-  ebic.gamma = 2,
+  ebic.delta = 0,
+  ebic.gamma = 1,
   transfer.coef = 1,
   susie.iter = 200,
   pip.thres = 0.5,
@@ -52,7 +52,7 @@ MRBEE_TL(
 
 \item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
 
-\item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
+\item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
 
 \item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
 
@@ -66,9 +66,9 @@ MRBEE_TL(
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{ebic.delta}{A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.}
+\item{ebic.delta}{A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.}
 
-\item{ebic.gamma}{A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.}
+\item{ebic.gamma}{A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.}
 
 \item{transfer.coef}{A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.}
 

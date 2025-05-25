@@ -16,7 +16,7 @@ MRBEEX(
   use.susie = T,
   group.penalize = F,
   group.index = c(1:ncol(bX)[1]),
-  group.diff = 10,
+  group.diff = 100,
   main.cluster.thres = 0.48,
   min.cluster.size = 5,
   tauvec = seq(2.5, 40, by = 2.5),
@@ -28,8 +28,8 @@ MRBEEX(
   max.iter = 100,
   max.eps = 0.001,
   susie.iter = 100,
-  ebic.theta = 1,
-  ebic.gamma = 2,
+  ebic.theta = 0,
+  ebic.gamma = 1,
   ridge.diff = 1000,
   sampling.time = 100,
   sampling.iter = 10,
@@ -61,9 +61,9 @@ MRBEEX(
 
 \item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
 
-\item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
+\item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
 
-\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
+\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.}
 
 \item{main.cluster.thres}{When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.}
 
@@ -87,7 +87,7 @@ MRBEEX(
 
 \item{susie.iter}{Number of iterations in SuSiE per iteration. Default is \code{100}.}
 
-\item{ebic.theta}{EBIC factor on causal effect. Default is \code{1}.}
+\item{ebic.theta}{EBIC factor on causal effect. Default is \code{0}.}
 
 \item{ebic.gamma}{EBIC factor on horizontal pleiotropy. Default is \code{1}.}
 

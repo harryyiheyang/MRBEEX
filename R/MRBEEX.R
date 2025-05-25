@@ -13,8 +13,8 @@
 #' @param method Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.
 #' @param use.susie An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
 #' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
-#' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
-#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
+#' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
+#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.
 #' @param main.cluster.thres When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.
 #' @param min.cluster.size When choosing \code{"Mixture"}, a minimum sample size of the second mixture.  Default is \code{5}.
 #' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
@@ -28,7 +28,7 @@
 #' @param susie.iter Number of iterations in SuSiE per iteration. Default is \code{100}.
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
-#' @param ebic.theta EBIC factor on causal effect. Default is \code{1}.
+#' @param ebic.theta EBIC factor on causal effect. Default is \code{0}.
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy. Default is \code{1}.
 #' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
 #' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
@@ -77,13 +77,13 @@
 
 MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                method=c("IPOD","Mixture"),use.susie=T,
-               group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,
+               group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=100,
                main.cluster.thres=0.48,min.cluster.size=5,
                tauvec=seq(2.5,40,by=2.5),admm.rho=2,
                Lvec=c(1:min(10,ncol(bX))),pip.thres=0.5,
                pip.min=0.1,cred.pip.thres=0.95,
                max.iter=100,max.eps=0.001,susie.iter=100,
-               ebic.theta=1,ebic.gamma=2,ridge.diff=1e3,
+               ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
                sampling.time=100,sampling.iter=10,
                maxdiff=3,reliability.thres=0.75,
                theta.ini=F,gamma.ini=F,verbose=T){
