@@ -42,7 +42,7 @@ if(group.penalize==T){
 }
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=susie_suff_stat(XtX=BtB,Xty=matrixVectorMultiply(t(bXinv),by),yty=sum(by*(Theta%*%by)),L=10,n=m)
+fit0=susie_suff_stat(XtX=BtB+Diff_matrix,Xty=matrixVectorMultiply(t(bXinv),by),yty=sum(by*(Theta%*%by)),L=10,n=m)
 theta.ini=theta.ini1=coef(fit0)[-1]
 gamma.ini=gamma.ini1=by*0
 }else{
