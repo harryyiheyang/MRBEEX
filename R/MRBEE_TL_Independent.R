@@ -80,6 +80,7 @@ theta=delta+theta.source
 gamma=(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1)/(1+admm.rho)
 gamma1=mcp(gamma+u/admm.rho,tauvec[v]/admm.rho)
 u=u+admm.rho*(gamma-gamma1)
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -146,6 +147,7 @@ theta=delta+theta.source
 gamma=(by-matrixVectorMultiply(bX,theta)-u+admm.rho*gamma1)/(1+admm.rho)
 gamma1=mcp(gamma+u/admm.rho,tauvec[vstar]/admm.rho)
 u=u+admm.rho*(gamma-gamma1)
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>5){
 error=sqrt(sum((delta-delta1)^2))
@@ -154,7 +156,7 @@ error=sqrt(sum((delta-delta1)^2))
 ############################### inference #########################
 names(delta)=colnames(bX)
 theta=theta.source+delta
-res=gamma1*byse1
+res=gamma*byse1
 names(res)=rownames(bX)
 ThetaList=DeltaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
@@ -224,6 +226,7 @@ thetaj=deltaj+theta.source
 gammaj=(byj-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j)/(1+admm.rho)
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
+gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j,]=theta.source+deltaj
 DeltaList[j,]=deltaj
