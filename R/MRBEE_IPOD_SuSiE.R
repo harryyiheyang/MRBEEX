@@ -112,13 +112,14 @@ gamma=(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1)/(1+rho)
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
 delta=delta+rho*(gamma-gamma1)
 }
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
 }
 }
 Btheta[,j,v]=theta
-Bgamma[,j,v]=gamma1
+Bgamma[,j,v]=gamma
 df1=sum(gamma1!=0)
 df2=min(Lvec[v],sum(theta!=0))
 res=c(by-matrixVectorMultiply(bX,theta)-as.vector(LD%*%gamma))
@@ -179,6 +180,7 @@ gamma=(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1)/(1+rho)
 gamma1=mcp(gamma+delta/rho,tauvec[jstar]/rho)
 delta=delta+rho*(gamma-gamma1)
 }
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
@@ -191,7 +193,7 @@ cat(paste0("Estimation ends: ",time_to_print," secs\n"))
 }
 ############################### inference #########################
 t1=Sys.time()
-gamma=gamma1
+gamma=gamma
 theta=theta
 names(theta)=colnames(bX)
 names(gamma)=rownames(bX)
@@ -257,6 +259,7 @@ gammaj[indj]=as.vector((by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
+gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j, ] <- thetaj
 GammaList[j, ] = gamma1j
