@@ -86,13 +86,14 @@ gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
 gamma1[pleiotropy.rm]=0
 delta=delta+rho*(gamma-gamma1)
 delta[pleiotropy.rm]=0
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
 }
 }
 Btheta[,j,v]=theta
-Bgamma[,j,v]=gamma1
+Bgamma[,j,v]=gamma
 df1=sum(gamma1!=0)
 df2=min(Lvec[v],sum(theta!=0))
 res=by-matrixVectorMultiply(bX,theta)-matrixVectorMultiply(LD,gamma)
@@ -147,13 +148,14 @@ gamma1=mcp(gamma+delta/rho,tauvec[jstar]/rho)
 gamma1[pleiotropy.rm]=0
 delta=delta+rho*(gamma-gamma1)
 delta[pleiotropy.rm]=0
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
 }
 }
 ############################### inference #########################
-gamma=gamma1
+gamma=gamma
 theta=theta
 names(theta)=colnames(bX)
 names(gamma)=rownames(bX)
