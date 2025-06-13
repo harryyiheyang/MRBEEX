@@ -92,13 +92,14 @@ gamma=(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1)/(1+rho)
 gamma1=mcp(gamma+delta/rho,tauvec[j]/rho)
 delta=delta+rho*(gamma-gamma1)
 }
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=max(abs(theta-theta1))
 }
 }
 Btheta[,j]=theta
-Bgamma[,j]=gamma1
+Bgamma[,j]=gamma
 df1=sum(gamma1!=0)
 res=c(by-matrixVectorMultiply(bX,theta)-as.vector(LD%*%gamma))
 rss=sum(res*(Theta%*%res))/(m-df1-p)
@@ -156,6 +157,7 @@ deltaj=deltaj+rho*(gammaj-gamma1j)
 }else{
 gammaj[indj]=gamma1j[indj]=mcp(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj),tauvec[jstar])
 }
+gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j, ] <- thetaj
 GammaList[j, ] <- gamma1j
