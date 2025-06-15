@@ -39,7 +39,7 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
 Diff_matrix=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
 }
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
@@ -127,40 +127,60 @@ GammaList=matrix(0,sampling.time,m)
 colnames(GammaList)=rownames(bX)
 cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
-for(j in 1:sampling.time) {
+j=1
+while(j<=sampling.time){
+indicator <- FALSE
 setTxtProgressBar(pb, j)
-cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace = F)
-indj=which(cluster.index%in%cluster.sampling)
-indj=sort(indj)
-LDj=LD[indj,indj]
-Thetaj <- Theta[indj,indj]
-Thetarhoj <- Thetarho[indj,indj]
-Bt <- as.matrix(t(bX[indj, ]) %*% Thetaj)
-BtB <- matrixMultiply(Bt, bX[indj, ])
+tryCatch({
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=rho)
+indj=sampling_result$indj
+LDj=sampling_result$LDj
+Thetaj=sampling_result$Thetaj
+Thetarhoj=sampling_result$Thetarhoj
+remove(sampling_result)
+bXj=bX[indj,]
+bXsej=bXse[indj,]
+byj=by[indj]
+bysej=byse[indj]
+Btj <- as.matrix(t(bXj) %*% Thetaj)
+BtBj <- Btj%*%bXj
+BtBj=(t(BtBj)+BtBj)/2
+dBtBj=diag(BtBj)
 thetaj=theta*runif(1,0.95,1.05)
-gammaj=gamma1j=gamma*runif(1,0.975,1.025)
+gammaj=gamma1j=gamma[indj]*runif(1,0.975,1.025)
 deltaj=0*gammaj
 for(jiter in 1:sampling.iter){
 indvalidj <- which(gamma1j==0)
 indvalidj <- intersect(indvalidj, indj)
 Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
-Hinv <- solve(BtB - Rxysumj[1:p, 1:p]+Diff_matrix/2)
-g <- matrixVectorMultiply(Bt, by[indj] - as.vector(LD[indj,indj]%*%gammaj[indj])) - Rxysumj[1:p, p + 1]
+Hinv <- solve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix)
+g <- matrixVectorMultiply(Btj, byj - as.vector(LDj%*%gammaj)) - Rxysumj[1:p, p + 1]
 thetaj <- c(matrixVectorMultiply(Hinv, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 if(isLD){
-gammaj[indj]=as.vector(Thetarhoj%*%(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj)-deltaj[indj]+rho*gamma1j[indj]))
+gammaj[indj]=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }else{
-gammaj[indj]=gamma1j[indj]=mcp(by[indj]-matrixVectorMultiply(bX[indj, ],thetaj),tauvec[jstar])
+gammaj=gamma1j=mcp(by[indj]-matrixVectorMultiply(bXj,thetaj),tauvec[jstar])
+deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 gammaj=gammaj*(gamma1j!=0)
 }
 ThetaList[j, ] <- thetaj
-GammaList[j, ] <- gamma1j
+j=j+1
+}, error = function(e) {
+# Error handling block
+cat("Error occurred: ", e$message, "\n")
+indicator <<- TRUE  # Set indicator to TRUE if an error occurs
+j <<- j - 1  # Decrement the iteration counter to retry
+})
+if (indicator) {
+next  # Retry the current iteration
+}
 }
 close(pb)
 t2=Sys.time()

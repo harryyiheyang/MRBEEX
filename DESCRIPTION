@@ -23,6 +23,9 @@ Imports:
     CppMatrix,
     Matrix,
     MRBEE
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
 Suggests: 
     CARMA
 Remotes:

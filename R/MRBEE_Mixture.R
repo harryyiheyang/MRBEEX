@@ -1,6 +1,6 @@
 MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10){
 ########################### Basic information #######################
-  t1=Sys.time()
+t1=Sys.time()
 by=by/byse
 byseinv=1/byse
 bX=bX*byseinv
@@ -48,7 +48,7 @@ m2=length(cluster2)
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-  cat(paste0("Initialization ends: ",time_to_print," secs\n"))
+cat(paste0("Initialization ends: ",time_to_print," secs\n"))
 }
 ############################## Tuning Parameter ######################
 t1=Sys.time()
@@ -62,7 +62,7 @@ XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])
 Diff_matrix1=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
+Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
 }
 theta1=c(solve(XtX1-Rxysum1[1:p,1:p]+Diff_matrix1)%*%(Xty1-Rxysum1[1:p,p+1]))
 if(length(cluster2)>min.cluster.size){
@@ -71,7 +71,7 @@ XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])
 Diff_matrix2=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
+Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
 }
 theta2=c(solve(XtX2-Rxysum2[1:p,1:p]+Diff_matrix2)%*%(Xty2-Rxysum2[1:p,p+1]))
 }else{
@@ -85,7 +85,7 @@ sigma1=max(0.25,sigma1)
 Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
 cluster2=which(Voting$Cluster[,2]==1)
 if(length(cluster2)==0){
-  cluster2=c(1:min.cluster.size)
+cluster2=c(1:min.cluster.size)
 }
 cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
@@ -100,7 +100,7 @@ Bic=Bic/m
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-  cat(paste0("Estimation ends: ",time_to_print," secs\n"))
+cat(paste0("Estimation ends: ",time_to_print," secs\n"))
 }
 ############################### inference #########################
 t1=Sys.time()
@@ -114,12 +114,19 @@ while(j<=sampling.time){
 indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
-cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace = F)
-indj=which(cluster.index%in%cluster.sampling)
-indj=sort(indj)
-tilde.yj=tilde.y[indj]
-tilde.Xj=tilde.X[indj,]
-tilde.Rj=tilde.R[indj,indj]
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=0)
+indj=sampling_result$indj
+LDj=sampling_result$LDj
+TCj=sampling_result$TCj
+remove(sampling_result)
+bXj=bX[indj,]
+bXsej=bXse[indj,]
+byj=by[indj]
+bysej=byse[indj]
+tilde.yj=as.vector(TCj%*%byj)
+tilde.Xj=as.matrix(TCj%*%bXj)
+tilde.Rj=as.matrix(TCj%*%LDj)
 theta1j=theta1*runif(1,0.95,1.05)*0.95
 theta2j=theta2*runif(1,0.95,1.05)*0.95
 cluster1j=which(indj%in%cluster1)
@@ -132,7 +139,7 @@ XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])
 Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])
 Diff_matrix1=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
+Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
 }
 theta1j=c(solve(XtX1j-Rxysum1j[1:p,1:p]+Diff_matrix1/2)%*%(Xty1j-Rxysum1j[1:p,p+1]))
 if(length(cluster2j)>(min.cluster.size/2)){
@@ -141,7 +148,7 @@ XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])
 Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])
 Diff_matrix2=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
+Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
 }
 theta2j=c(solve(XtX2j-Rxysum2j[1:p,1:p]+Diff_matrix2/2)%*%(Xty2j-Rxysum2j[1:p,p+1]))
 }else{
@@ -155,7 +162,7 @@ sigma1j=max(0.25,sigma1j)
 Votingj=cluster_voting(by=tilde.yj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
 cluster2j=which(Votingj$Cluster[,2]==1)
 if(length(cluster2j)==0){
-  cluster2j=c(1:2)
+cluster2j=c(1:2)
 }
 cluster1j=which(Votingj$Cluster[,1]==1)
 m1j=length(cluster1j)
@@ -183,7 +190,7 @@ close(pb)
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-  cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
 }
 indtheta1=which(theta1!=0)
 indtheta2=which(theta2!=0)

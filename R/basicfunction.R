@@ -727,3 +727,29 @@ return(index)
 top_K_indices <- function(vec, k=1) {
 return(order(vec, decreasing = TRUE)[1:k])
 }
+
+#construct_sparse_blockwise_LD <- function(LD, cluster.index, cluster.sampling,admm.rho) {
+#cluster_map <- split(seq_along(cluster.index), cluster.index)
+#Theta_list <- vector("list", length(cluster.sampling))
+#Thetarho_list <- vector("list", length(cluster.sampling))
+#TC_list <- vector("list", length(cluster.sampling))
+#LD_list <- vector("list", length(cluster.sampling))
+#indj_list <- vector("list", length(cluster.sampling))
+#for (i in seq_along(cluster.sampling)) {
+#cluster_id <- cluster.sampling[i]
+#vars <- cluster_map[[as.character(cluster_id)]]
+#LD_block <- LD[vars, vars, drop = FALSE]
+#TC_block = chol(LD_block)
+#LD_list[[i]] <- LD_block
+#Theta_list[[i]] <- solve(LD_block)
+#TC_list[[i]] <- TC_block
+#Thetarho_list[[i]] <- solve(LD_block+admm.rho*diag(length(vars)))
+#indj_list[[i]] <- vars
+#}
+#Thetaj <- bdiag(Theta_list)
+#Thetarhoj <- bdiag(Thetarho_list)
+#TCj <- bdiag(TC_list)
+#LDj <- bdiag(LD_list)
+#indj <- unlist(indj_list, use.names = FALSE)
+#return(list(indj=indj,LDj=LDj,Thetaj=Thetaj,Thetarhoj=Thetarhoj,TCj=TCj))
+#}

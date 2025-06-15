@@ -31,9 +31,9 @@ Btime=matrix(0,500,9)
 cluster.index=kronecker(c(1:(125*3)),rep(1,4))
 theta0=c(1,-0.5,rep(0,6),-0.5,1)
 UHP.var=1
-UHP.frac=0.05*0
+UHP.frac=0.05*1
 #UHP.frac=0.00
-CHP.frac=0.05*1
+CHP.frac=0.05*0
 iter=1
 
 Btheta=array(0,c(50,p,4))

@@ -236,8 +236,13 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace = F)
-indj=which(cluster.index%in%cluster.sampling)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho)
+indj=sampling_result$indj
+LDj=sampling_result$LDj
+Thetaj=sampling_result$Thetaj
+Thetarhoj=sampling_result$Thetarhoj
+remove(sampling_result)
 indj=sort(indj)
 nj=length(indj)
 bXj=bX[indj,]
@@ -253,9 +258,6 @@ uj=gamma1j=gammaj*0
 indvalidj=which(gammaj==0)
 fit.susiej=fit.susie
 deltaj=theta.source-thetaj
-LDj=LD[indj,indj]
-Thetaj <- Theta[indj,indj]
-Thetarhoj <- Thetarho[indj,indj]
 Btj <- as.matrix(t(bX[indj, ]) %*% Thetaj)
 BtBj <- Btj%*%bX[indj, ]
 BtBj=(t(BtBj)+BtBj)/2
