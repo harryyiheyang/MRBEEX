@@ -28,6 +28,7 @@ MRBEE_TL(
   pip.min = 0.1,
   cred.pip.thres = 0.95,
   max.iter = 50,
+  coverage.causal = 0.95,
   max.eps = 1e-04,
   reliability.thres = 0.8,
   ridge.diff = 100,
@@ -81,6 +82,8 @@ MRBEE_TL(
 \item{cred.pip.thres}{The threshold of PIP of each credible set. Defaults to \code{0.95}.}
 
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Default is \code{50}.}
+
+\item{coverage.causal}{The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.}
 
 \item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-4}.}
 

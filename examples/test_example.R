@@ -59,7 +59,7 @@ t2=Sys.time()
 ipod.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit.susie=MRBEEX(method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,admm.rho=2,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ebic.gamma=1,cluster.index=cluster.index,sampling.time=10,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=8)
+fit.susie=MRBEEX(method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,admm.rho=2,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ebic.gamma=1,cluster.index=cluster.index,sampling.time=10,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=8,coverage.causal=0.9)
 t2=Sys.time()
 susie.time=difftime(t2, t1, units = "secs")
 

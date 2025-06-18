@@ -21,6 +21,7 @@
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
+#' @param coverage.causal The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.
 #' @param cred.pip.thres The threshold of PIP of each credible set. Defaults to \code{0.95}.
 #' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.
 #' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
@@ -43,7 +44,7 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
                   group.penalize=F,group.index=NULL,group.diff=100,
                   theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
                   admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
-                  pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,
+                  pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
                   max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
                   sampling.time=100,sampling.iter=10){
 if(LD[1]=="identity"){
@@ -53,7 +54,7 @@ A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
                        tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
                        transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
                        pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
-                       reliability.thres=reliability.thres,ridge.diff=ridge.diff,
+                       reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=0.95,
                        sampling.time=sampling.time,sampling.iter=sampling.iter)
 return(A)
 }else{
@@ -123,9 +124,9 @@ XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 tryCatch({
-fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1,coverage=coverage.causal)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F,coverage=coverage.causal)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -190,9 +191,9 @@ XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 tryCatch({
-fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1,coverage=coverage.causal)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F,coverage=coverage.causal)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -281,9 +282,9 @@ XtXj=t(XtXj)/2+XtXj/2
 Xtyj=matrixVectorMultiply(Btj,br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum(br.complementj*(Thetaj%*%br.complementj))
 tryCatch({
-fit.susiej=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=15,intercept=F,residual_variance_lowerbound=1)
+fit.susiej=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=15,intercept=F,residual_variance_lowerbound=1,coverage=coverage.causal)
 },error = function(e) {
-fit.susiej=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=15,intercept=F,estimate_residual_variance=F)
+fit.susiej=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=15,intercept=F,estimate_residual_variance=F,coverage=coverage.causal)
 })
 delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
 delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)

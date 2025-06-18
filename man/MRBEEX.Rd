@@ -35,6 +35,7 @@ MRBEEX(
   sampling.iter = 10,
   maxdiff = 3,
   reliability.thres = 0.75,
+  coverage.causal = 0.95,
   theta.ini = F,
   gamma.ini = F,
   verbose = T
@@ -100,6 +101,8 @@ MRBEEX(
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
+
+\item{coverage.causal}{The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.}
 
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 

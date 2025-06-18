@@ -728,28 +728,88 @@ top_K_indices <- function(vec, k=1) {
 return(order(vec, decreasing = TRUE)[1:k])
 }
 
-#construct_sparse_blockwise_LD <- function(LD, cluster.index, cluster.sampling,admm.rho) {
-#cluster_map <- split(seq_along(cluster.index), cluster.index)
-#Theta_list <- vector("list", length(cluster.sampling))
-#Thetarho_list <- vector("list", length(cluster.sampling))
-#TC_list <- vector("list", length(cluster.sampling))
-#LD_list <- vector("list", length(cluster.sampling))
-#indj_list <- vector("list", length(cluster.sampling))
-#for (i in seq_along(cluster.sampling)) {
-#cluster_id <- cluster.sampling[i]
-#vars <- cluster_map[[as.character(cluster_id)]]
-#LD_block <- LD[vars, vars, drop = FALSE]
-#TC_block = chol(LD_block)
-#LD_list[[i]] <- LD_block
-#Theta_list[[i]] <- solve(LD_block)
-#TC_list[[i]] <- TC_block
-#Thetarho_list[[i]] <- solve(LD_block+admm.rho*diag(length(vars)))
-#indj_list[[i]] <- vars
-#}
-#Thetaj <- bdiag(Theta_list)
-#Thetarhoj <- bdiag(Thetarho_list)
-#TCj <- bdiag(TC_list)
-#LDj <- bdiag(LD_list)
-#indj <- unlist(indj_list, use.names = FALSE)
-#return(list(indj=indj,LDj=LDj,Thetaj=Thetaj,Thetarhoj=Thetarhoj,TCj=TCj))
-#}
+fix_empty_resamples = function(bXj, bX0j, dBtB) {
+bXj=as.matrix(bXj)
+bX0j=as.matrix(bX0j)
+stopifnot(all(dim(bXj) == dim(bX0j)))
+sampling = nrow(bXj)
+p = ncol(bXj)
+
+#
+zero_rows = which(rowSums(abs(bXj)) == 0 & rowSums(abs(bX0j)) == 0)
+
+if (length(zero_rows) > 0) {
+for (i in zero_rows) {
+sd = sqrt(dBtB[i])
+bXj[i, ] = rnorm(p, mean = 0, sd = sd)
+bX0j[i, ] = rnorm(p, mean = 0, sd = sd)
+}
+}
+
+return(list(bXj = bXj, bX0j = bX0j))
+}
+
+susie_effect_resampling = function(LD, alpha, mu, mu2, sampling = 1, method = c("probabilistic", "multinomial")) {
+method = match.arg(method)
+
+L = nrow(mu)
+p = ncol(mu)
+varr = mu2 - mu^2
+varr[varr < 0] = 0
+sd_mat = sqrt(varr)
+
+# Step 1: chosen indices
+chosen = matrix(0, nrow = sampling, ncol = L)
+
+if (method == "probabilistic") {
+# Same as before: draw index j ~ alpha[ℓ,·]
+chosen = apply(alpha, 1, function(prob) sample(1:p, size = sampling, replace = TRUE, prob = prob))
+chosen = matrix(chosen,nrow = sampling, ncol = L)
+} else if (method == "multinomial") {
+# New version: draw one-hot vector via multinomial
+for (j in 1:L) {
+for (i in 1:sampling) {
+phi = rmultinom(1, 1, alpha[j, ])  # length p, one-hot
+chosen[i, j] = which(phi == 1)
+}
+}
+}
+
+# Step 2: extract mean and sd for sampled effects
+mu_sel = matrix(0, nrow = sampling, ncol = L)
+sd_sel = matrix(0, nrow = sampling, ncol = L)
+for (j in 1:L) {
+idx = chosen[, j]
+mu_sel[, j] = mu[j, idx]
+sd_sel[, j] = sd_mat[j, idx]
+}
+
+# Step 3: sample Gaussian effect sizes and place into sparse β vector
+noise = matrix(rnorm(sampling * L), sampling, L)
+beta_sample = mu_sel + noise * sd_sel  # sampling × L
+
+a = matrix(0, nrow = sampling, ncol = p)
+for (j in 1:L) {
+idx = chosen[, j]
+a[cbind(1:sampling, idx)] = a[cbind(1:sampling, idx)] + beta_sample[, j]
+}
+
+# Step 4: compute LD-propagated signal
+bx = a %*% LD
+bx_mean = colMeans(bx)
+a_mean = colMeans(a)
+
+return(list(bx = bx_mean, bx0 = a_mean, beta_matrix = a, chosen = chosen))
+}
+
+spearmancov=function(A){
+p=dim(A)[2]
+s=c(1:p)
+for(i in 1:p){
+s[i]=median(abs(median(A[,i])-A[,i]))*1.483
+}
+R=cor(A,method="spearman")
+R=2*sin(R*pi/6)
+S=t(R*s)*s
+return(S)
+}

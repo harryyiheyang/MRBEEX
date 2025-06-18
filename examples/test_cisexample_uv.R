@@ -6,25 +6,25 @@ library(Matrix)
 library(devtools)
 devtools::load_all()
 ARcov=function(p,rho){
-s=c(1:p)
-for(i in 1:p){
-s[i]=rho^(i-1)
-}
-return(toeplitz(s))
+  s=c(1:p)
+  for(i in 1:p){
+    s[i]=rho^(i-1)
+  }
+  return(toeplitz(s))
 }
 
 CScov=function(p,rho){
-return(matrix(rho,p,p)+(1-rho)*diag(p))
+  return(matrix(rho,p,p)+(1-rho)*diag(p))
 }
 
 coverage=function(theta,theta.se,theta0){
-delta=abs(theta-theta0)/2
-cover=ifelse(delta<=theta.se,1,0)
-return(cover)
+  delta=abs(theta-theta0)/2
+  cover=ifelse(delta<=theta.se,1,0)
+  return(cover)
 }
 m=200 # number of IVs
 p=10 # number of exposure
-n1=3000
+n1=300
 n0=1e6 # outcome sample size
 Rbb=ARcov(p,-0.5) # exposure covariance
 Ruv=ARcov(p+1,-0.3) # estimation error covariance
@@ -36,7 +36,7 @@ Rnn=CScov(p=p+1,1)
 Btheta=matrix(0,100,p)
 Bse=Bcov=array(0,c(100,p,3))
 cluster.index=kronecker(c(1:50),rep(1,4))
-theta0=c(1,rep(0,8),1)
+theta0=c(1,rep(0,8),0)
 UHP.var=1
 UHP.frac=0.05*1
 #UHP.frac=0.01*0
@@ -79,7 +79,7 @@ theta.ini=F;gamma.ini=F;xQTLfitList=NULL;
 sampling.iter=10;sampling.time=1000;sampling.size=0.5;
 batch.size=1;verbose=T
 
-xQTLfitList=MRBEEX::Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),xQTL.max.L=5)
-fit1=MRBEEX::CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList,sandwich=T)
-fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList)
+fit1=MRBEEX::CisMRBEE_UV(by=by,bX=bX[,1],byse=byse,bXse=bXse[,1],LD=LD,Rxy=Rxy[c(1,11),c(1,11)],xQTL.N=n1)
+fit2=CisMRBEE_UV(by=by,bX=bX[,1],byse=byse,bXse=bXse[,1],LD=LD,Rxy=Rxy[c(1,11),c(1,11)],xQTL.N=n1,sandwich=F)
+
 

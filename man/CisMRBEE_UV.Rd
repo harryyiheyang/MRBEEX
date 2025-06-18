@@ -23,20 +23,25 @@ CisMRBEE_UV(
   admm.rho = 2,
   use.susie = T,
   causal.pip.thres = 0.3,
+  coverage.xQTL = 0.95,
+  coverage.causal = 0.95,
   max.iter = 100,
   max.eps = 0.001,
   ebic.gamma = 2,
-  xQTLfit = NULL
+  xQTLfit = NULL,
+  sandwich = F,
+  sampling.iter = 15,
+  sampling.time = 500
 )
 }
 \arguments{
 \item{by}{A vector of effect estimates from the outcome GWAS.}
 
-\item{bX}{A matrix of effect estimates from the exposure GWAS.}
+\item{bX}{A vector of effect estimates from the exposure GWAS.}
 
 \item{byse}{A vector of standard errors of effect estimates from the outcome GWAS.}
 
-\item{bXse}{A matrix of standard errors of effect estimates from the exposure GWAS.}
+\item{bXse}{A vector of standard errors of effect estimates from the exposure GWAS.}
 
 \item{LD}{The LD matrix of variants.}
 
@@ -66,6 +71,10 @@ CisMRBEE_UV(
 
 \item{causal.pip.thres}{When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.}
 
+\item{coverage.xQTL}{The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.}
+
+\item{coverage.causal}{The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.}
+
 \item{max.iter}{The maximum number of iterations for the ADMM algorithm. Default is \code{15}.}
 
 \item{max.eps}{The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.}
@@ -73,6 +82,12 @@ CisMRBEE_UV(
 \item{ebic.gamma}{The extended BIC factor for model selection. Default is \code{2}.}
 
 \item{xQTLfit}{Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.}
+
+\item{sandwich}{An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.}
+
+\item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.}
+
+\item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
 }
 \value{
 A list containing:

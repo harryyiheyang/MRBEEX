@@ -3,9 +3,9 @@
 #' This function performs univariable cis-Mendelian randomization that removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP).
 #'
 #' @param by A vector of effect estimates from the outcome GWAS.
-#' @param bX A matrix of effect estimates from the exposure GWAS.
+#' @param bX A vector of effect estimates from the exposure GWAS.
 #' @param byse A vector of standard errors of effect estimates from the outcome GWAS.
-#' @param bXse A matrix of standard errors of effect estimates from the exposure GWAS.
+#' @param bXse A vector of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The LD matrix of variants.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
@@ -23,7 +23,12 @@
 #' @param ebic.gamma The extended BIC factor for model selection. Default is \code{2}.
 #' @param use.susie n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.
 #' @param causal.pip.thres When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.
+#' @param coverage.xQTL The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.
+#' @param coverage.causal The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.
 #' @param xQTLfit  Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.
+#' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
+#' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
+#' @param sandwich An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.
 #' @return A list containing:
 #' \describe{
 #' \item{\code{theta}}{The estimated effect size of the tissue-gene pair.}
@@ -43,22 +48,24 @@
 #' @export
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
-                     top_K=1,xQTL.pip.min=0.2,
-                     xQTL.max.L=10,xQTL.cred.thres=0.95,
-                     xQTL.pip.thres=0.5,reliability.thres=0.75,
-                     tauvec=seq(3,30,by=1.5),admm.rho=2,
-                     use.susie=T,causal.pip.thres=0.3,
-                     max.iter=100,max.eps=0.001,ebic.gamma=2,
-                     xQTLfit=NULL
-                     ){
+     top_K=1,xQTL.pip.min=0.2,
+     xQTL.max.L=10,xQTL.cred.thres=0.95,
+     xQTL.pip.thres=0.5,reliability.thres=0.75,
+     tauvec=seq(3,30,by=1.5),admm.rho=2,
+     use.susie=T,causal.pip.thres=0.3,
+     coverage.xQTL=0.95,coverage.causal=0.95,
+     max.iter=100,max.eps=0.001,ebic.gamma=2,
+     xQTLfit=NULL,sandwich=F,
+     sampling.iter=15,sampling.time=500){
 m=length(by)
 Theta=solve(LD)
 bXest=bX
 bXest0=bXestse0=bX*0
 bXestse=bXestse0=c(1000,m)
 if(is.null(xQTLfit)==T){
-fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=xQTL.max.L,max_iter=1000)
-fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(susie_get_cs(fit.susie,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000)
+fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=xQTL.max.L,max_iter=1000,coverage=coverage.xQTL)
+fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(susie_get_cs(fit.susie,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,coverage=coverage.xQTL)
+xQTLfit=fit.susie
 causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit.susie)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
@@ -80,9 +87,10 @@ LDjj=LD%*%Thetajj%*%LD
 bXest=as.vector(LD%*%(bXest0/bXse))*bXse
 bXestse=sqrt(diag(LDjj))*bXse
 }else{
-# If SuSiE cannot find a credible set, use ridge regression with tuning parameter = 1 instead.
-bXest0=c(Theta%*%(bX/bXse))*bXse
-bXestse0=sqrt(diag(Theta))*bXse
+# If SuSiE cannot find a credible set, use ridge regression with tuning parameter = 0.5 instead.
+Theta_ridge=matrixInverse(LD+0.5*diag(diag(LD)))
+bXest0=c(Theta_ridge%*%(bX/bXse))*bXse
+bXestse0=sqrt(diag(Theta_ridge))*bXse
 bXest=bX
 bXestse=bXse
 }
@@ -164,7 +172,7 @@ if(use.susie==T){
 res=by-matrixVectorMultiply(LD,gamma)
 xtr=sum(bXest0*res)
 rtr=sum(res*(Theta%*%res))
-fit.theta=susie_suff_stat(XtX=as.matrix(xtx),Xty=as.vector(xtr),yty=rtr,L=1,n=m,intercept=F,residual_variance=1,estimate_prior_method="EM",s_init=fit.theta)
+fit.theta=susie_suff_stat(XtX=as.matrix(xtx),Xty=as.vector(xtr),yty=rtr,L=1,n=m,intercept=F,residual_variance=1,estimate_prior_method="EM",s_init=fit.theta,coverage=coverage.causal)
 if(fit.theta$pip>=causal.pip.thres){
 Hinv=1/(xtx-sum(bXestse[indvalid]^2)*Rxy[1,1])
 g=sum(bXest0*(by-as.vector(LD%*%gamma)))-sum(bXestse[indvalid])*Rxy[2,1]
@@ -183,14 +191,15 @@ gamma[pleiotropy.keep]=c(matrixVectorMultiply(Thetarho,res[pleiotropy.keep]))
 gamma1=mcp(gamma+u/admm.rho,tauvec[sss])
 u=u+admm.rho*(gamma-gamma1)
 u[pleiotropy.rm]=0
+gamma=gamma*(gamma1!=0)
 iter=iter+1
 if(iter>3){
 error=abs(theta-theta1)
 }
 Btheta[sss]=theta
-Bgamma[,sss]=gamma1
-res=as.vector(by-bXest*theta-matrixVectorMultiply(LD,gamma1))
-df=sum(gamma1!=0)
+Bgamma[,sss]=gamma
+res=as.vector(by-bXest*theta-matrixVectorMultiply(LD,gamma))
+df=sum(gamma!=0)
 rss=sum(res*(matrixVectorMultiply(Theta,res)))
 Bbic[sss]=m*log(rss)+log(m)*(1+ebic.gamma)*df
 }
@@ -203,6 +212,8 @@ indvalid=which(gamma==0)
 indgamma=which(gamma!=0)
 effn=m-length(indgamma)
 
+if(sandwich==T){
+ThetaList=NULL
 res=as.vector(by-bXest*theta-LD%*%gamma)
 upsilon=by*0
 var_inf=1
@@ -234,17 +245,91 @@ h0=sum(bXest0*((var_error*LD+var_inf*LD%*%LD)%*%bXest0))
 h1=(xtx-sum(bXestse[indvalid])*Rxy[1,1])
 covtheta=h0/h1/h1
 }
-
+}else{
+############################### inference #########################
+t1=Sys.time()
+gamma=gamma
+theta=theta
+indgamma=which(gamma!=0)
+indvalid=which(gamma==0)
+ThetaList=c(1:sampling.time)
+cat("Bootstrapping starts:\n")
+pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
+j=1
+while(j<=sampling.time){
+indicator <- FALSE
+setTxtProgressBar(pb, j)
+tryCatch({
+rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfit$alpha,mu=xQTLfit$mu,mu2=xQTLfit$mu2,sampling=1,method="probabilistic")
+bXj=rsamples$bx
+bX0j=rsamples$bx0
+bXj=bXj*byseinv
+bX0j=bX0j*byseinv
+emptyy=fix_empty_resamples(bXj,bX0j,xtx/m)
+bXj=emptyy$bXj
+bX0j=emptyy$bX0
+bX0j=matrixVectorMultiply(Theta,bXj)
+xtxj=sum(bXj*bX0j)
+thetaj=theta*runif(1,0.95,1.05)
+gammaj=gamma1j=gamma
+byj=by
+uj=gammaj*0
+fit.thetaj=fit.theta
+errorj=1
+for(jiter in 1:sampling.iter){
+theta_prevj=thetaj
+indvalidj=which(gamma1j==0)
+if(use.susie==T){
+resj=byj-matrixVectorMultiply(LD,gammaj)
+xtrj=sum(bX0j*resj)
+rtrj=sum(resj*(Theta%*%resj))
+fit.thetaj=susie_suff_stat(XtX=as.matrix(xtxj),Xty=as.vector(xtrj),yty=rtrj,L=1,n=m,intercept=F,residual_variance=1,estimate_prior_method="EM",s_init=fit.thetaj,coverage=coverage.causal)
+if(fit.thetaj$pip>=causal.pip.thres){
+Hinvj=1/(xtxj-sum(bXestse[indvalidj]^2)*Rxy[1,1])
+gj=sum(bX0j*(byj-matrixVectorMultiply(LD,gammaj)))-sum(bXestse[indvalidj])*Rxy[2,1]
+thetaj=gj*Hinvj
+}else{
+thetaj=coef.susie(fit.thetaj)[-1]
+}
+}
+if(use.susie==F){
+Hinvj=1/(xtxj-sum(bXestse[indvalidj]^2)*Rxy[1,1])
+gj=sum(bX0j*(byj-matrixVectorMultiply(LD,gammaj)))-sum(bXestse[indvalidj])*Rxy[2,1]
+thetaj=gj*Hinvj
+}
+resj=c(byj-bXj*thetaj-uj+admm.rho*gamma1j)
+gammaj=c(matrixVectorMultiply(Thetarho,resj))
+gamma1j=mcp(gammaj+uj/admm.rho,tauvec[sss])
+uj=uj+admm.rho*(gammaj-gamma1j)
+gammaj=gammaj*(gamma1j!=0)
+if(jiter>2) errorj=abs(thetaj-theta_prevj)
+if(errorj<max.eps) break
+}
+ThetaList[j] <- thetaj
+j=j+1
+}, error = function(e) {
+# Error handling block
+cat("Error occurred: ", e$message, "\n")
+indicator <<- TRUE  # Set indicator to TRUE if an error occurs
+j <<- j - 1  # Decrement the iteration counter to retry
+})
+if (indicator) {
+next  # Retry the current iteration
+}
+}
+close(pb)
+theta.se=mad(ThetaList)*sqrt((m-1)/(m-1-length(indgamma)))
+covtheta=theta.se^2
+}
 A=list()
 A$theta=theta
 A$gamma=gamma
 A$theta.cov=as.numeric(covtheta)
 A$theta.se=sqrt(A$theta.cov)
 A$theta.z=A$theta/A$theta.se
+A$theta.vec=ThetaList
 A$Bic=Bbic
 A$eQTL.fit=fit.susie
-A$var.error=var_error
-A$var.inf=var_inf
 A$causal.fit=fit.theta
 A$reliability.adjust=r
 return(A)
