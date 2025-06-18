@@ -260,7 +260,7 @@ while(j<=sampling.time){
 indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
-rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfit$alpha,mu=xQTLfit$mu,mu2=xQTLfit$mu2,sampling=1,method="probabilistic")
+rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfit$alpha,mu=xQTLfit$mu,mu2=xQTLfit$mu2)
 bXj=rsamples$bx
 bX0j=rsamples$bx0
 bXj=bXj*byseinv
@@ -318,7 +318,7 @@ next  # Retry the current iteration
 }
 }
 close(pb)
-theta.se=mad(ThetaList)*sqrt((m-1)/(m-1-length(indgamma)))
+theta.se=sd(ThetaList)*sqrt((m-1)/(m-1-length(indgamma)))
 covtheta=theta.se^2
 }
 A=list()

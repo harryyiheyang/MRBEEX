@@ -226,7 +226,7 @@ setTxtProgressBar(pb, j)
 tryCatch({
 bXj=bX0j=bX*0
 for(ii in 1:p){
-rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfitList[[ii]]$alpha,mu=xQTLfitList[[ii]]$mu,mu2=xQTLfitList[[ii]]$mu2,sampling=1,method="probabilistic")
+rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfitList[[ii]]$alpha,mu=xQTLfitList[[ii]]$mu,mu2=xQTLfitList[[ii]]$mu2)
 bXj[,ii]=rsamples$bx
 bX0j[,ii]=rsamples$bx0
 }
@@ -253,7 +253,7 @@ res.thetaj=byj-matrixVectorMultiply(LD,gammaj)
 XtXj=BtBj
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Theta%*%res.thetaj))
-fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.thetaj,coverage=max(0.5,coverage.causal*0.9))
+fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.thetaj,coverage=coverage.causal*0.9)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>pip.thres)
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alivej=theta.csj$ind.keep

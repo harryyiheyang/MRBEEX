@@ -734,10 +734,7 @@ bX0j=as.matrix(bX0j)
 stopifnot(all(dim(bXj) == dim(bX0j)))
 sampling = nrow(bXj)
 p = ncol(bXj)
-
-#
 zero_rows = which(rowSums(abs(bXj)) == 0 & rowSums(abs(bX0j)) == 0)
-
 if (length(zero_rows) > 0) {
 for (i in zero_rows) {
 sd = sqrt(dBtB[i])
@@ -745,62 +742,33 @@ bXj[i, ] = rnorm(p, mean = 0, sd = sd)
 bX0j[i, ] = rnorm(p, mean = 0, sd = sd)
 }
 }
-
 return(list(bXj = bXj, bX0j = bX0j))
 }
 
-susie_effect_resampling = function(LD, alpha, mu, mu2, sampling = 1, method = c("probabilistic", "multinomial")) {
-method = match.arg(method)
-
+susie_effect_resampling = function(LD, alpha, mu, mu2) {
 L = nrow(mu)
 p = ncol(mu)
+# Step 0: Compute variance and standard deviation matrix
 varr = mu2 - mu^2
 varr[varr < 0] = 0
 sd_mat = sqrt(varr)
-
-# Step 1: chosen indices
-chosen = matrix(0, nrow = sampling, ncol = L)
-
-if (method == "probabilistic") {
-# Same as before: draw index j ~ alpha[ℓ,·]
-chosen = apply(alpha, 1, function(prob) sample(1:p, size = sampling, replace = TRUE, prob = prob))
-chosen = matrix(chosen,nrow = sampling, ncol = L)
-} else if (method == "multinomial") {
-# New version: draw one-hot vector via multinomial
+# Step 1: Compute weighted means and standard deviations
+mu_sel = numeric(L)
+sd_sel = numeric(L)
 for (j in 1:L) {
-for (i in 1:sampling) {
-phi = rmultinom(1, 1, alpha[j, ])  # length p, one-hot
-chosen[i, j] = which(phi == 1)
+mu_sel[j] = sum(alpha[j, ] * mu[j, ])
+sd_sel[j] = sqrt(sum(alpha[j, ] * sd_mat[j, ]^2))
 }
-}
-}
-
-# Step 2: extract mean and sd for sampled effects
-mu_sel = matrix(0, nrow = sampling, ncol = L)
-sd_sel = matrix(0, nrow = sampling, ncol = L)
-for (j in 1:L) {
-idx = chosen[, j]
-mu_sel[, j] = mu[j, idx]
-sd_sel[, j] = sd_mat[j, idx]
+# Step 2: Sample one effect size per component
+noise = rnorm(L)
+beta_sample = mu_sel + noise * sd_sel  # length L
+beta_matrix=matrixVectorMultiply(t(alpha),beta_sample)
+# Step 4: Compute LD-propagated signal
+bx_mean = matrixVectorMultiply(LD, beta_matrix)
+a_mean = beta_matrix
+return(list(bx = bx_mean, bx0 = a_mean))
 }
 
-# Step 3: sample Gaussian effect sizes and place into sparse β vector
-noise = matrix(rnorm(sampling * L), sampling, L)
-beta_sample = mu_sel + noise * sd_sel  # sampling × L
-
-a = matrix(0, nrow = sampling, ncol = p)
-for (j in 1:L) {
-idx = chosen[, j]
-a[cbind(1:sampling, idx)] = a[cbind(1:sampling, idx)] + beta_sample[, j]
-}
-
-# Step 4: compute LD-propagated signal
-bx = a %*% LD
-bx_mean = colMeans(bx)
-a_mean = colMeans(a)
-
-return(list(bx = bx_mean, bx0 = a_mean, beta_matrix = a, chosen = chosen))
-}
 
 spearmancov=function(A){
 p=dim(A)[2]
