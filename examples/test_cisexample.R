@@ -36,12 +36,12 @@ Rnn=CScov(p=p+1,1)
 Btheta=matrix(0,100,p)
 Bse=Bcov=array(0,c(100,p,3))
 cluster.index=kronecker(c(1:50),rep(1,4))
-theta0=c(0.3,0.3,0.3,rep(0,7))
+theta0=c(1,rep(0,9))
 UHP.var=1
 UHP.frac=0.05*1
 #UHP.frac=0.01*0
 CHP.frac=0*2
-Rbb[1:3,1:3]=1;Rbb[2,4:10]=Rbb[3,4:10]=Rbb[1,4:10];Rbb[4:10,2]=Rbb[4:10,3]=Rbb[4:10,1];
+#Rbb[1:3,1:3]=1;Rbb[2,4:10]=Rbb[3,4:10]=Rbb[1,4:10];Rbb[4:10,2]=Rbb[4:10,3]=Rbb[4:10,1];
 
 Btheta=matrix(1,100,10)
 Bse=array(0,c(100,10,2))
@@ -71,17 +71,17 @@ output.labels=NULL;
 carma.iter=5;carma.inner.iter=5;xQTL.max.num=10;
 carma.epsilon.threshold=1e-3;
 
-#reliability.thres=0.75;Lvec=c(1:5);causal.pip.thres=0.2;
-#xQTL.selection.rule="top_K";
-#top_K=1;xQTL.pip.min=0.2;
-#xQTL.max.L=10;xQTL.cred.thres=0.95;xQTL.pip.thres=0.5;
-#xQTL.Nvec=Nvec=rep(n1,p);tauvec=seq(3,30,by=3);xQTL.weight=NULL;
-#admm.rho=2;ridge.diff=1e3;
-#max.iter=100;max.eps=0.001;susie.iter=500;
-#ebic.theta=0;ebic.gamma=1;
-#theta.ini=F;gamma.ini=F;xQTLfitList=NULL;
-#sampling.iter=10;sampling.time=1000;sampling.size=0.5;
-#batch.size=1;verbose=T
+reliability.thres=0.75;Lvec=c(1:5);causal.pip.thres=0.2;
+xQTL.selection.rule="top_K";
+top_K=1;xQTL.pip.min=0.2;
+xQTL.max.L=10;xQTL.cred.thres=0.95;xQTL.pip.thres=0.5;
+xQTL.Nvec=Nvec=rep(n1,p);tauvec=seq(3,30,by=3);xQTL.weight=NULL;
+admm.rho=2;ridge.diff=1e3;
+max.iter=100;max.eps=0.001;susie.iter=500;
+ebic.theta=0;ebic.gamma=1;
+theta.ini=F;gamma.ini=F;xQTLfitList=NULL;
+sampling.iter=10;sampling.time=1000;sampling.size=0.5;
+batch.size=1;verbose=T
 
 xQTLfitList=MRBEEX::Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),xQTL.max.L=5)
 fit1=MRBEEX::CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList,sandwich=T)

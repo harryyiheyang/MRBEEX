@@ -185,7 +185,7 @@ gammaj=gamma1j=mcp(by[indj]-matrixVectorMultiply(bXj,thetaj),tauvec[jstar])
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 gammaj=gammaj*(gamma1j!=0)
-if(jiter>2) errorj=norm(thetaj-theta_prevj,"2")
+if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j, ] <- thetaj

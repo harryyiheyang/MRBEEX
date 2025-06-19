@@ -145,7 +145,6 @@ pleiotropy.rm=which(bXest0!=0)
 pleiotropy.rm=NULL
 }
 pleiotropy.keep=setdiff(c(1:m),pleiotropy.rm)
-Theta=matrixInverse(LD)
 yinv=c(matrixVectorMultiply(Theta,by))
 xtx=sum(bXest*bXest0)
 xty=sum(by*bXest0)
@@ -298,9 +297,10 @@ gj=sum(bX0j*(byj-matrixVectorMultiply(LD,gammaj)))-sum(bXestse[indvalidj])*Rxy[2
 thetaj=gj*Hinvj
 }
 resj=c(byj-bXj*thetaj-uj+admm.rho*gamma1j)
-gammaj=c(matrixVectorMultiply(Thetarho,resj))
-gamma1j=mcp(gammaj+uj/admm.rho,tauvec[sss])
+gammaj[pleiotropy.keep]=c(matrixVectorMultiply(Thetarho,resj[pleiotropy.keep]))
+gamma1j=mcp(gammaj+uj/admm.rho,tauvec[star])
 uj=uj+admm.rho*(gammaj-gamma1j)
+uj[pleiotropy.rm]=0
 gammaj=gammaj*(gamma1j!=0)
 if(jiter>2) errorj=abs(thetaj-theta_prevj)
 if(errorj<max.eps) break

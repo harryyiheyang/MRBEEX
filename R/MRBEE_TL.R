@@ -309,7 +309,7 @@ gammaj=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*g
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
 gammaj=gammaj*(gamma1j!=0)
-if(jiter>2) errorj=norm(thetaj-theta_prevj,"2")
+if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j,]=theta.source+deltaj

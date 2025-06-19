@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,sandwich=F,sampling.time=300,sampling.iter=15,coverage.causal=0.95,xQTLfitList=NULL){
+Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,sandwich=F,sampling.time=300,sampling.iter=15,coverage.causal=0.95,xQTLfitList=NULL,susie.adjust.factor=rep(1,ncol(bX))){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -162,6 +162,7 @@ names(gamma)=rownames(bX)
 indtheta=which(theta!=0)
 indgamma=which(gamma1!=0)
 indvalid=which(gamma1==0)
+theta.pip=fit.theta$pip
 res=by-matrixVectorMultiply(bX,theta)-matrixVectorMultiply(LD,gamma)
 if(length(indvalid)==m){
   Rxysum=Rxyall
@@ -232,6 +233,7 @@ bX0j[,ii]=rsamples$bx0
 }
 bXj=bXj*byseinv
 bX0j=bX0j*byseinv
+bXj=t(t(bXj)*susie.adjust.factor)
 emptyy=fix_empty_resamples(bXj,bX0j,dBtB)
 bXj=emptyy$bXj
 bX0j=emptyy$bX0j
@@ -253,7 +255,7 @@ res.thetaj=byj-matrixVectorMultiply(LD,gammaj)
 XtXj=BtBj
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)
 ytyj=sum(res.thetaj*(Theta%*%res.thetaj))
-fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.thetaj,coverage=coverage.causal*0.9)
+fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.thetaj,coverage=coverage.causal)
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>pip.thres)
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alivej=theta.csj$ind.keep
@@ -271,10 +273,11 @@ Xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,1+p]
 thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
 }
 gammaj=as.vector(Thetarho%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
+gammaj[pleiotropy.rm]=0
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 gammaj=gammaj*(gamma1j!=0)
-if(jiter>2) errorj=norm(thetaj-theta_prevj,"2")
+if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j, ] <- thetaj
@@ -293,6 +296,7 @@ close(pb)
 theta.se=colSDMAD(ThetaList)*sqrt((m-length(indtheta))/(m-length(indtheta)-length(indgamma)))
 theta.cov=spearmancov(ThetaList)*(m-length(indtheta))/(m-length(indtheta)-length(indgamma))
 colnames(theta.cov)=rownames(theta.cov)=names(theta.se)=colnames(bX)
+theta.pip=colMeans(ThetaList!=0)
 }
 A=list()
 A$theta=theta
@@ -300,7 +304,7 @@ A$gamma=gamma*byse1
 A$theta.se=theta.se
 A$theta.cov=theta.cov
 A$theta.z=A$theta/A$theta.se
-A$theta.pip=fit.theta$pip
+A$theta.pip=theta.pip
 A$theta.list=ThetaList
 A$Bic=Bbic
 A$reliability.adjust=r
@@ -310,5 +314,6 @@ A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
 A$var.inf=var_inf
 A$var.error=var_error
 A$Diff=Diff
+A$adjust.factor=susie.adjust.factor
 return(A)
 }

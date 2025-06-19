@@ -102,6 +102,7 @@ bXestse=bXestse0=matrix(1000,m,p)
 t1=Sys.time()
 A=list()
 estimated_reliability_ratio=c()
+susie.adjust.factor=rep(1,p)
 if(xQTL.method=="SuSiE"){
 if(is.null(xQTLfitList)==T){
 xQTLfitList=list()
@@ -125,6 +126,8 @@ Diff=generate_block_matrix(summary(fit)$vars,rep(1,m),betaj)
 LDj=LD[indj,indj]
 Thetaj=solve(LDj+Diff[indj,indj]*1e3)
 bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+ii=which.max(abs(betaj))
+susie.adjust.factor[i]=min(2,bXest0[ii,i]/betaj[ii])
 Thetajj=LD*0
 Thetajj[indj,indj]=Thetaj
 bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
@@ -154,6 +157,8 @@ Diff=generate_block_matrix(summary(fit)$vars,rep(1,m),betaj)
 LDj=LD[indj,indj]
 Thetaj=solve(LDj+Diff[indj,indj]*1e3)
 bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
+ii=which.max(abs(betaj))
+susie.adjust.factor[i]=min(2,bXest0[ii,i]/betaj[ii])
 Thetajj=LD*0
 Thetajj[indj,indj]=Thetaj
 bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
@@ -276,7 +281,7 @@ pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
 t1=Sys.time()
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,sandwich=sandwich,sampling.time=sampling.time,sampling.iter=sampling.iter,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,sandwich=sandwich,sampling.time=sampling.time,sampling.iter=sampling.iter,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList,susie.adjust.factor=susie.adjust.factor)
 t2=Sys.time()
 causal_estimation_time=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
