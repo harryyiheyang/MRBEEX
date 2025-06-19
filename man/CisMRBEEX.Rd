@@ -44,9 +44,6 @@ CisMRBEEX(
   theta.ini = F,
   gamma.ini = F,
   xQTLfitList = NULL,
-  sandwich = F,
-  sampling.iter = 15,
-  sampling.time = 500,
   verbose = T
 )
 }
@@ -128,12 +125,6 @@ CisMRBEEX(
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
 \item{xQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
-
-\item{sandwich}{An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.}
-
-\item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.}
-
-\item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
 
 \item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 }

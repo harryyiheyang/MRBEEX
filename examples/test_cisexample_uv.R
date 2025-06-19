@@ -79,7 +79,6 @@ theta.ini=F;gamma.ini=F;xQTLfitList=NULL;
 sampling.iter=10;sampling.time=1000;sampling.size=0.5;
 batch.size=1;verbose=T
 
-fit1=MRBEEX::CisMRBEE_UV(by=by,bX=bX[,1],byse=byse,bXse=bXse[,1],LD=LD,Rxy=Rxy[c(1,11),c(1,11)],xQTL.N=n1)
-fit2=CisMRBEE_UV(by=by,bX=bX[,1],byse=byse,bXse=bXse[,1],LD=LD,Rxy=Rxy[c(1,11),c(1,11)],xQTL.N=n1,sandwich=F)
+fit1=CisMRBEE_UV(by=by,bX=bX[,1],byse=byse,bXse=bXse[,1],LD=LD,Rxy=Rxy[c(1,11),c(1,11)],xQTL.N=n1)
 
 

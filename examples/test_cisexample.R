@@ -43,9 +43,6 @@ UHP.frac=0.05*1
 CHP.frac=0*2
 #Rbb[1:3,1:3]=1;Rbb[2,4:10]=Rbb[3,4:10]=Rbb[1,4:10];Rbb[4:10,2]=Rbb[4:10,3]=Rbb[4:10,1];
 
-Btheta=matrix(1,100,10)
-Bse=array(0,c(100,10,2))
-for(iter in 1:100){
 A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.01,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="normal",cluster.index=cluster.index)
 bX=A$bX
 by=A$by
@@ -84,8 +81,5 @@ sampling.iter=10;sampling.time=1000;sampling.size=0.5;
 batch.size=1;verbose=T
 
 xQTLfitList=MRBEEX::Sparse_Prediction(bX=bX,bXse=bXse,LD=LD,xQTL.Nvec=rep(n1,p),xQTL.max.L=5)
-fit1=MRBEEX::CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList,sandwich=T)
-fit2=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList,sampling.iter=10,sampling.time=100)
-Btheta[iter,]=fit1$theta
-Bse[iter,,]=cbind(fit1$theta.se,fit2$theta.se)
-}
+fit1=CisMRBEEX(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,xQTL.Nvec=rep(n1,p),ridge.diff=100,causal.pip.thres=0.1,xQTLfitList=xQTLfitList)
+

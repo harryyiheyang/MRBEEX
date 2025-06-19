@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,sandwich=F,sampling.time=300,sampling.iter=15,coverage.causal=0.95,xQTLfitList=NULL,susie.adjust.factor=rep(1,ncol(bX))){
+Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,coverage.causal=0.95,xQTLfitList=NULL){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -171,10 +171,9 @@ if(length(indvalid)==m){
 }
 adjf=m/(length(indvalid)-length(indtheta))
 
-ThetaList=NULL
 var_inf=0
 var_error=1
-if(sandwich==T){
+
 if(length(indtheta)>0){
 upsilon=by*0
 var_inf=1e-2
@@ -205,99 +204,7 @@ if(length(indtheta)==0){
 theta.cov=diag(p)*0
 theta.se=rep(0,p)
 }
-}else{
-############################### inference #########################
-t1=Sys.time()
-gamma=gamma
-theta=theta
-names(theta)=colnames(bX)
-names(gamma)=rownames(bX)
-indtheta=which(theta!=0)
-indgamma=which(gamma1!=0)
-indvalid=which(gamma1==0)
-res=by-matrixVectorMultiply(bX,theta)-matrixVectorMultiply(LD,gamma)
-ThetaList=matrix(0,sampling.time,p)
-colnames(ThetaList)=colnames(bX)
-cat("Bootstrapping starts:\n")
-pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
-j=1
-while(j<=sampling.time){
-indicator <- FALSE
-setTxtProgressBar(pb, j)
-tryCatch({
-bXj=bX0j=bX*0
-for(ii in 1:p){
-rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfitList[[ii]]$alpha,mu=xQTLfitList[[ii]]$mu,mu2=xQTLfitList[[ii]]$mu2)
-bXj[,ii]=rsamples$bx
-bX0j[,ii]=rsamples$bx0
-}
-bXj=bXj*byseinv
-bX0j=bX0j*byseinv
-bXj=t(t(bXj)*susie.adjust.factor)
-emptyy=fix_empty_resamples(bXj,bX0j,dBtB)
-bXj=emptyy$bXj
-bX0j=emptyy$bX0j
-Btj <- matrixMultiply(t(bXj),Theta)
-BtBj <- matrixMultiply(Btj,bXj)
-BtBj=(t(BtBj)+BtBj)/2
-dBtBj=diag(BtBj)/m
-thetaj=theta*runif(1,0.95,1.05)
-gammaj=gamma1j=gamma
-byj=by
-deltaj=gammaj*0
-fit.thetaj=fit.theta
-errorj=1
-for(jiter in 1:sampling.iter){
-theta_prevj=thetaj
-indvalidj <- which(gamma1j==0)
-Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
-res.thetaj=byj-matrixVectorMultiply(LD,gammaj)
-XtXj=BtBj
-Xtyj=matrixVectorMultiply(Btj,res.thetaj)
-ytyj=sum(res.thetaj*(Theta%*%res.thetaj))
-fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=m,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.thetaj,coverage=coverage.causal)
-thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>pip.thres)
-theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
-pip.alivej=theta.csj$ind.keep
-thetaj[-pip.alivej]=0
-Diffj=generate_block_matrix(summary(fit.thetaj)$vars,1/dBtBj,thetaj)
-indthetaj=which(thetaj!=0)
-if(length(indthetaj)==1){
-xtxj=XtXj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]
-xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,1+p]
-thetaj[indthetaj]=xtyj/xtxj
-}
-if(length(indthetaj)>1){
-XtXj=XtXj[indthetaj,indthetaj]+ridge*Diffj[indthetaj,indthetaj]-Rxysumj[indthetaj,indthetaj]
-Xtyj=Xtyj[indthetaj]-Rxysumj[indthetaj,1+p]
-thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
-}
-gammaj=as.vector(Thetarho%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
-gammaj[pleiotropy.rm]=0
-gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
-deltaj=deltaj+rho*(gammaj-gamma1j)
-gammaj=gammaj*(gamma1j!=0)
-if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
-if(errorj<max.eps) break
-}
-ThetaList[j, ] <- thetaj
-j=j+1
-}, error = function(e) {
-# Error handling block
-cat("Error occurred: ", e$message, "\n")
-indicator <<- TRUE  # Set indicator to TRUE if an error occurs
-j <<- j - 1  # Decrement the iteration counter to retry
-})
-if (indicator) {
-next  # Retry the current iteration
-}
-}
-close(pb)
-theta.se=colSDMAD(ThetaList)*sqrt((m-length(indtheta))/(m-length(indtheta)-length(indgamma)))
-theta.cov=spearmancov(ThetaList)*(m-length(indtheta))/(m-length(indtheta)-length(indgamma))
-colnames(theta.cov)=rownames(theta.cov)=names(theta.se)=colnames(bX)
-theta.pip=colMeans(ThetaList!=0)
-}
+
 A=list()
 A$theta=theta
 A$gamma=gamma*byse1
@@ -305,7 +212,6 @@ A$theta.se=theta.se
 A$theta.cov=theta.cov
 A$theta.z=A$theta/A$theta.se
 A$theta.pip=theta.pip
-A$theta.list=ThetaList
 A$Bic=Bbic
 A$reliability.adjust=r
 A$susie.theta=fit.theta
@@ -314,6 +220,5 @@ A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
 A$var.inf=var_inf
 A$var.error=var_error
 A$Diff=Diff
-A$adjust.factor=susie.adjust.factor
 return(A)
 }

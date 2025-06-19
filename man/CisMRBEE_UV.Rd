@@ -28,10 +28,7 @@ CisMRBEE_UV(
   max.iter = 100,
   max.eps = 0.001,
   ebic.gamma = 2,
-  xQTLfit = NULL,
-  sandwich = F,
-  sampling.iter = 15,
-  sampling.time = 500
+  xQTLfit = NULL
 )
 }
 \arguments{
@@ -82,12 +79,6 @@ CisMRBEE_UV(
 \item{ebic.gamma}{The extended BIC factor for model selection. Default is \code{2}.}
 
 \item{xQTLfit}{Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.}
-
-\item{sandwich}{An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.}
-
-\item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.}
-
-\item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
 }
 \value{
 A list containing:

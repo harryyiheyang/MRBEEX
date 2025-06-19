@@ -26,9 +26,6 @@
 #' @param coverage.xQTL The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.
 #' @param coverage.causal The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.
 #' @param xQTLfit  Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.
-#' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
-#' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
-#' @param sandwich An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.
 #' @return A list containing:
 #' \describe{
 #' \item{\code{theta}}{The estimated effect size of the tissue-gene pair.}
@@ -55,8 +52,7 @@ CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
      use.susie=T,causal.pip.thres=0.3,
      coverage.xQTL=0.95,coverage.causal=0.95,
      max.iter=100,max.eps=0.001,ebic.gamma=2,
-     xQTLfit=NULL,sandwich=F,
-     sampling.iter=15,sampling.time=500){
+     xQTLfit=NULL){
 m=length(by)
 Theta=solve(LD)
 bXest=bX
@@ -211,8 +207,6 @@ indvalid=which(gamma==0)
 indgamma=which(gamma!=0)
 effn=m-length(indgamma)
 
-if(sandwich==T){
-ThetaList=NULL
 res=as.vector(by-bXest*theta-LD%*%gamma)
 upsilon=by*0
 var_inf=1
@@ -244,90 +238,13 @@ h0=sum(bXest0*((var_error*LD+var_inf*LD%*%LD)%*%bXest0))
 h1=(xtx-sum(bXestse[indvalid])*Rxy[1,1])
 covtheta=h0/h1/h1
 }
-}else{
-############################### inference #########################
-t1=Sys.time()
-gamma=gamma
-theta=theta
-indgamma=which(gamma!=0)
-indvalid=which(gamma==0)
-ThetaList=c(1:sampling.time)
-cat("Bootstrapping starts:\n")
-pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
-j=1
-while(j<=sampling.time){
-indicator <- FALSE
-setTxtProgressBar(pb, j)
-tryCatch({
-rsamples=susie_effect_resampling(LD=LD,alpha=xQTLfit$alpha,mu=xQTLfit$mu,mu2=xQTLfit$mu2)
-bXj=rsamples$bx
-bX0j=rsamples$bx0
-bXj=bXj*byseinv
-bX0j=bX0j*byseinv
-emptyy=fix_empty_resamples(bXj,bX0j,xtx/m)
-bXj=emptyy$bXj
-bX0j=emptyy$bX0
-bX0j=matrixVectorMultiply(Theta,bXj)
-xtxj=sum(bXj*bX0j)
-thetaj=theta*runif(1,0.95,1.05)
-gammaj=gamma1j=gamma
-byj=by
-uj=gammaj*0
-fit.thetaj=fit.theta
-errorj=1
-for(jiter in 1:sampling.iter){
-theta_prevj=thetaj
-indvalidj=which(gamma1j==0)
-if(use.susie==T){
-resj=byj-matrixVectorMultiply(LD,gammaj)
-xtrj=sum(bX0j*resj)
-rtrj=sum(resj*(Theta%*%resj))
-fit.thetaj=susie_suff_stat(XtX=as.matrix(xtxj),Xty=as.vector(xtrj),yty=rtrj,L=1,n=m,intercept=F,residual_variance=1,estimate_prior_method="EM",s_init=fit.thetaj,coverage=coverage.causal)
-if(fit.thetaj$pip>=causal.pip.thres){
-Hinvj=1/(xtxj-sum(bXestse[indvalidj]^2)*Rxy[1,1])
-gj=sum(bX0j*(byj-matrixVectorMultiply(LD,gammaj)))-sum(bXestse[indvalidj])*Rxy[2,1]
-thetaj=gj*Hinvj
-}else{
-thetaj=coef.susie(fit.thetaj)[-1]
-}
-}
-if(use.susie==F){
-Hinvj=1/(xtxj-sum(bXestse[indvalidj]^2)*Rxy[1,1])
-gj=sum(bX0j*(byj-matrixVectorMultiply(LD,gammaj)))-sum(bXestse[indvalidj])*Rxy[2,1]
-thetaj=gj*Hinvj
-}
-resj=c(byj-bXj*thetaj-uj+admm.rho*gamma1j)
-gammaj[pleiotropy.keep]=c(matrixVectorMultiply(Thetarho,resj[pleiotropy.keep]))
-gamma1j=mcp(gammaj+uj/admm.rho,tauvec[star])
-uj=uj+admm.rho*(gammaj-gamma1j)
-uj[pleiotropy.rm]=0
-gammaj=gammaj*(gamma1j!=0)
-if(jiter>2) errorj=abs(thetaj-theta_prevj)
-if(errorj<max.eps) break
-}
-ThetaList[j] <- thetaj
-j=j+1
-}, error = function(e) {
-# Error handling block
-cat("Error occurred: ", e$message, "\n")
-indicator <<- TRUE  # Set indicator to TRUE if an error occurs
-j <<- j - 1  # Decrement the iteration counter to retry
-})
-if (indicator) {
-next  # Retry the current iteration
-}
-}
-close(pb)
-theta.se=sd(ThetaList)*sqrt((m-1)/(m-1-length(indgamma)))
-covtheta=theta.se^2
-}
+
 A=list()
 A$theta=theta
 A$gamma=gamma
 A$theta.cov=as.numeric(covtheta)
 A$theta.se=sqrt(A$theta.cov)
 A$theta.z=A$theta/A$theta.se
-A$theta.vec=ThetaList
 A$Bic=Bbic
 A$eQTL.fit=fit.susie
 A$causal.fit=fit.theta

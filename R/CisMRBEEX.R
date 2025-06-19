@@ -41,9 +41,6 @@
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param xQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
-#' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
-#' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
-#' @param sandwich An indicator of whether using sandwich formula or resampling to estimate the standard error. Default is \code{F}.
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #'
 #' @importFrom MASS rlm ginv
@@ -88,8 +85,8 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
                     max.iter=100,max.eps=0.001,susie.iter=500,
                     coverage.xQTL=0.95,coverage.causal=0.95,
                     ebic.theta=0,ebic.gamma=1,
-                    theta.ini=F,gamma.ini=F,xQTLfitList=NULL,sandwich=F,
-                    sampling.iter=15,sampling.time=500,verbose=T){
+                    theta.ini=F,gamma.ini=F,xQTLfitList=NULL,
+                    verbose=T){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -102,7 +99,6 @@ bXestse=bXestse0=matrix(1000,m,p)
 t1=Sys.time()
 A=list()
 estimated_reliability_ratio=c()
-susie.adjust.factor=rep(1,p)
 if(xQTL.method=="SuSiE"){
 if(is.null(xQTLfitList)==T){
 xQTLfitList=list()
@@ -127,7 +123,6 @@ LDj=LD[indj,indj]
 Thetaj=solve(LDj+Diff[indj,indj]*1e3)
 bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
 ii=which.max(abs(betaj))
-susie.adjust.factor[i]=min(2,bXest0[ii,i]/betaj[ii])
 Thetajj=LD*0
 Thetajj[indj,indj]=Thetaj
 bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
@@ -158,7 +153,6 @@ LDj=LD[indj,indj]
 Thetaj=solve(LDj+Diff[indj,indj]*1e3)
 bXest0[indj,i]=as.vector(Thetaj%*%(bX[indj,i]/bXse[indj,i]))*bXse[indj,i]
 ii=which.max(abs(betaj))
-susie.adjust.factor[i]=min(2,bXest0[ii,i]/betaj[ii])
 Thetajj=LD*0
 Thetajj[indj,indj]=Thetaj
 bXestse0[,i]=sqrt(diag(Thetajj))*bXse[,i]
@@ -281,7 +275,7 @@ pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
 t1=Sys.time()
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,sandwich=sandwich,sampling.time=sampling.time,sampling.iter=sampling.iter,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList,susie.adjust.factor=susie.adjust.factor)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList)
 t2=Sys.time()
 causal_estimation_time=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
