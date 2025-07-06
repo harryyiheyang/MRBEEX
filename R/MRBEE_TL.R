@@ -41,21 +41,21 @@
 #' @export
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
-                  group.penalize=F,group.index=NULL,group.diff=100,
-                  theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
-                  admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
-                  pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-                  max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
-                  sampling.time=100,sampling.iter=10){
+                group.penalize=F,group.index=NULL,group.diff=100,
+                theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
+                admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
+                pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
+                max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
+                sampling.time=100,sampling.iter=10){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
-                       theta.source=theta.source,theta.source.cov=theta.source.cov,
-                       group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
-                       tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
-                       transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
-                       pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
-                       reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=0.95,
-                       sampling.time=sampling.time,sampling.iter=sampling.iter)
+                     theta.source=theta.source,theta.source.cov=theta.source.cov,
+                     group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
+                     tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
+                     transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
+                     pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
+                     reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=0.95,
+                     sampling.time=sampling.time,sampling.iter=sampling.iter)
 return(A)
 }else{
 ######### Basic Processing  ##############
@@ -92,7 +92,7 @@ Rxyall=biasterm(RxyList=RxyList,c(1:n))
 br=as.vector(by-bX%*%theta.source)
 Diff_matrix=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
+Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
 }
 ########## Iteration ###################
 Bic=matrix(0,length(Lvec),length(tauvec))
@@ -237,14 +237,12 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index)*0.5, replace = F)
 cluster.sampling=sort(cluster.sampling)
-sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho)
-indj=sampling_result$indj
-LDj=sampling_result$LDj
-Thetaj=sampling_result$Thetaj
-Thetarhoj=sampling_result$Thetarhoj
-remove(sampling_result)
+indj=which(cluster.index%in%cluster.sampling)
+LDj=LD[indj,indj]
+Thetaj=Theta[indj,indj]
+Thetarhoj=Thetarho[indj,indj]
 nj=length(indj)
 bXj=bX[indj,]
 byj=by[indj]

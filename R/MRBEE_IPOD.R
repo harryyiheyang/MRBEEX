@@ -133,14 +133,12 @@ indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index)*0.5, replace = F)
 cluster.sampling=sort(cluster.sampling)
-sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=rho)
-indj=sampling_result$indj
-LDj=sampling_result$LDj
-Thetaj=sampling_result$Thetaj
-Thetarhoj=sampling_result$Thetarhoj
-remove(sampling_result)
+indj=which(cluster.index%in%cluster.sampling)
+LDj=LD[indj,indj]
+Thetaj=Theta[indj,indj]
+Thetarhoj=Thetarho[indj,indj]
 bXj=bX[indj,]
 bXsej=bXse[indj,]
 byj=by[indj]
@@ -150,7 +148,7 @@ BtBj=matrixMultiply(Btj,bXj)
 BtBj=(t(BtBj)+BtBj)/2
 dBtBj=diag(BtBj)
 }else{
-indj=sample(m,m,replace=T)
+indj=sample(m,m*0.5,replace=F)
 indj=sort(indj)
 bXj=bX[indj,]
 bXsej=bXse[indj,]
@@ -168,16 +166,15 @@ errorj=1
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj <- which(gamma1j==0)
-indvalidj <- intersect(indvalidj, indj)
-Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
-Hinv <- solve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix)
+Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
+Hinv <- solve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2)
 g <- matrixVectorMultiply(Btj, byj - as.vector(LDj%*%gammaj)) - Rxysumj[1:p, p + 1]
 thetaj <- c(matrixVectorMultiply(Hinv, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
 if(isLD){
-gammaj[indj]=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
+gammaj=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }else{

@@ -223,14 +223,13 @@ indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index)*0.5, replace = F)
 cluster.sampling=sort(cluster.sampling)
-sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=rho)
-indj=sampling_result$indj
-LDj=sampling_result$LDj
-Thetaj=sampling_result$Thetaj
-Thetarhoj=sampling_result$Thetarhoj
-remove(sampling_result)
+indj=which(cluster.index%in%cluster.sampling)
+mj=length(indj)
+LDj=LD[indj,indj]
+Thetaj=Theta[indj,indj]
+Thetarhoj=Thetarho[indj,indj]
 bXj=bX[indj,]
 bXsej=bXse[indj,]
 byj=by[indj]
@@ -240,7 +239,7 @@ BtBj=matrixMultiply(Btj,bXj)
 BtBj=(t(BtBj)+BtBj)/2
 dBtBj=diag(BtBj)
 }else{
-indj=sample(m,m,replace=T)
+indj=sample(m,m*0.5,replace=F)
 indj=sort(indj)
 bXj=bX[indj,]
 bXsej=bXse[indj,]
@@ -258,16 +257,16 @@ errorj=1
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj <- which(gamma1j==0)
-Rxysumj <- biasterm(RxyList = RxyList, indvalidj)
+Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
 res.thetaj=byj-as.vector(LDj%*%gammaj)
 XtXj=BtBj+Diff_matrix/2-Rxysumj[1:p,1:p]
 XtXj=XtXj/2+t(XtXj)/2
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,p+1]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 tryCatch({
-fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta,coverage = coverage.causal)
+fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=sampling.iter,s_init=fit.theta,coverage = coverage.causal)
 },error = function(e) {
-fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=length(indvalidj),L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=F,residual_variance=1,max_iter=sampling.iter,s_init=fit.theta,coverage = coverage.causal)
+fit.thetaj=susie_suff_stat(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",intercept=F,estimate_residual_variance=F,residual_variance=1,max_iter=sampling.iter,s_init=fit.theta,coverage = coverage.causal)
 })
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))

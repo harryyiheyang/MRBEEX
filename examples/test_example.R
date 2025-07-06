@@ -22,7 +22,7 @@ n1=n0=1e5 # outcome sample size
 Rbb=ARcov(p,-0.5) # exposure covariance
 Ruv=ARcov(p+1,-0.3) # estimation error covariance
 LD=kronecker(diag(125*3),ARcov(4,0.7)) # LD matrix
-Theta=solve(LD)
+Theta=matrixInverse(LD)
 Nxy=c(rep(n1,p),n0) # sample size vector
 Hxy=c(rep(.01,p),.00667)*15 # H2 vector
 Rnn=CScov(p=p+1,1)

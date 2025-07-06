@@ -301,13 +301,12 @@ indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
-cluster.sampling = sort(cluster.sampling)
-sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=0)
-indj=sampling_result$indj
-LDj=sampling_result$LDj
-TCj=sampling_result$TCj
-remove(sampling_result)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index)*0.5, replace = F)
+cluster.sampling=sort(cluster.sampling)
+indj=which(cluster.index%in%cluster.sampling)
+LDj=LD[indj,indj]
+Thetaj=Theta[indj,indj]
+TCj=chol(Thetaj)
 bXj=bX[indj,]
 bXsej=bXse[indj,]
 byj=by[indj]
@@ -315,7 +314,7 @@ bysej=byse[indj]
 tilde.yj=as.vector(TCj%*%byj)
 tilde.Xj=as.matrix(TCj%*%bXj)
 }else{
-indj=sample(m,m,replace=T)
+indj=sample(m,m*0.5,replace=F)
 indj=sort(indj)
 bXj=tilde.Xj=bX[indj,]
 bXsej=bXse[indj,]
@@ -328,6 +327,8 @@ cluster1j=which(indj%in%cluster1)
 cluster2j=which(indj%in%cluster2)
 m1j=length(cluster1j)
 m2j=length(cluster2j)
+sigma1j=sigma1
+sigma2j=sigma2
 errorj=1
 for(jiter in 1:sampling.iter){
 theta_prev1j=theta1j
@@ -344,7 +345,7 @@ Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
 tryCatch({
 fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",coverage = coverage.causal)
 },error = function(e) {
-fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=1,coverage = coverage.causal)
+fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=max(1,sigma1j),coverage = coverage.causal)
 })
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
 theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -363,7 +364,7 @@ Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
 tryCatch({
 fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",coverage = coverage.causal)
 },error = function(e) {
-fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=1,coverage = coverage.causal)
+fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=max(1,sigma2j),coverage = coverage.causal)
 })
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
 theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)

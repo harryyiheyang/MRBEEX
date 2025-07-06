@@ -118,13 +118,12 @@ indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-cluster.sampling <- sample(1:max(cluster.index), max(cluster.index), replace = T)
-cluster.sampling = sort(cluster.sampling)
-sampling_result=construct_sparse_blockwise_LD(LD, cluster.index, cluster.sampling, admm.rho=0)
-indj=sampling_result$indj
-LDj=sampling_result$LDj
-TCj=sampling_result$TCj
-remove(sampling_result)
+cluster.sampling <- sample(1:max(cluster.index), max(cluster.index)*0.5, replace = F)
+cluster.sampling=sort(cluster.sampling)
+indj=which(cluster.index%in%cluster.sampling)
+LDj=LD[indj,indj]
+Thetaj=Theta[indj,indj]
+TCj=TC[indj,indj]
 bXj=bX[indj,]
 bXsej=bXse[indj,]
 byj=by[indj]
@@ -132,7 +131,7 @@ bysej=byse[indj]
 tilde.yj=as.vector(TCj%*%byj)
 tilde.Xj=as.matrix(TCj%*%bXj)
 }else{
-indj=sample(m,m,replace=T)
+indj=sample(m,m*0.5,replace=F)
 indj=sort(indj)
 bXj=tilde.Xj=bX[indj,]
 bXsej=bXse[indj,]

@@ -167,7 +167,7 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-indj=sample(n,n,replace=T)
+indj=sample(n,n*0.5,replace=F)
 nj=length(indj)
 bXj=bX[indj,]
 byj=by[indj]
