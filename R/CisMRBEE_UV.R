@@ -21,8 +21,6 @@
 #' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is \code{15}.
 #' @param max.eps The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.
 #' @param ebic.gamma The extended BIC factor for model selection. Default is \code{2}.
-#' @param use.susie n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.
-#' @param causal.pip.thres When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.
 #' @param coverage.xQTL The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.
 #' @param coverage.causal The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.
 #' @param xQTLfit  Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.
@@ -49,7 +47,6 @@ CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
      xQTL.max.L=10,xQTL.cred.thres=0.95,
      xQTL.pip.thres=0.5,reliability.thres=0.75,
      tauvec=seq(3,30,by=1.5),admm.rho=2,
-     use.susie=T,causal.pip.thres=0.3,
      coverage.xQTL=0.95,coverage.causal=0.95,
      max.iter=100,max.eps=0.001,ebic.gamma=2,
      xQTLfit=NULL){
@@ -163,24 +160,9 @@ fit.theta=NULL
 while(error>max.eps&iter<max.iter){
 indvalid=which(gamma1==0)
 theta1=theta
-if(use.susie==T){
-res=by-matrixVectorMultiply(LD,gamma)
-xtr=sum(bXest0*res)
-rtr=sum(res*(Theta%*%res))
-fit.theta=susie_suff_stat(XtX=as.matrix(xtx),Xty=as.vector(xtr),yty=rtr,L=1,n=m,intercept=F,residual_variance=1,estimate_prior_method="EM",s_init=fit.theta,coverage=coverage.causal)
-if(fit.theta$pip>=causal.pip.thres){
 Hinv=1/(xtx-sum(bXestse[indvalid]^2)*Rxy[1,1])
 g=sum(bXest0*(by-as.vector(LD%*%gamma)))-sum(bXestse[indvalid])*Rxy[2,1]
 theta=g*Hinv
-}else{
-theta=coef.susie(fit.theta)[-1]
-}
-}
-if(use.susie==F){
-Hinv=1/(xtx-sum(bXestse[indvalid]^2)*Rxy[1,1])
-g=sum(bXest0*(by-as.vector(LD%*%gamma)))-sum(bXestse[indvalid])*Rxy[2,1]
-theta=g*Hinv
-}
 res=c(by-bXest*theta-u+admm.rho*gamma1)
 gamma[pleiotropy.keep]=c(matrixVectorMultiply(Thetarho,res[pleiotropy.keep]))
 gamma1=mcp(gamma+u/admm.rho,tauvec[sss])

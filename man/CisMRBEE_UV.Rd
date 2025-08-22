@@ -21,8 +21,6 @@ CisMRBEE_UV(
   reliability.thres = 0.75,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
-  use.susie = T,
-  causal.pip.thres = 0.3,
   coverage.xQTL = 0.95,
   coverage.causal = 0.95,
   max.iter = 100,
@@ -63,10 +61,6 @@ CisMRBEE_UV(
 \item{tauvec}{A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.}
 
 \item{admm.rho}{A parameter set in the ADMM algorithm. Default is \code{2}.}
-
-\item{use.susie}{n indicator of whether using SuSiE with L=1 to remove causal effect in each detection. Defaults to \code{T}.}
-
-\item{causal.pip.thres}{When use.susie=T, the PIP threshold to calibrate the removal of causal effect. Defaults to \code{0.3}.}
 
 \item{coverage.xQTL}{The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.}
 
