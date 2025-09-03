@@ -231,5 +231,6 @@ A$Bic=Bbic
 A$eQTL.fit=fit.susie
 A$causal.fit=fit.theta
 A$reliability.adjust=r
+A$direct_exposure_effect=bXest0
 return(A)
 }
