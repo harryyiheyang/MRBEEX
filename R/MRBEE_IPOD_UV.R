@@ -7,6 +7,10 @@ bXse=bXse*byseinv
 byse1=byse
 byse=byse/byse
 m=length(bX)
+if(is.null(LDSC)==T){
+LDSC=by*0
+Omega=diag(2)*0
+}
 if(LD[1]!="identity"){
 isLD=T
 LD=Matrix(LD,sparse=T)
@@ -58,7 +62,6 @@ theta1=theta
 indvalid=which(gamma1==0)
 
 if(length(indvalid)<(0.55*m)) indvalid=sample(m,0.6*m)
-
 Hinv=1/(BtB-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1])
 g=sum(Bt*(by-as.vector(LD%*%gamma)))-sum(bXse[indvalid])*Rxy[2,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,2]
 theta=g*Hinv
