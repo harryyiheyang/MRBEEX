@@ -2,34 +2,33 @@
 % Please edit documentation in R/build_blockdiag_ld.R
 \name{build_blockdiag_ld}
 \alias{build_blockdiag_ld}
-\title{Build block-diagonal LD matrix by SNP clustering with shrinkage}
+\title{Build block-diagonal LD matrix by SNP clustering with VIF-based pruning (no shrinkage)}
 \usage{
 build_blockdiag_ld(
   SNP_DF,
   window_size = 1500000,
   R,
-  shrink_grid = cbind(c(50, 10), c(0.05, 0.01))
+  kappa_thr = 30,
+  vif_thr = 5
 )
 }
 \arguments{
 \item{SNP_DF}{data.frame with columns: SNP, CHR, BP, P.}
 
-\item{window_size}{numeric, window (bp) used to define independent SNP centers (default 1.5e6).}
+\item{window_size}{numeric, window (bp) for defining independent SNP centers (default 1.5e6).}
 
 \item{R}{numeric LD/correlation matrix; row/colnames must be SNP IDs; square.}
 
-\item{shrink_grid}{numeric matrix with 2 columns:
-- col 1: size cutoffs (e.g., c(50, 10))
-- col 2: shrinkage values s in [0,1] (e.g., c(0.05, 0.01))
-The matrix is internally sorted by col 1 (descending).
-After sorting, col 2 must be nonincreasing (largest cutoff gets >= shrink of the next).
-If no rule matches a block, s=0 is used.}
+\item{kappa_thr}{numeric, condition-number threshold to trigger VIF pruning (default 30).}
+
+\item{vif_thr}{numeric, VIF threshold on diag(solve(R_block)) to mark variants high-VIF (default 5).}
 }
 \value{
 list with:
-  - R1: sparse block-diagonal matrix (Matrix::dgCMatrix)
-  - cluster.index: data.frame with SNP, CHR, BP, cluster
+  - R1: block-diagonal matrix (no shrinkage) after pruning
+  - cluster.index: data.frame with SNP, CHR, BP, cluster (after pruning)
+  - removed_snp: character vector of removed SNP IDs
 }
 \description{
-Build block-diagonal LD matrix by SNP clustering with shrinkage
+Build block-diagonal LD matrix by SNP clustering with VIF-based pruning (no shrinkage)
 }
