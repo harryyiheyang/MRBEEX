@@ -23,6 +23,7 @@
 #' @param contribution Numeric in \eqn{(0,1]}. Target cumulative contribution (based on
 #'   normalized Local Pratt weights) used to decide how many top variants to retain
 #'   per pruned cluster; no more than 5 will be kept.
+#' @param max_size The maximum size of each cluster when using the Pratt index to cut off.
 #'
 #' @return A list with:
 #' \itemize{
@@ -33,7 +34,7 @@
 #'
 #' @export
 
-block_cutoff <- function(cluster_info, marginal_effect, direct_effect, cutoff = 5, contribution = 0.9){
+block_cutoff <- function(cluster_info, marginal_effect, direct_effect, cutoff = 5, max_size=5, contribution = 0.9){
   stopifnot(nrow(cluster_info) == length(marginal_effect), length(marginal_effect) == length(direct_effect))
   cnt <- table(cluster_info$cluster)
   eligible <- as.integer(names(cnt)[cnt > cutoff])
@@ -50,10 +51,10 @@ block_cutoff <- function(cluster_info, marginal_effect, direct_effect, cutoff = 
       ord <- order(w, decreasing = TRUE)
       cumw <- cumsum(w[ord])
       k_hit <- which(cumw >= contribution)[1]
-      k <- min(5, ifelse(is.na(k_hit), length(ids), k_hit))
+      k <- min(max_size, ifelse(is.na(k_hit), length(ids), k_hit))
       sel <- ord[seq_len(k)]
     } else {
-      k <- min(5, length(ids))
+      k <- min(max_size, length(ids))
       sel <- seq_len(k)
     }
     keep_idx[ids[sel]] <- TRUE
