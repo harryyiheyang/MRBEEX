@@ -101,8 +101,6 @@ A$theta=c(theta)
 A$covtheta=covtheta
 A$theta.se=sqrt(diag(covtheta))
 A$gamma=r
-A$theta.pratt=getPratt(bX=bX,by=by,bXse=bXse,byse=byse,theta=theta,Rxy=Rxy)
-A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=r)
 }
 return(A)
 }

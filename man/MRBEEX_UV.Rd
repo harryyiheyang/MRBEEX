@@ -14,10 +14,10 @@ MRBEEX_UV(
   cluster.index = c(1:length(by)),
   reliability.thres = 0.8,
   Method = "IPOD",
-  ebic.theta = 0,
   tauvec = seq(5, 30, by = 2),
   rho = 2,
-  ebic.gamma = 2,
+  ebic.gamma = 0,
+  Kvec = seq(1, length(bX)/2, by = 2),
   max.iter = 100,
   max.eps = 0.001,
   maxdiff = 3,
@@ -46,15 +46,15 @@ MRBEEX_UV(
 
 \item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
 
-\item{Method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.}
-
-\item{ebic.theta}{EBIC factor on causal effect. Default is \code{0}.}
+\item{Method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Greedy"}.}
 
 \item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
 
 \item{rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{2}.}
+\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{0}.}
+
+\item{Kvec}{When choosing \code{"Greedy"}, the candidate vector of number of pleiotropy in the greedy search algorithm. Default is \code{seq(1, length(bX)/2, by=2)}.}
 
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Defaults to \code{100}.}
 
@@ -81,29 +81,15 @@ A list containing the results of the MRBEEX.UV analysis:
   \item{\code{theta.se}}{Standard error of the causal effect estimate.}
   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
   \item{\code{theta.bootstrap}}{Resampled causal effect estimates in bootstrap.}
-  \item{\code{theta.pratt}}{Pratt index estimate of exposure.}
   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
-  \item{\code{gamma.pratt}}{Pratt index estimate of horizontal pleiotropy.}
   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
   \item{\code{theta.ini}}{Initial value of \code{theta} used in the estimation procedure.}
   \item{\code{gamma.ini}}{Initial value of \code{gamma} used in the estimation procedure.}
   \item{\code{reliability.adjust}}{Estimated reliability-adjusted values.}
   \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the subsampling procedure.}
   \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{theta1}}{Causal effect estimate for the first mixture component (when \code{Method="Mixture"}).}
-  \item{\code{theta2}}{Causal effect estimate for the second mixture component (when \code{Method="Mixture"}).}
-  \item{\code{theta.se1}}{Standard error of \code{theta1}.}
-  \item{\code{theta.se2}}{Standard error of \code{theta2}.}
-  \item{\code{theta.cov1}}{Covariance matrix of \code{theta1}.}
-  \item{\code{theta.cov2}}{Covariance matrix of \code{theta2}.}
-  \item{\code{theta.pratt1}}{Pratt index estimates of exposures in the first mixture.}
-  \item{\code{theta.pratt2}}{Pratt index estimates of exposures in the second mixture.}
-  \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{thetalist2}}{List of \code{theta2} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{cluster1}}{Indices of individual IVs in the first mixture component.}
-  \item{\code{cluster2}}{Indices of individual IVs in the second mixture component.}
 }
 }
 \description{
-This function removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP) and correlated horizontal pleiotropy (CHP) through two distinct methods. UHP is detected using the IPOD algorithm, where outliers are interpreted as UHP. For CHP, a two-mixture regression model is applied. Both the IPOD algorithm and the Mixture method support the inclusion of correlated instrumental variables using an LD matrix and provide advanced options for exposure selection and horizontal pleiotropy correction.
+This function removes weak instrument bias using Bias-corrected Estimating Equations and identifies uncorrelated horizontal pleiotropy (UHP) and correlated horizontal pleiotropy (CHP) through IPOD or greedy search.
 }

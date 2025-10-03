@@ -123,9 +123,7 @@ A list that contains the results of the MRBEEX with respect to different methods
   \item{\code{theta.se}}{Standard error of the causal effect estimate.}
   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
   \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.}
-  \item{\code{theta.pratt}}{Pratt index estimate of exposure.}
   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
-  \item{\code{gamma.pratt}}{Pratt index estimate of horizontal pleiotropy.}
   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
   \item{\code{theta.ini}}{Initial value of \code{theta} used in the estimation procedure.}
   \item{\code{gamma.ini}}{Initial value of \code{gamma} used in the estimation procedure.}
@@ -138,8 +136,6 @@ A list that contains the results of the MRBEEX with respect to different methods
   \item{\code{theta.se2}}{Standard error of \code{theta2}.}
   \item{\code{theta.cov1}}{Covariance matrix of \code{theta1}.}
   \item{\code{theta.cov2}}{Covariance matrix of \code{theta2}.}
-  \item{\code{theta.pratt1}}{Pratt index estimates of exposures in the first mixture.}
-  \item{\code{theta.pratt2}}{Pratt index estimates of exposures in the second mixture.}
   \item{\code{theta.pip1}}{Empirical PIP of \code{theta1} in the subsampling procedure.}
   \item{\code{theta.pip2}}{Empirical PIP of \code{theta2} in the subsampling procedure.}
   \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.}

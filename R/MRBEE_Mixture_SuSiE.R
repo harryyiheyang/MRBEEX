@@ -462,8 +462,6 @@ A$thetalist2=ThetaList2
 A$Voting=Voting
 A$theta.pip1=colMeans(ThetaList1!=0)
 A$theta.pip2=colMeans(ThetaList2!=0)
-A$theta.pratt1=getPratt(bX=bX[cluster1,],by=by[cluster1],bXse=bXse[cluster1,],byse=byse[cluster1],Theta=solve(LD[cluster1,cluster1]),theta=theta1,Rxy=Rxy)
-A$theta.pratt2=getPratt(bX=bX[cluster2,],by=by[cluster2],bXse=bXse[cluster2,],byse=byse[cluster2],Theta=solve(LD[cluster2,cluster2]),theta=theta2,Rxy=Rxy)
 A$susie.theta1=fit.susie1
 A$susie.theta2=fit.susie2
 A$Diff1=Diff1

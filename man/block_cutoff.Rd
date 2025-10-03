@@ -9,6 +9,7 @@ block_cutoff(
   marginal_effect,
   direct_effect,
   cutoff = 5,
+  max_size = 5,
   contribution = 0.9
 )
 }
@@ -29,6 +30,8 @@ scale before calling. If estimated by SBayesRC, a common standardization is
 \item{cutoff}{Integer. Maximum cluster size threshold for pruning: clusters with
 size \code{<= cutoff} are entirely kept; clusters with size \code{> cutoff} are
 pruned using the Local Pratt rule.}
+
+\item{max_size}{The maximum size of each cluster when using the Pratt index to cut off.}
 
 \item{contribution}{Numeric in \eqn{(0,1]}. Target cumulative contribution (based on
 normalized Local Pratt weights) used to decide how many top variants to retain
