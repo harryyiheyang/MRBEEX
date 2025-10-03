@@ -154,8 +154,6 @@ A$theta.ini=theta.ini
 A$gamma.ini=gamma.ini
 A$theta.bootstrap=ThetaList
 A$reliability.adjust=r
-A$theta.pratt=getPratt.uv(bX=bX,by=by,bXse=bXse,byse=byse,Theta=Theta,theta=theta,Rxy=Rxy)
-A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
 A$var_error=var_error
 return(A)
 }

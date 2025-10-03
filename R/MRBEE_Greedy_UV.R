@@ -104,16 +104,16 @@ LDj=LD[indj,indj]
 Thetaj=solve(LDj)
 Bt=as.vector(Thetaj%*%bX[indj])
 BtB=sum(bX[indj]*(Thetaj%*%bX[indj]))
-gammaj=gamma*runif(1,0.95,1.05)
+gammaj=gamma[indj]*runif(1,0.95,1.05)
 errorj=1
 thetaj=theta*runif(1,0.95,1.05)
 for(iterj in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj=which(gammaj==0)
-indvalidj=intersect(indj,indvalidj)
+indvalidj=indj[indvalidj]
 if(length(indvalidj)<(0.55*length(indj))) indvalidj=sample(indj,0.6*length(indj))
 Hinv=1/(BtB-sum(bXse[indvalidj]^2)*Rxy[1,1]-sum(LDSC[indvalidj]*byseinv[indvalidj]^2)*Omega[1,1])
-g=sum(Bt*(by[indj]-as.vector(LD[indj,]%*%gammaj)))-sum(bXse[indvalidj])*Rxy[2,1]-sum(LDSC[indvalidj]*byseinv[indvalidj]^2)*Omega[1,2]
+g=sum(Bt*(by[indj]-as.vector(LD[indj,indj]%*%gammaj)))-sum(bXse[indvalidj])*Rxy[2,1]-sum(LDSC[indvalidj]*byseinv[indvalidj]^2)*Omega[1,2]
 thetaj=g*Hinv
 if(Kvec[jstar]>0){
 gammaj=as.vector(Thetaj%*%(by[indj]-bX[indj]*thetaj))
@@ -138,8 +138,6 @@ A$theta.ini=theta.ini
 A$gamma.ini=gamma.ini
 A$theta.bootstrap=ThetaList
 A$reliability.adjust=r
-A$theta.pratt=getPratt.uv(bX=bX,by=by,bXse=bXse,byse=byse,Theta=Theta,theta=theta,Rxy=Rxy)
-A$gamma.pratt=pleiotropyPratt(by=by,pleiotropy=gamma,Theta=Theta,LD=LD)
 A$var_error=var_error
 return(A)
 }
