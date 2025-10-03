@@ -64,7 +64,7 @@ theta=g*Hinv
 ########################### update gamma ############################
 if(Kvec[j]>0){
 gamma=as.vector(Theta%*%(by-bX*theta))
-gamma[order(abs(gamma), decreasing=TRUE)[1:Kvec[j]]]
+gamma = gamma * (rank(-abs(gamma)) <= Kvec[j])
 }else{
 gamma=0*by
 }
@@ -117,7 +117,7 @@ g=sum(Bt*(by[indj]-as.vector(LD[indj,]%*%gammaj)))-sum(bXse[indvalidj])*Rxy[2,1]
 thetaj=g*Hinv
 if(Kvec[jstar]>0){
 gammaj=as.vector(Thetaj%*%(by[indj]-bX[indj]*thetaj))
-gammaj[order(abs(gammaj), decreasing=TRUE)[1:Kvec[jstar]]]
+gammaj = gammaj * (rank(-abs(gammaj)) <= Kvec[jstar])
 }else{
 gammaj=0*by[indj]
 }
