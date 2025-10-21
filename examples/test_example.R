@@ -54,7 +54,12 @@ Lvec=c(1:min(10,nrow(bX)));pip.thres=0.5;tauvec=seq(3,50,by=2);max.iter=100;max.
 main.cluster.thres=0.45
 
 t1=Sys.time()
-fit.ipod=MRBEEX(method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),admm.rho=2,sampling.time=10,maxdiff=3,sampling.iter=8)
+fit.ipod=MRBEEX(method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),admm.rho=2,sampling.time=1000,maxdiff=3,sampling.iter=8)
+t2=Sys.time()
+ipod.time=difftime(t2, t1, units = "secs")
+
+t1=Sys.time()
+fit.ipod1=MRBEEX(method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),admm.rho=2,sampling.time=0,maxdiff=3,sampling.iter=8)
 t2=Sys.time()
 ipod.time=difftime(t2, t1, units = "secs")
 

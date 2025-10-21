@@ -310,7 +310,7 @@ gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 gammaj=gammaj*(gamma1j!=0)
-if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
+if(jiter>4) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j, ] <- thetaj

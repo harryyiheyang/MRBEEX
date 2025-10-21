@@ -60,7 +60,6 @@ delta=gamma1*0
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
-
 if(length(indvalid)<(0.55*m)) indvalid=sample(m,0.6*m)
 Hinv=1/(BtB-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1])
 g=sum(Bt*(by-as.vector(LD%*%gamma)))-sum(bXse[indvalid])*Rxy[2,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,2]
@@ -102,7 +101,7 @@ indgamma=which(gamma!=0)
 indvalid=which(gamma==0)
 res=by-bX*theta-as.vector(LD%*%gamma)
 var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
-
+if(sampling.time>0){
 ThetaList=c(1:sampling.time)
 for(j in 1:sampling.time){
 cluster.sampling <- sample(1:max(cluster.index), 0.5*max(cluster.index), replace = F)
@@ -138,12 +137,39 @@ deltaj=(deltaj+rho*(gammaj-gamma1j))
 }
 gammaj=gammaj*(gamma1j!=0)
 errorj=abs(thetaj-theta_prevj)
-if(iterj>3&errorj<max.eps) break
+if(iterj>5&errorj<max.eps) break
 }
 ThetaList[j]=thetaj
 }
 theta.se=mad(ThetaList)
-
+}else{
+ThetaList=NULL
+if(sum(gamma!=0)==0){
+e=tilde.y-tilde.X*theta
+adjf=m/(m-1)
+Theta_valid=solve(LD[indvalid,indvalid])
+tilde.X=as.vector(chol(Theta_valid)%*%bX[indvalid])
+BtB=sum(tilde.X^2)
+h=(BtB-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1])
+E=-tilde.X*e[indvalid]+bXse[indvalid]*byse[indvalid]-bXse[indvalid]^2*theta+LDSC[indvalid]*byseinv[indvalid]^2*Omega[1,2]-LDSC[indvalid]*byseinv[indvalid]^2*Omega[1,1]*theta
+vartheta=sum(E^2)/h^2*adjf
+theta.se=sqrt(vartheta)
+}else{
+adjf=m/(length(indvalid)-1)
+bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
+H=matrixMultiply(t(bZ),as.matrix(Theta%*%bZ))
+H[1,1]=H[1,1]-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1]
+e=res
+Hinv=solve(H)
+E=-as.matrix(Theta%*%bZ)*e
+for(i in 1:length(indvalid)){
+E[indvalid[i],1]=E[indvalid[i],1]+bXse[indvalid[i]]*Rxy[1,2]+(LDSC[indvalid[i]]*byseinv[indvalid[i]]^2)*Omega[1,2]-bXse[indvalid[i]]^2*Rxy[1,1]*theta-LDSC[indvalid[i]]*byseinv[indvalid[i]]^2*Omega[1,1]*theta
+}
+V=t(E)%*%E
+covtheta=(Hinv%*%V%*%Hinv)*adjf
+theta.se=sqrt(covtheta[1,1])
+}
+}
 
 A=list()
 A$theta=theta

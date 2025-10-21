@@ -180,7 +180,7 @@ cluster2j=c(1:2)
 cluster1j=which(Votingj$Cluster[,1]==1)
 m1j=length(cluster1j)
 m2j=length(cluster2j)
-if(jiter>3) errorj=max(norm(theta1j-theta_prev1j,"2"),norm(theta2j-theta_prev2j,"2"))
+if(jiter>4) errorj=max(norm(theta1j-theta_prev1j,"2"),norm(theta2j-theta_prev2j,"2"))
 if(errorj<max.eps) break
 }
 ThetaVecj=cbind(theta1j,theta2j)

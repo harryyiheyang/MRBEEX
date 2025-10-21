@@ -120,11 +120,14 @@ t1=Sys.time()
 jstar=which.min(Bbic)
 theta=Btheta[,jstar]
 gamma=Bgamma[,jstar]
+res=c(by-matrixVectorMultiply(bX,theta)-as.vector(LD%*%gamma))
 names(theta)=colnames(bX)
 names(gamma)=rownames(bX)
 indtheta=which(theta!=0)
 indgamma=which(gamma!=0)
 indvalid=which(gamma==0)
+
+if(sampling.time>0){
 ThetaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(bX)
 GammaList=matrix(0,sampling.time,m)
@@ -191,7 +194,7 @@ gammaj=gamma1j=mcp(by[indj]-matrixVectorMultiply(bXj,thetaj),tauvec[jstar])
 deltaj=deltaj+rho*(gammaj-gamma1j)
 }
 gammaj=gammaj*(gamma1j!=0)
-if(jiter>3) errorj=norm(thetaj-theta_prevj,"2")
+if(jiter>4) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j, ] <- thetaj
@@ -215,6 +218,28 @@ cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
 theta.se=colSD(ThetaList)
 theta.cov=cov(ThetaList)
 colnames(theta.cov)=rownames(theta.cov)=names(theta.se)=colnames(bX)
+}else{
+adjf=m/(length(indvalid)-1)
+if(sum(gamma!=0)>0){
+bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
+}else{
+bZ=as.matrix(bX)
+}
+H=matrixMultiply(t(bZ),as.matrix(Theta%*%bZ))
+H[1:p,1:p]=H[1:p,1:p]-Rxysum[1:p,1:p]+Diff_matrix
+e=res
+Hinv=solve(H)
+E=-as.matrix(Theta%*%bZ)*e
+for(i in 1:length(indvalid)){
+E[indvalid[i],1:p]=E[indvalid[i],1:p]+RxyList[indvalid[i],1:p,p+1]-as.vector(RxyList[indvalid[i],1:p,1:p]%*%theta)
+}
+V=t(E)%*%E
+covtheta=(Hinv%*%V%*%Hinv)*adjf
+theta.se=sqrt(diag(covtheta[1:p,1:p]))
+theta.cov=covtheta[1:p,1:p]
+ThetaList=GammaList=NULL
+}
+
 
 A=list()
 A$theta=theta
