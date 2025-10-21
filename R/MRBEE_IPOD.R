@@ -219,7 +219,7 @@ theta.se=colSD(ThetaList)
 theta.cov=cov(ThetaList)
 colnames(theta.cov)=rownames(theta.cov)=names(theta.se)=colnames(bX)
 }else{
-adjf=m/(length(indvalid)-1)
+adjf=m/(length(indvalid)-p)
 if(sum(gamma!=0)>0){
 bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
 }else{
