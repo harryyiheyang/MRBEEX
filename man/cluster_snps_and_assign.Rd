@@ -23,6 +23,8 @@ A list with two data.tables:
 One-pass pipeline for C+T style clustering and membership assignment.
 For each chromosome, repeatedly take the SNP with the smallest P as a center,
 group all SNPs within \code{±window_size} bp into that cluster, remove them,
-and continue until all SNPs are clustered. Then assign every SNP (df) to the
-unique cluster whose interval covers it (no NAs).
+and continue until all SNPs are clustered. Then assign every SNP in \code{df}
+to exactly one cluster by non-equi interval join with explicit tie-breaking
+in overlapping regions: smallest distance to center, then smaller center P,
+then smaller \code{cluster_id}.
 }
