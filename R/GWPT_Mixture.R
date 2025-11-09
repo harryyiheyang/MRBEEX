@@ -34,19 +34,15 @@ Covtheta2 <- diag(length(vartheta2) - 1) * 0
 Covtheta2[which(theta2 != 0), which(theta2 != 0)] <- theta.cov2[which(theta2 != 0), which(theta2 != 0)]
 Covtheta2 <- Matrix::bdiag(Covtheta2,0)
 
-cat("Calculating the residuals of two mixtures:\n")
-pb <- txtProgressBar(min = 0, max = length(var_residual1), style = 3)
-for (i in 1:nrow(bZ)) {
-setTxtProgressBar(pb, i)
-beta <- as.vector(bZ[i, ])
-se <- as.vector(bZse[i, ])
-G <- t(Rxy * se) * se
-var_residual1[i] <- sum(vartheta1 * c(G %*% vartheta1)) + sum(beta * (Covtheta1 %*% beta))
-var_residual2[i] <- sum(vartheta2 * c(G %*% vartheta2)) + sum(beta * (Covtheta2 %*% beta))
-}
-close(pb)
+bZse_eff1 <- sweep(bZse, 2, vartheta1, `*`)
+G11=rowSums(bZse_eff1*matrixMultiply(bZse_eff1,Rxy))
+G21=rowSums(bZ*matrixMultiply(bZ,Covtheta1))
+var_residual1=G11+G21
+bZse_eff2 <- sweep(bZse, 2, vartheta2, `*`)
+G12=rowSums(bZse_eff2*matrixMultiply(bZse_eff2,Rxy))
+G22=rowSums(bZ*matrixMultiply(bZ,Covtheta2))
+var_residual2=G12+G22
 
-cat("Classifying the whole genome into two mixtures:\n")
 dt <- data.table(
 idx = seq_len(length(residual1)),
 residual1 = residual1,
