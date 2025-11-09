@@ -1,0 +1,174 @@
+MRBEE_Greedy_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,Kvec=seq(0,floor(0.5*length(by)),by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,prob.shift=0.1){
+########################### Basic information #######################
+by=by/byse
+byseinv=1/byse
+bX=bX*byseinv
+bXse=bXse*byseinv
+byse1=byse
+byse=byse/byse
+m=length(bX)
+if(is.null(LDSC)==T){
+LDSC=by*0
+Omega=diag(2)*0
+}
+if(LD[1]!="identity"){
+isLD=T
+LD=Matrix(LD,sparse=T)
+Theta=solve(LD)
+TC=chol(Theta)
+RC=as.matrix(TC%*%LD)
+byinv=as.vector(Theta%*%by)
+bXinv=as.vector(Theta%*%bX)
+tilde.y=as.vector(TC%*%by)
+tilde.X=as.vector(TC%*%bX)
+Bt=t(bXinv)
+BtB=sum(Bt*bX)
+}else{
+isLD=F
+LD=Theta=TC=Matrix(diag(m),sparse=T)
+RC=diag(m)
+byinv=by
+bXinv=bX
+tilde.y=by
+tilde.X=bX
+Bt=t(bX)
+BtB=sum(bX*bX)
+}
+r=reliability.adj.uv(bX,bXse,Theta=Theta,thres=reliability.thres)
+r=c(r,1)
+Rxy=t(t(Rxy)*r)*r
+############################ Initial Estimate #######################
+if(theta.ini[1]==F){
+fit0=MRBEE.IMRP.UV(by=by,bx=bX,byse=byse,bxse=bXse,Rxy=Rxy)
+gamma.ini=fit0$delta/byse
+theta.ini=fit0$theta
+}
+############################## Tuning Parameter ######################
+Kvec=sort(union(0,Kvec))
+w=length(Kvec)
+Btheta=c(1:w)
+Bgamma=matrix(0,m,w)
+Bbic=Kvec
+for(j in length(Kvec):1){
+error=1
+iter=1
+theta=theta.ini
+gamma=gamma.ini
+while(error>max.eps&iter<max.iter){
+theta1=theta
+indvalid=which(gamma==0)
+if(length(indvalid)<(0.55*m)) indvalid=sample(m,0.6*m)
+Hinv=1/(BtB-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1])
+g=sum(Bt*(by-as.vector(LD%*%gamma)))-sum(bXse[indvalid])*Rxy[2,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,2]
+theta=g*Hinv
+########################### update gamma ############################
+if(Kvec[j]>0){
+gamma=as.vector(Theta%*%(by-bX*theta))
+gamma = gamma * (rank(-abs(gamma)) <= Kvec[j])
+}else{
+gamma=0*by
+}
+iter=iter+1
+if(iter>3){
+error=abs(theta-theta1)
+}
+}
+Btheta[j]=theta
+Bgamma[,j]=gamma
+df1=sum(gamma!=0)
+res=by-bX*theta-as.vector(LD%*%gamma)
+rss=sum(res*(Theta%*%res))/(m-df1-1)
+Bbic[j]=log(rss)*m+(log(m)+ebic.gamma*log(m))*df1+log(m)
+}
+Bbic=Bbic/m
+######################## Inference #################################
+jstar=last_min(Bbic)
+theta=Btheta[jstar]
+gamma=Bgamma[,jstar]
+error=1
+iter=1
+theta=theta
+gamma=gamma
+names(gamma)=rownames(bX)
+indgamma=which(gamma!=0)
+indvalid=which(gamma==0)
+res=by-bX*theta-as.vector(LD%*%gamma)
+var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
+if(sampling.time>0){
+ThetaList=c(1:sampling.time)
+cluster.index <- as.integer(factor(cluster.index))
+cluster_prob <- cluster_prob(cluster.index,LD,shift=prob.shift)
+k <- floor(length(cluster_prob) * 0.5)
+for(j in 1:sampling.time){
+cluster.sampling <- sample(1:max(cluster.index), k, replace = F,prob = cluster_prob)
+indj=which(cluster.index%in%cluster.sampling)
+indj=sort(indj)
+LDj=LD[indj,indj]
+Thetaj=solve(LDj)
+Bt=as.vector(Thetaj%*%bX[indj])
+BtB=sum(bX[indj]*(Thetaj%*%bX[indj]))
+gammaj=gamma[indj]*runif(1,0.95,1.05)
+errorj=1
+thetaj=theta*runif(1,0.95,1.05)
+for(iterj in 1:sampling.iter){
+theta_prevj=thetaj
+indvalidj=which(gammaj==0)
+indvalidj=indj[indvalidj]
+if(length(indvalidj)<(0.55*length(indj))) indvalidj=sample(indj,0.6*length(indj))
+Hinvj=1/(BtB-sum(bXse[indvalidj]^2)*Rxy[1,1]-sum(LDSC[indvalidj]*byseinv[indvalidj]^2)*Omega[1,1])
+g=sum(Bt*(by[indj]-as.vector(LD[indj,indj]%*%gammaj)))-sum(bXse[indvalidj])*Rxy[2,1]-sum(LDSC[indvalidj]*byseinv[indvalidj]^2)*Omega[1,2]
+thetaj=g*Hinvj
+if(Kvec[jstar]>0){
+gammaj=as.vector(Thetaj%*%(by[indj]-bX[indj]*thetaj))
+gammaj = gammaj * (rank(-abs(gammaj)) <= Kvec[jstar])
+}else{
+gammaj=0*by[indj]
+}
+errorj=abs(thetaj-theta_prevj)
+if(iterj>5&errorj<max.eps) break
+}
+ThetaList[j]=thetaj
+}
+theta.se=mad(ThetaList)
+}else{
+ThetaList=NULL
+if(sum(gamma!=0)==0){
+e=tilde.y-tilde.X*theta
+adjf=m/(m-1)
+Theta_valid=solve(LD[indvalid,indvalid])
+tilde.X=as.vector(chol(Theta_valid)%*%bX[indvalid])
+BtB=sum(tilde.X^2)
+h=(BtB-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1])
+e[indvalid]=e[indvalid]
+E=-tilde.X*e[indvalid]+bXse[indvalid]*byse[indvalid]-bXse[indvalid]^2*theta+LDSC[indvalid]*byseinv[indvalid]^2*Omega[1,2]-LDSC[indvalid]*byseinv[indvalid]^2*Omega[1,1]*theta
+vartheta=sum(E^2)/h^2*adjf
+theta.se=sqrt(vartheta)
+}else{
+adjf=m/(length(indvalid)-1)
+bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
+H=matrixMultiply(t(bZ),as.matrix(Theta%*%bZ))
+H[1,1]=H[1,1]-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1]
+e=res
+Hinv=solve(H)
+E=-as.matrix(Theta%*%bZ)*e
+for(i in 1:length(indvalid)){
+E[indvalid[i],1]=E[indvalid[i],1]+bXse[indvalid[i]]*Rxy[1,2]+(LDSC[indvalid[i]]*byseinv[indvalid[i]]^2)*Omega[1,2]-bXse[indvalid[i]]^2*Rxy[1,1]*theta-LDSC[indvalid[i]]*byseinv[indvalid[i]]^2*Omega[1,1]*theta
+}
+V=t(E)%*%E
+covtheta=(Hinv%*%V%*%Hinv)*adjf
+theta.se=sqrt(covtheta[1,1])
+}
+}
+
+A=list()
+A$theta=theta
+A$gamma=gamma*byse1
+A$theta.se=theta.se
+A$Bic=Bbic
+A$theta.ini=theta.ini
+A$gamma.ini=gamma.ini
+A$theta.bootstrap=ThetaList
+A$reliability.adjust=r
+A$var_error=var_error
+return(A)
+}
