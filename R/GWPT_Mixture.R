@@ -13,6 +13,8 @@
 #' @param theta.cov2 The covariance matrix of the causal effect estimate of the second mixture.
 #' @param LD.block A vector of indices of LD blocks.
 #' @import data.table
+#' @import CppMatrix
+#'
 #' @return A list with two components:
 #' \item{BETA}{The estimated residual values.}
 #' \item{SE}{The standard errors of the residual estimates.}
@@ -24,8 +26,8 @@ bZ <- cbind(bX,by)
 bZse <- cbind(bXse,byse)
 vartheta1 <- c(-theta1,1)
 vartheta2 <- c(-theta2,1)
-residual1 <- c(bZ %*% vartheta1)
-residual2 <- c(bZ %*% vartheta2)
+residual1 <- matrixVectorMultiply(bZ,vartheta1)
+residual2 <- matrixVectorMultiply(bZ,vartheta2)
 var_residual1 <- var_residual2 <- residual1 * 0
 Covtheta1 <- diag(length(vartheta1) - 1) * 0
 Covtheta1[which(theta1 != 0), which(theta1 != 0)] <- theta.cov1[which(theta1 != 0), which(theta1 != 0)]
@@ -33,6 +35,8 @@ Covtheta1 <- Matrix::bdiag(Covtheta1,0)
 Covtheta2 <- diag(length(vartheta2) - 1) * 0
 Covtheta2[which(theta2 != 0), which(theta2 != 0)] <- theta.cov2[which(theta2 != 0), which(theta2 != 0)]
 Covtheta2 <- Matrix::bdiag(Covtheta2,0)
+Covtheta2=as.matrix(Covtheta2)
+Covtheta1=as.matrix(Covtheta1)
 
 bZse_eff1 <- sweep(bZse, 2, vartheta1, `*`)
 G11=rowSums(bZse_eff1*matrixMultiply(bZse_eff1,Rxy))

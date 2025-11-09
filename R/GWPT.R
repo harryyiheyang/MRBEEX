@@ -22,7 +22,7 @@ GWPT <- function(by, byse, bX, bXse, Rxy, theta, theta.cov) {
 bZ <- cbind(bX,by)
 bZse <- cbind(bXse,byse)
 vartheta <- c(-theta,1)
-residual <- bZ %*% vartheta
+residual <- matrixVectorMultiply(bZ,vartheta)
 
 var_residual <- residual * 0
 Covtheta <- diag(length(vartheta) - 1) * 0
@@ -31,6 +31,7 @@ if (any(theta != 0)) {
   Covtheta[which(theta != 0), which(theta != 0)] <- theta.cov[which(theta != 0), which(theta != 0)]
 }
 Covtheta <- Matrix::bdiag(Covtheta,0)
+Covtheta=as.matrix(Covtheta)
 
 bZse_eff <- sweep(bZse, 2, vartheta, `*`)
 G1=rowSums(bZse_eff*matrixMultiply(bZse_eff,Rxy))
