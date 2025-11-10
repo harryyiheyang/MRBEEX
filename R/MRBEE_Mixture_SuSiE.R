@@ -364,7 +364,7 @@ Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
 tryCatch({
 fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary))
 },error = function(e) {
-fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal)
+fit.susie1j=susie_suff_stat(XtX=XtX1j+Diff_matrix1/2,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=susie.iter,s_init=fit.susie1,intercept=F,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal)
 })
 theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
 theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -386,7 +386,7 @@ Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
 tryCatch({
 fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary))
 },error = function(e) {
-fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",estimate_prior_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal)
+fit.susie2j=susie_suff_stat(XtX=XtX2j+Diff_matrix2/2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=susie.iter,s_init=fit.susie2,intercept=F,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal)
 })
 theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
 theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
