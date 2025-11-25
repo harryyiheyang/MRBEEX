@@ -31,7 +31,6 @@
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
 #' @param sampling.time A scale of number of subsampling in estimating the standard error. Default is \code{100}.
 #' @param sampling.iter A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
-#' @param prob.shift Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.1).
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
 #'
@@ -49,7 +48,7 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
             admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
             pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
             max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
-            sampling.time=100,sampling.iter=10,prob.shift=0.1,ldsc=NULL,gcov=NULL){
+            sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
                  theta.source=theta.source,theta.source.cov=theta.source.cov,
@@ -57,7 +56,7 @@ A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
                  tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
                  transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
                  pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
-                 reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=0.95,
+                 reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=coverage.causal,
                  sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
 }else{
