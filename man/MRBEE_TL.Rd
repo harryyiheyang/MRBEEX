@@ -34,7 +34,6 @@ MRBEE_TL(
   ridge.diff = 100,
   sampling.time = 100,
   sampling.iter = 10,
-  prob.shift = 0.1,
   ldsc = NULL,
   gcov = NULL
 )
@@ -97,8 +96,6 @@ MRBEE_TL(
 \item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
 
 \item{sampling.iter}{A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.}
-
-\item{prob.shift}{Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.1).}
 
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
 
