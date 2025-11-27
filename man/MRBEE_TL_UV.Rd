@@ -28,7 +28,7 @@ MRBEE_TL_UV(
   sampling.iter = 10,
   ldsc = NULL,
   gcov = NULL,
-  prob.shift = 0.1
+  prob.shrinkage = 0.5
 )
 }
 \arguments{
@@ -78,7 +78,7 @@ MRBEE_TL_UV(
 
 \item{gcov}{A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.}
 
-\item{prob.shift}{Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.1).}
+\item{prob.shrinkage}{Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.}
 }
 \value{
 A list containing the estimated causal effect, its covariance, and pleiotropy.

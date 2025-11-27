@@ -1,4 +1,4 @@
-MRBEE_Greedy_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,Kvec=seq(0,floor(0.5*length(by)),by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,prob.shift=0.1){
+MRBEE_Greedy_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,Kvec=seq(0,floor(0.5*length(by)),by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,prob.shrinkage=0.5){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -97,7 +97,7 @@ var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
 if(sampling.time>0){
 ThetaList=c(1:sampling.time)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,shift=prob.shift)
+cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob.shrinkage)
 k <- floor(length(cluster_prob) * 0.5)
 for(j in 1:sampling.time){
 cluster.sampling <- sample(1:max(cluster.index), k, replace = F,prob = cluster_prob)

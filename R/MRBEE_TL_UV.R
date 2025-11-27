@@ -25,7 +25,7 @@
 #' @param sampling.iter A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
 #' @param gcov A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
-#' @param prob.shift Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.1).
+#' @param prob.shrinkage Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.
 
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy.
 #' @importFrom susieR susie_suff_stat coef.susie susie
@@ -36,7 +36,7 @@
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 #'
-MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL,prob.shift=0.1){
+MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL,prob.shrinkage=0.5){
 if(LD[1]=="identity"){
 A=MRBEE_TL_UV_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,theta.source=theta.source,theta.source.cov=theta.source.cov,tauvec=tauvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,max.iter=max.iter,max.eps=max.eps,reliability.thres=reliability.thres,sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
@@ -186,7 +186,7 @@ cat("Bootstrapping process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,shift=prob.shift)
+cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob.shrinkage)
 k <- floor(length(cluster_prob) * 0.5)
 while(j<=sampling.time) {
 setTxtProgressBar(pb, j)

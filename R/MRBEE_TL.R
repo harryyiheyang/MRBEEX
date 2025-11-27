@@ -12,10 +12,10 @@
 #' @param cluster.index A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
 #' @param Rxy A matrix (p+1 x p+1) of the correlation matrix of the p exposures and outcome. The first one should be the transferred linear predictor and last one should be the outcome.
 #' @param transfer.coef A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.
-#' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
+#' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
 #' @param Lvec A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
-#' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
+#' @param group.penalize An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.
 #' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
@@ -33,6 +33,8 @@
 #' @param sampling.iter A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
+#' @param prob.shrinkage Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.
+
 #'
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy.
 #' @importFrom susieR susie_suff_stat coef.susie susie
@@ -44,10 +46,10 @@
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
             group.penalize=F,group.index=NULL,group.diff=100,
-            theta.source,theta.source.cov,tauvec=seq(3,30,3),Lvec=c(1:6),
-            admm.rho=3,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
+            theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),
+            admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
             pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-            max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,
+            max.eps=1e-4,reliability.thres=0.8,ridge.diff=100,prob.shrinkage=0.5,
             sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
@@ -235,7 +237,7 @@ colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
 cat("Bootstrapping process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,shift=prob.shift)
+cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob.shrinkage)
 k <- floor(length(cluster_prob) * 0.5)
 j=1
 while(j<=sampling.time) {

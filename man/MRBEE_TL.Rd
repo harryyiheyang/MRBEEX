@@ -17,9 +17,9 @@ MRBEE_TL(
   group.diff = 100,
   theta.source,
   theta.source.cov,
-  tauvec = seq(3, 30, 3),
+  tauvec = seq(4, 8, 0.5),
   Lvec = c(1:6),
-  admm.rho = 3,
+  admm.rho = 2,
   ebic.delta = 0,
   ebic.gamma = 1,
   transfer.coef = 1,
@@ -32,6 +32,7 @@ MRBEE_TL(
   max.eps = 1e-04,
   reliability.thres = 0.8,
   ridge.diff = 100,
+  prob.shrinkage = 0.5,
   sampling.time = 100,
   sampling.iter = 10,
   ldsc = NULL,
@@ -53,7 +54,7 @@ MRBEE_TL(
 
 \item{cluster.index}{A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.}
 
-\item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
+\item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
 \item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
 
@@ -63,7 +64,7 @@ MRBEE_TL(
 
 \item{theta.source.cov}{A matrix (p x p) of the covariance matrix of the causal effect estimate learning from the source data.}
 
-\item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+\item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
 
 \item{Lvec}{A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.}
 
@@ -92,6 +93,8 @@ MRBEE_TL(
 \item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.}
 
 \item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
+
+\item{prob.shrinkage}{Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.}
 
 \item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
 

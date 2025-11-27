@@ -798,18 +798,18 @@ if (length(idx) == 0) return(NA_integer_) # all NA case
 return(max(idx))
 }
 
-cluster_prob <- function(cluster.index, R, shift = 0.1) {
-ids <- sort(unique(cluster.index))
-w <- sapply(ids, function(i) {
-idx <- which(cluster.index == i)
-Ri  <- R[idx, idx, drop = FALSE]
-ev  <- eigen(Ri, only.values = TRUE)$values
-(sum(ev)^2) / sum(ev^2)
-})
-p <- (1 - shift) * (w / sum(w)) + shift / length(w)
-p <- p / sum(p)
-names(p) <- ids
-p
+cluster_prob <- function(cluster.index, R, alpha = 0.5) {
+  ids <- sort(unique(cluster.index))
+  w <- sapply(ids, function(i) {
+    idx <- which(cluster.index == i)
+    Ri  <- R[idx, idx, drop = FALSE]
+    ev  <- eigen(Ri, only.values = TRUE)$values
+    (sum(ev)^2) / sum(ev^2)
+  })
+  w_adj <- w ^ alpha
+  p <- w_adj / sum(w_adj)
+  names(p) <- ids
+  p
 }
 
 xtx_positive <- function(XtX, Xty, eps = 1e-10) {

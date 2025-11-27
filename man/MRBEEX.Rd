@@ -19,7 +19,7 @@ MRBEEX(
   group.diff = 100,
   main.cluster.thres = 0.48,
   min.cluster.size = 5,
-  tauvec = seq(2.5, 40, by = 2.5),
+  tauvec = seq(4, 8, by = 0.5),
   admm.rho = 2,
   Lvec = c(1:min(10, ncol(bX))),
   pip.thres = 0.5,
@@ -34,7 +34,7 @@ MRBEEX(
   ridge.diff = 1000,
   sampling.time = 100,
   sampling.iter = 10,
-  prob.shift = 0.5,
+  prob.shrinkage = 0.5,
   maxdiff = 3,
   reliability.thres = 0.75,
   coverage.causal = 0.95,
@@ -64,7 +64,7 @@ MRBEEX(
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
-\item{group.penalize}{An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.}
+\item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
 \item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
 
@@ -74,7 +74,7 @@ MRBEEX(
 
 \item{min.cluster.size}{When choosing \code{"Mixture"}, a minimum sample size of the second mixture.  Default is \code{5}.}
 
-\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
@@ -104,7 +104,7 @@ MRBEEX(
 
 \item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.}
 
-\item{prob.shift}{Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.5).}
+\item{prob.shrinkage}{Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.}
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 

@@ -1,4 +1,4 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,prob.shift=0.1){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,prob.shrinkage=0.5){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -118,7 +118,7 @@ colnames(ThetaList1)=colnames(ThetaList2)=colnames(bX)
 cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,shift=prob.shift)
+cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob.shrinkage)
 k <- floor(length(cluster_prob) * 0.5)
 j=1
 while(j<=sampling.time){

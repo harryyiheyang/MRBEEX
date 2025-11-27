@@ -14,8 +14,8 @@ MRBEEX_UV(
   cluster.index = c(1:length(by)),
   reliability.thres = 0.8,
   Method = "IPOD",
-  tauvec = seq(5, 30, by = 2),
-  rho = 2,
+  tauvec = seq(4, 8, by = 2),
+  admm.rho = 2,
   ebic.gamma = 0,
   Kvec = seq(1, length(bX)/2, by = 2),
   max.iter = 100,
@@ -23,7 +23,7 @@ MRBEEX_UV(
   maxdiff = 3,
   sampling.time = 1000,
   sampling.iter = 30,
-  prob.shift = 0.5,
+  prob.shrinkage = 0.5,
   theta.ini = F,
   gamma.ini = F,
   ldsc = NULL,
@@ -49,9 +49,9 @@ MRBEEX_UV(
 
 \item{Method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Greedy"}.}
 
-\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.}
+\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
 
-\item{rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
+\item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
 \item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{0}.}
 
@@ -67,7 +67,7 @@ MRBEEX_UV(
 
 \item{sampling.iter}{Number of iterations per resampling. Default is \code{5}.}
 
-\item{prob.shift}{Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shift` adds a small uniform part to smooth the distribution (default = 0.5).}
+\item{prob.shrinkage}{Mixing factor for importance sampling. Larger blocks get higher probability; `prob.shrinkage` adds a small uniform part to smooth the distribution (default = 0.5).}
 
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
