@@ -33,6 +33,7 @@ MRBEE_TL(
   reliability.thres = 0.8,
   ridge.diff = 100,
   prob.shrinkage = 0.5,
+  estimate_residual_method = "MoM",
   sampling.time = 100,
   sampling.iter = 10,
   ldsc = NULL,
@@ -95,6 +96,8 @@ MRBEE_TL(
 \item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
 
 \item{prob.shrinkage}{Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.}
+
+\item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
 \item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
 

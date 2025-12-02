@@ -16,7 +16,6 @@ library(dplyr)
 library(MASS)
 library(MRBEEX)
 library(devtools)
-library(GRAPPLE)
 library(MendelianRandomization)
 
 document()

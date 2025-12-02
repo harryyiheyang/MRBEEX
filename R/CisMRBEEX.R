@@ -47,7 +47,7 @@
 #' @importFrom varbvs varbvs
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct matrixGeneralizedInverse
 #' @importFrom Matrix Matrix solve chol bdiag
-#' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
+#' @importFrom susieR susie_ss coef.susie susie susie_rss susie_get_cs
 #'
 #' @return A list that contains the results of the MRBEEX with respect to different methods applied:
 #' \describe{

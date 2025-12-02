@@ -8,6 +8,8 @@
 #' @param xQTL.method The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
 #' @param xQTL.max.L When choosing \code{"SuSiE"}, the maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
+#' @param unmappable_effects The method for modeling unmappable effects: "none", "inf".
+#' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable. We recommend using "Servin_Stephens" when n < 80 for improved coverage.
 #' @param xQTL.Nvec When choosing \code{"SuSiE"}, the vector of sample sizes of exposures.
 #' @param xQTL.weight When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.
 #' @param outlier.switch When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.
@@ -21,7 +23,7 @@
 #' @importFrom MASS rlm ginv
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
 #' @importFrom Matrix Matrix solve chol bdiag
-#' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
+#' @importFrom susieR coef.susie susie susie_rss susie_get_cs
 #'
 #' @return A list containing the results of the MRBEEX analysis using different methods:
 #' \describe{
@@ -35,6 +37,7 @@
 
 Sparse_Prediction=function(bX,bXse,LD,xQTL.Nvec,xQTL.method="SuSiE",
                            xQTL.max.L=10,xQTL.weight=NULL,xQTL.cred.thres=0.95,
+                           estimate_residual_method="MoM",unmappable_effects="inf",
                            outlier.switch=T,Annotation=NULL,output.labels=NULL,
                            carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
                            carma.epsilon.threshold=1e-3){
@@ -47,8 +50,8 @@ if(is.null(xQTL.weight)==T){
 xQTL.weight=rep(1,m)
 }
 for(i in 1:p){
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight)
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight)
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
 xQTLfitList[[i]]=fit
 }
 }

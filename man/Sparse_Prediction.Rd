@@ -13,6 +13,8 @@ Sparse_Prediction(
   xQTL.max.L = 10,
   xQTL.weight = NULL,
   xQTL.cred.thres = 0.95,
+  estimate_residual_method = "MoM",
+  unmappable_effects = "inf",
   outlier.switch = T,
   Annotation = NULL,
   output.labels = NULL,
@@ -38,6 +40,10 @@ Sparse_Prediction(
 \item{xQTL.weight}{When choosing \code{"SuSiE"}, the vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.}
 
 \item{xQTL.cred.thres}{When choosing \code{"SuSiE"}, the minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
+
+\item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable. We recommend using "Servin_Stephens" when n < 80 for improved coverage.}
+
+\item{unmappable_effects}{The method for modeling unmappable effects: "none", "inf".}
 
 \item{outlier.switch}{When choosing \code{"CARMA"}, an indicator of whether turning on outlier detection. Defaults to \code{F}.}
 

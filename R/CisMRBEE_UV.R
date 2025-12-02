@@ -39,7 +39,7 @@
 #' \item{\code{reliability.adjust}}{Estimated reliability-adjusted values.}
 #' }
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
-#' @importFrom susieR susie_suff_stat coef.susie susie susie_rss susie_get_cs
+#' @importFrom susieR susie_ss coef.susie susie susie_rss susie_get_cs
 #' @export
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",

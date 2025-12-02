@@ -28,7 +28,6 @@
 #' @param prob.shrinkage Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.
 
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy.
-#' @importFrom susieR susie_suff_stat coef.susie susie
 #' @importFrom CppMatrix matrixMultiply matrixVectorMultiply matrixListProduct
 #' @importFrom Matrix Matrix solve chol bdiag
 #' @importFrom MRBEE MRBEE.IMRP.UV
@@ -93,9 +92,9 @@ XtX=BtB-sum(bXse[indvalid]^2*Rxy[1,1])
 Xty=sum(bXinv*by.complement)-Rxy[1,2]*sum(bXse[indvalid]*byse[indvalid])+sum(bXse[indvalid]^2*theta.complement)
 yty=sum(by.complement*(Theta%*%by.complement))
 tryCatch({
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susie$pip>pip.thres){
 theta=theta.complement+Xty/XtX
@@ -157,9 +156,9 @@ XtX=BtB-sum(bXse[indvalid]^2*Rxy[1,1])
 Xty=sum(bXinv*by.complement)-Rxy[1,2]*sum(bXse[indvalid]*byse[indvalid])+sum(bXse[indvalid]^2*theta.complement)
 yty=sum(by.complement*(Theta%*%by.complement))
 tryCatch({
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susie$pip>pip.thres){
 theta=theta.complement+Xty/XtX
@@ -226,9 +225,9 @@ XtXj=BtBj-sum(bXsej[indvalidj]^2*Rxy[1,1])
 Xtyj=sum(bXinvj*by.complementj)-Rxy[1,2]*sum(bXsej[indvalidj]*bysej[indvalidj])+sum(bXsej[indvalidj]^2*theta.complementj)
 ytyj=sum(by.complementj*(Thetaj%*%by.complementj))
 tryCatch({
-fit.susiej=susie_suff_stat(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susiej=susie_ss(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susiej=susie_suff_stat(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susiej=susie_ss(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susiej$pip>pip.thres){
 thetaj=theta.complementj+Xtyj/XtXj

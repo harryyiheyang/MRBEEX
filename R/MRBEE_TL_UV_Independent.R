@@ -43,9 +43,9 @@ XtX=BtB-sum(bXse[indvalid]^2*Rxy[1,1])
 Xty=sum(bX*by.complement)-Rxy[1,2]*sum(bXse[indvalid]*byse[indvalid])+sum(bXse[indvalid]^2*theta.complement)
 yty=sum(by.complement^2)
 tryCatch({
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susie$pip>pip.thres){
 theta=theta.complement+Xty/XtX
@@ -101,9 +101,9 @@ XtX=BtB-sum(bXse[indvalid]^2*Rxy[1,1])
 Xty=sum(bX*by.complement)-Rxy[1,2]*sum(bXse[indvalid]*byse[indvalid])+sum(bXse[indvalid]^2*theta.complement)
 yty=sum(by.complement^2)
 tryCatch({
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susie=susie_suff_stat(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,s_init=fit.susie,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susie=susie_ss(XtX=as.matrix(XtX),Xty=Xty,yty=yty,L=1,n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susie$pip>pip.thres){
 theta=theta.complement+Xty/XtX
@@ -161,9 +161,9 @@ XtXj=BtBj-sum(bXsej[indvalidj]^2*Rxy[1,1])
 Xtyj=sum(bX*by.complementj)-Rxy[1,2]*sum(bXsej[indvalidj]*bysej[indvalidj])+sum(bXsej[indvalidj]^2*theta.complementj)
 ytyj=sum(by.complementj^2)
 tryCatch({
-fit.susiej=susie_suff_stat(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=susie.iter,intercept=F,residual_variance_lowerbound=1)
+fit.susiej=susie_ss(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=susie.iter,residual_variance_lowerbound=1)
 },error = function(e) {
-fit.susiej=susie_suff_stat(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,s_init=fit.susiej,standardize=F,max_iter=susie.iter,intercept=F,estimate_residual_variance=F)
+fit.susiej=susie_ss(XtX=as.matrix(XtXj),Xty=Xtyj,yty=ytyj,L=1,n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=susie.iter,estimate_residual_variance=F)
 })
 if(fit.susiej$pip>pip.thres){
 thetaj=theta.complementj+Xtyj/XtXj

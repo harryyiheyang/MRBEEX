@@ -28,7 +28,7 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=susie_suff_stat(XtX=BtB,Xty=c(t(bXinv)%*%by),yty=sum(by*(Theta%*%by)),n=m,intercept=F,estimate_prior_method="EM",coverage=coverage.causal)
+fit0=susie_ss(XtX=BtB,Xty=c(t(bXinv)%*%by),yty=sum(by*(Theta%*%by)),n=m,estimate_prior_method="EM",coverage=coverage.causal)
 theta.ini=coef.susie(fit0)[-1]
 gamma.ini=gamma.ini1=by*0
 theta.ini1=theta.ini
@@ -63,7 +63,7 @@ res.theta=by-matrixVectorMultiply(LD,gamma)
 XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*matrixVectorMultiply(Theta,res.theta))
-fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=1,estimate_residual_variance=T,estimate_prior_method="EM",intercept=F,max_iter=susie.iter,standardize=F,s_init=fit.theta,coverage=coverage.causal)
+fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=1,estimate_residual_variance=T,estimate_prior_method="EM",max_iter=susie.iter,standardize=F,model_init=fit.theta,coverage=coverage.causal)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
@@ -125,7 +125,7 @@ res.theta=by-matrixVectorMultiply(LD,gamma)
 XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_suff_stat(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=1,estimate_prior_method="EM",intercept=F,estimate_residual_variance=T,max_iter=susie.iter*10,standardize=F,s_init=fit.theta,coverage=coverage.causal)
+fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=1,estimate_prior_method="EM",estimate_residual_variance=T,max_iter=susie.iter*10,standardize=F,model_init=fit.theta,coverage=coverage.causal)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep

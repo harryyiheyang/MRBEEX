@@ -32,6 +32,7 @@ MRBEEX(
   ebic.theta = 0,
   ebic.gamma = 1,
   ridge.diff = 1000,
+  estimate_residual_method = "MoM",
   sampling.time = 100,
   sampling.iter = 10,
   prob.shrinkage = 0.5,
@@ -99,6 +100,8 @@ MRBEEX(
 \item{ebic.gamma}{EBIC factor on horizontal pleiotropy. Default is \code{1}.}
 
 \item{ridge.diff}{A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.}
+
+\item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
 \item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
 
