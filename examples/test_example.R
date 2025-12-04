@@ -31,14 +31,14 @@ Btime=matrix(0,500,9)
 cluster.index=kronecker(c(1:(125*3)),rep(1,4))
 theta0=c(1,-0.5,rep(0,6),-0.5,1)
 UHP.var=1
-UHP.frac=0.05*1
+UHP.frac=0.05*6
 #UHP.frac=0.00
-CHP.frac=0.05*2
+CHP.frac=0
 iter=1
 
 Btheta=array(0,c(50,p,4))
 while(iter<51){
-A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.8,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="normal",cluster.index=cluster.index)
+A=MRBEEX::summary_generation(theta=theta0,m=m,Rbb=Rbb,Ruv=Ruv,Rnn=Rnn,LD=LD,Nxy=Nxy,non.zero.frac=rep(0.8,p),UHP.frac=UHP.frac,CHP.frac=CHP.frac,UHP.var=UHP.var,CHP.effect=c(0,0,0,0,1,-1,rep(0,4)),Hxy=Hxy,UHP.dis="ash",cluster.index=cluster.index)
 bX=A$bX
 #bX[,5]=bX[,5]-LD%*%A$bX0[,5]+LD%*%A$bX0[,1]
 by=A$by
@@ -64,7 +64,7 @@ t2=Sys.time()
 ipod.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit.susie=MRBEEX(method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,admm.rho=2,tauvec=c(2.5,3,3.5,4:10,seq(12,30,2)),ebic.gamma=1,cluster.index=cluster.index,sampling.time=10,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=8,coverage.causal=0.9)
+fit.susie=MRBEEX(method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pip.thres=0.2,Rxy=Ruv*Rnn,admm.rho=2,tauvec=c(2.5,3,3.5,4:10),ebic.gamma=1,cluster.index=cluster.index,sampling.time=10,maxdiff=3,reliability.thres=0.5,theta.ini=fit.ipod$theta,gamma.ini=fit.ipod$gamma,sampling.iter=8,coverage.causal=0.9)
 t2=Sys.time()
 susie.time=difftime(t2, t1, units = "secs")
 

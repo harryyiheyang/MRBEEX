@@ -16,10 +16,12 @@
 #' @param non.zero.frac An (px1) vector with all entries in (0,1]; each entry is the probability of deltaj such that betaj=betaj'*deltaj.
 #' @param UHP.frac A number indicating the fraction of IVs affected by UHP.
 #' @param UHP.var A number indicating the variance attributed to UHP.
-#' @param UHP.dis Distribution of pleiotropy effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).
+#' @param UHP.dis Distribution of pleiotropy effects: "ash" (default), "normal", "uniform",  "t" distribution (with degree of freedom 5).
 #' @param CHP.frac A number indicating the fraction of IVs affected by CHP.
 #' @param CHP.effect A vector of effects corresponding to the variables correlated with the correlated horizontal pleiotropy.
 #' @param effect.dis Distribution of genetic effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).
+#' @param prop When UHP.dis="ash", a numeric vector of mixing proportions (weights). These are normalized. Default: c(0.9, 0.09, 0.009, 0.0009).
+#' @param var When UHP.dis="ash", a numeric vector where var[i] represents the variance contribution of component i: V_i = prop[i] * sigma_i^2. Default: c(0.35, 0.4, 0.2, 0.05).
 #' @param cluster.index The indices of LD block.
 #'
 #' @return A list containing simulated GWAS effect sizes for exposures (bX), their standard errors (bXse),
@@ -31,7 +33,7 @@
 #'
 #' @export
 
-summary_generation=function(theta,m,Rbb,Ruv,Rnn,Nxy,Hxy,LD="identity",non.zero.frac,UHP.frac=0,CHP.frac=0,UHP.var=0.5,UHP.dis="uniform",CHP.effect=c(1,rep(0,length(theta)-1)),effect.dis="normal",cluster.index){
+summary_generation=function(theta,m,Rbb,Ruv,Rnn,Nxy,Hxy,LD="identity",non.zero.frac,UHP.frac=0,CHP.frac=0,UHP.var=0.5,UHP.dis="ash",CHP.effect=c(1,rep(0,length(theta)-1)),effect.dis="normal",cluster.index,prop=c(0.9, 0.09, 0.009, 0.0009),var=c(0.35, 0.4, 0.2, 0.05)){
 
 Rnn=SampleOver(Rnn,Nxy)
 
@@ -117,17 +119,26 @@ s=0*by;ra=1;pleiotropy0=0*by
 if(UHP.frac!=0){
 indpleio=sample(1:m,UHP.frac*m,replace=F)
 bu=b0[,1]*0
+
 if(length(indpleio)==0){
 indpleio=round(m/2)
 }
+
+if(UHP.dis=="ash"){
+  bu1=mix_normal_generator(length(indpleio),prop,var)
+  bu[indpleio]=bu1
+}
+
 if(UHP.dis=="normal"){
 bu1=rnorm(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="uniform"){
 bu1=runif(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="t"){
 bu1=stats::rt(length(indpleio),5,ncp=0)
 bu[indpleio]=bu1
@@ -222,18 +233,27 @@ if(length(indpleio)==0){
 indpleio=round(m/2)
 }
 bu=b0[,1]*0
+
+if(UHP.dis=="ash"){
+bu1=mix_normal_generator(length(indpleio),prop,var)
+bu[indpleio]=bu1
+}
+
 if(UHP.dis=="normal"){
 bu1=rnorm(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="uniform"){
 bu1=runif(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="t"){
 bu1=stats::rt(length(indpleio),5,ncp=0)
 bu[indpleio]=bu1
 }
+
 s=as.vector(bu)
 s1=as.vector(b0%*%theta)
 ra=var(s)/var(s1)/UHP.var
@@ -308,18 +328,27 @@ if(length(indpleio)==0){
 indpleio=round(m/2)
 }
 bu=b0[,1]*0
+
+if(UHP.dis=="ash"){
+bu1=mix_normal_generator(length(indpleio),prop,var)
+bu[indpleio]=bu1
+}
+
 if(UHP.dis=="normal"){
 bu1=rnorm(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="uniform"){
 bu1=runif(length(indpleio),0,1)
 bu[indpleio]=bu1
 }
+
 if(UHP.dis=="t"){
 bu1=stats::rt(length(indpleio),5,ncp=0)
 bu[indpleio]=bu1
 }
+
 s=as.vector(bu)
 s1=as.vector(b0%*%theta)
 ra=var(s)/var(s1)/UHP.var

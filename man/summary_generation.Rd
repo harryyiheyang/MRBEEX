@@ -17,10 +17,12 @@ summary_generation(
   UHP.frac = 0,
   CHP.frac = 0,
   UHP.var = 0.5,
-  UHP.dis = "uniform",
+  UHP.dis = "ash",
   CHP.effect = c(1, rep(0, length(theta) - 1)),
   effect.dis = "normal",
-  cluster.index
+  cluster.index,
+  prop = c(0.9, 0.09, 0.009, 9e-04),
+  var = c(0.35, 0.4, 0.2, 0.05)
 )
 }
 \arguments{
@@ -48,13 +50,17 @@ summary_generation(
 
 \item{UHP.var}{A number indicating the variance attributed to UHP.}
 
-\item{UHP.dis}{Distribution of pleiotropy effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).}
+\item{UHP.dis}{Distribution of pleiotropy effects: "ash" (default), "normal", "uniform",  "t" distribution (with degree of freedom 5).}
 
 \item{CHP.effect}{A vector of effects corresponding to the variables correlated with the correlated horizontal pleiotropy.}
 
 \item{effect.dis}{Distribution of genetic effects: "normal" (default), "uniform",  "t" distribution (with degree of freedom 5).}
 
 \item{cluster.index}{The indices of LD block.}
+
+\item{prop}{When UHP.dis="ash", a numeric vector of mixing proportions (weights). These are normalized. Default: c(0.9, 0.09, 0.009, 0.0009).}
+
+\item{var}{When UHP.dis="ash", a numeric vector where var[i] represents the variance contribution of component i: V_i = prop[i] * sigma_i^2. Default: c(0.35, 0.4, 0.2, 0.05).}
 }
 \value{
 A list containing simulated GWAS effect sizes for exposures (bX), their standard errors (bXse),
