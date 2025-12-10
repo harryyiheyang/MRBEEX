@@ -59,7 +59,7 @@ MRBEEX_UV=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
         tauvec=seq(4,8,by=2),admm.rho=2,ebic.gamma=0,
         Kvec=seq(1,length(bX)/2,by=2),
         max.iter=100,max.eps=0.001,maxdiff=3,sampling.strategy="subsampling",
-        sampling.time=1000,sampling.iter=20,prob_shrinkage_coef=1,prob_shrinkage_size=4,
+        sampling.time=1000,sampling.iter=20,prob_shrinkage_coef=0,prob_shrinkage_size=4,
         theta.ini=F,gamma.ini=F,ldsc=NULL,gcov=NULL){
 ##########################################################################
 if(Method[1]=="IPOD"){
