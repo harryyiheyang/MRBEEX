@@ -817,7 +817,7 @@ w <- sapply(ids, function(i) {
 idx <- which(cluster.index == i)
 Ri  <- R[idx, idx, drop = FALSE]
 ev  <- eigen(Ri, only.values = TRUE)$values
-sr  <- sum(ev) / max(ev)
+sr  <- sum(ev)^2 / sum(ev^2)
 if (!is.finite(sr) || sr <= 0) sr <- 1e-8
 sr
 })
