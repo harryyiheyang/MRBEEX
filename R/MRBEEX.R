@@ -89,7 +89,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                max.iter=100,max.eps=0.001,susie.iter=100,
                ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
                estimate_residual_method="MoM",sampling.strategy="subsampling",
-               sampling.time=300,sampling.iter=25,prob_shrinkage_coef=0,prob_shrinkage_size=4,
+               sampling.time=300,sampling.iter=25,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
                maxdiff=3,reliability.thres=2/3,coverage.causal=0.95,
                theta.ini=F,gamma.ini=F,verbose=T,gcov=NULL,ldsc=NULL){
 

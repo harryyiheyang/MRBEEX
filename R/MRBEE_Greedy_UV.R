@@ -113,10 +113,9 @@ cluster.sampling <- sample(1:max(cluster.index),
                            replace = FALSE,
                            prob = cluster_prob)
 }
-  cluster.sampling=sort(cluster.sampling)
+cluster.sampling=sort(cluster.sampling)
 sampled_blocks <- cluster_cache[cluster.sampling]
 indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-indj <- sort(indj)
 LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
 Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
 Thetarhoj <- bdiag(lapply(sampled_blocks, function(b) b$Thetarho))
