@@ -144,7 +144,7 @@ if(iterj>5&errorj<max.eps) break
 }
 ThetaList[j]=thetaj
 }
-theta.se=mad(ThetaList)
+theta.se=robust_sd(ThetaList)
 }else{
 ThetaList=NULL
 if(sum(gamma!=0)==0){

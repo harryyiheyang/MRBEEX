@@ -217,7 +217,7 @@ a[i]=sd(A[,i])
 return(a)
 }
 
-colSDMAD <- function(A, probs = c(0.01, 0.99), consistancy_correction = TRUE){
+colSDMAD <- function(A, probs = c(0.015, 0.985), consistancy_correction = TRUE){
 winsor_sd_one <- function(x) {
 lims <- quantile(x, probs = probs, na.rm = TRUE)
 x_win <- pmin(pmax(x, lims[1]), lims[2])
@@ -233,6 +233,20 @@ factor <- 1 / sd(sim_win)
 sds <- sds * factor
 }
 return(sds)
+}
+
+robust_sd <- function(x, probs = c(0.015, 0.985), consistancy_correction = TRUE) {
+lims   <- stats::quantile(x, probs = probs, na.rm = TRUE)
+x_win <- pmin(pmax(x, lims[1]), lims[2])
+sd_raw <- stats::sd(x_win, na.rm = TRUE)
+if (consistancy_correction) {
+sim_norm <- stats::rnorm(100000)
+lims_sim <- stats::quantile(sim_norm, probs = probs)
+sim_win  <- pmin(pmax(sim_norm, lims_sim[1]), lims_sim[2])
+factor   <- 1 / stats::sd(sim_win)
+sd_raw   <- sd_raw * factor
+}
+return(sd_raw)
 }
 
 covmad=function(A){
