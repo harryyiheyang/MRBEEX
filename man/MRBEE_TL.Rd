@@ -30,7 +30,7 @@ MRBEE_TL(
   max.iter = 50,
   coverage.causal = 0.95,
   max.eps = 1e-04,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   ridge.diff = 100,
   prob_shrinkage_coef = 0.5,
   prob_shrinkage_size = 4,
@@ -93,7 +93,7 @@ MRBEE_TL(
 
 \item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-4}.}
 
-\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.}
+\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.}
 
 \item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
 

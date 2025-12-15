@@ -54,9 +54,9 @@ XtX=t(XtX)/2+XtX/2+Diff_matrix
 Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,standardize=F,max_iter=susie.iter,residual_variance_lowerbound=1,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 },error = function(e) {
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,standardize=F,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -121,9 +121,9 @@ XtX=t(XtX)/2+XtX/2+Diff_matrix
 Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,standardize=F,max_iter=susie.iter,residual_variance_lowerbound=1,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 },error = function(e) {
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,standardize=F,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -211,9 +211,9 @@ XtXj=t(XtXj)/2+XtXj/2+Diff_matrix
 Xtyj=matrixVectorMultiply(t(bXj),br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum((br.complementj)^2)
 tryCatch({
-fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,standardize=F,max_iter=ifelse(jiter==1,1000,30),residual_variance_lowerbound=1,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 },error = function(e) {
-fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,standardize=F,max_iter=ifelse(jiter==1,1000,30),estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method)
 })
 delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
 delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
