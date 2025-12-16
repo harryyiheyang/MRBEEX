@@ -14,6 +14,7 @@
 #' @param transfer.coef A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.
 #' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
 #' @param Lvec A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
+#' @param standardize If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param group.penalize An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.
 #' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
@@ -49,7 +50,7 @@
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
   group.penalize=F,group.index=NULL,group.diff=100,
-  theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),
+  theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=T,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
   max.eps=1e-4,reliability.thres=0.5,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
@@ -59,7 +60,7 @@ if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        theta.source=theta.source,theta.source.cov=theta.source.cov,
        group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
-       tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,
+       tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,standardize=standardize,
        transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
        pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
        estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,
@@ -133,9 +134,9 @@ XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 tryCatch({
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 },error = function(e) {
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -200,9 +201,9 @@ XtX=t(XtX)/2+XtX/2
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 tryCatch({
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 },error = function(e) {
-fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -317,9 +318,9 @@ XtXj=t(XtXj)/2+XtXj/2
 Xtyj=matrixVectorMultiply(Btj,br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum(br.complementj*(Thetaj%*%br.complementj))
 tryCatch({
-fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),residual_variance_lowerbound=0.9,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 },error = function(e) {
-fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method)
+fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
 delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
 delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)

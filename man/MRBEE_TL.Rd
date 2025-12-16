@@ -19,6 +19,7 @@ MRBEE_TL(
   theta.source.cov,
   tauvec = seq(4, 8, 0.5),
   Lvec = c(1:6),
+  standardize = T,
   admm.rho = 2,
   ebic.delta = 0,
   ebic.gamma = 1,
@@ -70,6 +71,8 @@ MRBEE_TL(
 \item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
 
 \item{Lvec}{A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.}
+
+\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.}
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 

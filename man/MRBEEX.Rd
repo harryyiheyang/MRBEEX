@@ -14,6 +14,7 @@ MRBEEX(
   cluster.index = c(1:length(by)),
   method = c("IPOD", "Mixture"),
   use.susie = T,
+  standardize = T,
   group.penalize = F,
   group.index = c(1:ncol(bX)[1]),
   group.diff = 100,
@@ -66,6 +67,8 @@ MRBEEX(
 \item{method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.}
 
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
+
+\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.}
 
 \item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
