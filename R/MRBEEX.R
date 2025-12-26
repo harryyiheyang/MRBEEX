@@ -9,7 +9,7 @@
 #' @param LD The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param cluster.index A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is 0.6.
 #' @param method Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Mixture"}.
 #' @param use.susie An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
 #' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.
@@ -91,7 +91,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
                estimate_residual_method="MoM",sampling.strategy="subsampling",
                sampling.time=300,sampling.iter=25,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
-               maxdiff=3,reliability.thres=2/3,coverage.causal=0.95,
+               maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,
                theta.ini=F,gamma.ini=F,verbose=T,gcov=NULL,ldsc=NULL){
 
 ##########################################################################

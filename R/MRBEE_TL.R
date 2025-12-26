@@ -29,7 +29,7 @@
 #' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
-#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.
+#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
 #' @param sampling.strategy "bootstrap" or "subsampling" (0.5 sample without replacement).
 #' @param sampling.time A scale of number of subsampling in estimating the standard error. Default is \code{100}.
@@ -53,7 +53,7 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=T,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-  max.eps=1e-4,reliability.thres=0.5,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
+  max.eps=1e-4,reliability.thres=0.6,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
   estimate_residual_method="MoM",sampling.strategy="subsampling",
   sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){

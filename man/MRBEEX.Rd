@@ -40,7 +40,7 @@ MRBEEX(
   prob_shrinkage_coef = 0.5,
   prob_shrinkage_size = 4,
   maxdiff = 3,
-  reliability.thres = 2/3,
+  reliability.thres = 0.6,
   coverage.causal = 0.95,
   theta.ini = F,
   gamma.ini = F,
@@ -120,7 +120,7 @@ MRBEEX(
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is 0.6.}
 
 \item{coverage.causal}{The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.}
 
