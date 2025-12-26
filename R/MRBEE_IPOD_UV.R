@@ -28,7 +28,7 @@ Thetarho=solve(LD+rho*diag(m))
 }else{
 stop("please use MRBEE.IMPR.UV in MRBEE")
 }
-r=reliability.adj.uv(bX,bXse,Theta=Theta,thres=reliability.thres)
+r=reliability.adj.uv(bX,bXse/sqrt(Rxy[1,1]),Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 ############################ Initial Estimate #######################

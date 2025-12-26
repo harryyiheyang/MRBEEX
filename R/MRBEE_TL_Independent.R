@@ -13,7 +13,7 @@ byse1=byse
 byse=byse/byse
 n=length(by)
 p=ncol(bX)
-r=reliability.adj(bX,bXse,thres=reliability.thres)
+r=reliability.adj(bX,bXse/sqrt(diag(Rxy[1:p,1:p])),thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=LDSC,Omega=Omega)

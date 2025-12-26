@@ -14,7 +14,7 @@ byse=byse/byse
 n=length(by)
 p=1
 BtB=sum(bX^2)
-r=reliability.adj.uv(bX,bXse,thres=reliability.thres)
+r=reliability.adj.uv(bX,bXse/sqrt(Rxy[1,1]),thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,LDSC=LDSC,Omega=Omega)
