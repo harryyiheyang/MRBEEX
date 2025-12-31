@@ -94,7 +94,7 @@ BtB=matrixMultiply(Bt,bX)
 BtB=t(BtB)/2+BtB/2
 dBtB=diag(BtB)
 Thetarho=solve(LD+admm.rho*diag(n))
-r=reliability.adj(bX,bXse/sqrt(diag(Rxy[1:p,1:p])),Theta=Theta,thres=reliability.thres)
+r=reliability.adj(bX,bXse%*%diag(sqrt(diag(Rxy[1:p,1:p]))),Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=ldsc,Omega=gcov)

@@ -22,7 +22,7 @@ LD=Theta=TC=diag(m)
 tilde.y=by
 tilde.X=bX
 }
-r=reliability.adj(bX,bXse/sqrt(diag(Rxy[1:p,1:p])),Theta=Theta,thres=reliability.thres)
+r=reliability.adj(bX,bXse%*%diag(sqrt(diag(Rxy[1:p,1:p]))),Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=LDSC,Omega=Omega)

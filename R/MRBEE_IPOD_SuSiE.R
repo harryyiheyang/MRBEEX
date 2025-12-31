@@ -32,7 +32,7 @@ tilde.y=by
 Thetarho=diag(m)*1/(1+rho)
 Thetarho=Matrix(Thetarho,sparse=T)
 }
-r=reliability.adj(bX,bXse/sqrt(diag(Rxy[1:p,1:p])),Theta=Theta,thres=reliability.thres)
+r=reliability.adj(bX,bXse%*%diag(sqrt(diag(Rxy[1:p,1:p]))),Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=LDSC,Omega=Omega)

@@ -63,7 +63,7 @@ tilde.y=as.vector(TC%*%by)
 tilde.X=as.vector(TC%*%bX)
 BtB=sum(bXinv*bX)
 Thetarho=solve(LD+admm.rho*diag(n))
-r=reliability.adj.uv(bX,bXse/sqrt(Rxy[1,1]),Theta=Theta,thres=reliability.thres)
+r=reliability.adj.uv(bX,bXse*sqrt(Rxy[1,1]),Theta=Theta,thres=reliability.thres)
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=ldsc,Omega=gcov)
