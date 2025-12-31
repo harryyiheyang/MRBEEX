@@ -26,7 +26,7 @@ MRBEE_TL(
   transfer.coef = 1,
   susie.iter = 200,
   pip.thres = 0.25,
-  pip.min = 0.95,
+  pip.min = 0.1,
   cred.pip.thres = 0.95,
   max.iter = 50,
   coverage.causal = 0.95,
