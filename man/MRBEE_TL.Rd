@@ -25,18 +25,18 @@ MRBEE_TL(
   ebic.gamma = 1,
   transfer.coef = 1,
   susie.iter = 200,
-  pip.thres = 0.5,
-  pip.min = 0.1,
+  pip.thres = 0.25,
+  pip.min = 0.95,
   cred.pip.thres = 0.95,
   max.iter = 50,
   coverage.causal = 0.95,
-  max.eps = 1e-04,
-  reliability.thres = 0.6,
+  max.eps = 1e-06,
+  reliability.thres = 0.5,
   ridge.diff = 100,
   prob_shrinkage_coef = 0.5,
   prob_shrinkage_size = 4,
   estimate_residual_method = "MoM",
-  sampling.strategy = "subsampling",
+  sampling.strategy = "bootstrap",
   sampling.time = 300,
   sampling.iter = 25,
   ldsc = NULL,
@@ -84,7 +84,7 @@ MRBEE_TL(
 
 \item{susie.iter}{A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.}
 
-\item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.}
+\item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.}
 
 \item{pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.}
 

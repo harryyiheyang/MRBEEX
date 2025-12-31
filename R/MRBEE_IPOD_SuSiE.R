@@ -97,7 +97,11 @@ fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],estimate_prior_method="
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
+if(length(pip.alive)>0){
 theta[-pip.alive]=0
+}else{
+theta=theta*0
+}
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
@@ -174,7 +178,11 @@ fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],estimate_prior_meth
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
+if(length(pip.alive)>0){
 theta[-pip.alive]=0
+}else{
+theta=theta*0
+}
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
@@ -323,7 +331,11 @@ fit.thetaj=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
 pip.alivej=theta.csj$ind.keep
-thetaj[-pip.alivej]=0
+if(length(pip.alivej)>0){
+  thetaj[-pip.alivej]=0
+}else{
+  thetaj=thetaj*0
+}
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){

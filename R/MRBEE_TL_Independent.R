@@ -61,7 +61,11 @@ fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=delta.latent.cs$ind.keep
+if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
+}else{
+delta.latent=delta.latent*0
+}
 inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
@@ -128,7 +132,11 @@ fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),esti
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=delta.latent.cs$ind.keep
+if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
+}else{
+delta.latent=delta.latent*0
+}
 inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
@@ -218,7 +226,11 @@ fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj)
 delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
 delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alivej=delta.latent.csj$ind.keep
+if(length(pip.alivej)>0){
 delta.latentj[-pip.alivej]=0
+}else{
+delta.latentj=delta.latentj*0
+}
 inddeltaj=which(delta.latentj!=0)
 Diffj=generate_block_matrix(summary(fit.susiej)$vars,nj/diag(BtBj),delta.latentj)
 deltaj=deltaj*0

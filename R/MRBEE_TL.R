@@ -20,7 +20,7 @@
 #' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
-#' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
+#' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
 #' @param coverage.causal The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.
 #' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.
@@ -52,9 +52,9 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   group.penalize=F,group.index=NULL,group.diff=100,
   theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=T,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
-  pip.thres=0.5, pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-  max.eps=1e-4,reliability.thres=0.6,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
-  estimate_residual_method="MoM",sampling.strategy="subsampling",
+  pip.thres=0.25,pip.min=0.95,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
+  max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
+  estimate_residual_method="MoM",sampling.strategy="bootstrap",
   sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
@@ -141,7 +141,11 @@ fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=delta.latent.cs$ind.keep
+if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
+}else{
+delta.latent=delta.latent*0
+}
 inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
@@ -208,7 +212,11 @@ fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),esti
 delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
 delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive=delta.latent.cs$ind.keep
+if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
+}else{
+delta.latent=delta.latent*0
+}
 inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
@@ -325,7 +333,11 @@ fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj)
 delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
 delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alivej=delta.latent.csj$ind.keep
-delta.latentj[-pip.alivej]=0
+if(length(pip.alivej)>0){
+  delta.latentj[-pip.alivej]=0
+}else{
+  delta.latentj=delta.latentj*0
+}
 inddeltaj=which(delta.latentj!=0)
 Diffj=generate_block_matrix(summary(fit.susiej)$vars,nj/diag(BtBj),delta.latentj)
 deltaj=deltaj*0
