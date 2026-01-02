@@ -3,7 +3,7 @@ MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,
 fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
 theta.source.cov=transfer.coef^2*theta.source.cov
-theta.ini=fit.no.tran$theta
+theta.ini=theta.source
 gamma.ini=fit.no.tran$gamma/byse
 by=by/byse
 byseinv=1/byse
