@@ -391,6 +391,9 @@ A$theta=theta.source+delta
 A$gamma=res
 A$delta.se=delta.se
 A$theta.se=theta.se
+A$theta.pip=colMeans(ThetaList!=0)
+A$delta.pip=colMeans(DeltaList!=0)
+A$theta.se=theta.se
 A$delta.cov=delta.cov
 A$theta.cov=theta.cov
 A$reliability.adjust=r
