@@ -55,8 +55,8 @@ cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
 m1=length(cluster.ini.1)
 m2=length(cluster.ini.2)
 
-eta = matrixVectorMultiply(bX,theta1)
-eta[cluster2] = matrixVectorMultiply(bX[cluster2, ],theta2)
+eta = matrixVectorMultiply(bX,theta.ini.1)
+eta[cluster.ini.2] = matrixVectorMultiply(bX[cluster.ini.2, ],theta.ini.2)
 if(isLD){
 initial_res = as.vector(Theta %*% (by - eta))
 } else {
@@ -574,7 +574,6 @@ ThetaList1[j, ] <- theta1j
 ThetaList2[j, ] <- theta2j
 j=j+1
 }, error = function(e) {
-cat("Error occurred: ", e$message, "\n")
 indicator <<- TRUE
 j <<- j - 1
 })

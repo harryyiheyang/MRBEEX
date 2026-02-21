@@ -367,8 +367,6 @@ if(errorj<max.eps) break
 ThetaList[j, ] <- thetaj
 j=j+1
 }, error = function(e) {
-# Error handling block
-cat("Error occurred: ", e$message, "\n")
 indicator <<- TRUE  # Set indicator to TRUE if an error occurs
 j <<- j - 1  # Decrement the iteration counter to retry
 })
