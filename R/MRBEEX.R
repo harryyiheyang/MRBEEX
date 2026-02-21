@@ -18,7 +18,8 @@
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.
 #' @param main.cluster.thres When choosing \code{"Mixture"}, a threshold for weights belonging to the first category. To prevent instability caused by small-effect IVs falling into both categories, we slightly lower the voting threshold for the first category to below 0.5, ensuring it remains dominant. Default is \code{0.48}.
 #' @param min.cluster.size When choosing \code{"Mixture"}, a minimum sample size of the second mixture.  Default is \code{5}.
-#' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
+#' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{5}.
+#' @param tau  When choosing \code{"Mixture"}, the universal tuning parameter for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
@@ -44,6 +45,7 @@
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
+#' @param step.size Step size for the proximal gradient update (default 0.5).  It controls the update speed of outlier effects (gamma) under the IPOD-MCP framework.
 #'
 #' @importFrom MASS rlm
 #' @importFrom CppMatrix matrixInverse matrixMultiply matrixVectorMultiply matrixEigen matrixListProduct
@@ -84,7 +86,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                method=c("IPOD","Mixture"),use.susie=T,standardize=T,
                group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=100,
                main.cluster.thres=0.48,min.cluster.size=5,
-               tauvec=seq(4,8,by=0.5),admm.rho=2,
+               tauvec=seq(4,8,by=0.5),admm.rho=2,tau=5,step.size=0.5,
                Lvec=c(1:min(10,ncol(bX))),pip.thres=0.25,estimate_residual_variance=T,
                pip.min=0.1,cred.pip.thres=0.95,
                max.iter=50,max.eps=1e-6,susie.iter=100,
@@ -105,11 +107,11 @@ A=MRBEE_IPOD(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster
 }
 ##########################################################################
 if(method[1]=="Mixture"&use.susie==F){
-A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,sampling.strategy=sampling.strategy)
+A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,sampling.strategy=sampling.strategy,tau=tau,step.size=step.size)
 }
 ###########################################################################
 if(method[1]=="Mixture"&use.susie==T){
-A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize)
+A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize,tau=tau,step.size=step.size)
 }
 
 return(A)

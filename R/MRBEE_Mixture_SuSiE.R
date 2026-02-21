@@ -1,5 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=T){
-########################### Basic information #######################
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=T,tau=5,step.size=0.5){
 t1=Sys.time()
 by=by/byse
 byseinv=1/byse
@@ -29,7 +28,7 @@ r=reliability.adj(bX,bXse%*%diag(sqrt(diag(Rxy[1:p,1:p]))),Theta=Theta,thres=rel
 r=c(r,1)
 Rxy=t(t(Rxy)*r)*r
 RxyList=IVweight(byse,bXse,Rxy,byseinv=byseinv,LDSC=LDSC,Omega=Omega)
-############################ Initial Estimate #######################
+
 fit.init=fit.mixture=regmixEM(y=tilde.y,x=tilde.X,k=2,epsilon=max.eps,maxit=300)
 max.cluster=ifelse(sum(fit.init$posterior[,1]>main.cluster.thres)>(m/2),1,2)
 cluster.ini.1=which(fit.init$posterior[,max.cluster]>main.cluster.thres)
@@ -55,12 +54,22 @@ cluster.ini.1=which(Voting.ini$Cluster[,1]==1)
 cluster.ratio.ini=c(length(cluster.ini.1),length(cluster.ini.2))/m
 m1=length(cluster.ini.1)
 m2=length(cluster.ini.2)
+
+eta = matrixVectorMultiply(bX,theta1)
+eta[cluster2] = matrixVectorMultiply(bX[cluster2, ],theta2)
+if(isLD){
+initial_res = as.vector(Theta %*% (by - eta))
+} else {
+initial_res = by - eta
+}
+gamma.ini = soft(ifelse(abs(initial_res) > quantile(abs(initial_res), 0.975), initial_res, 0),1) # Shrinkage trick
+
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
 cat(paste0("Initialization ends: ",time_to_print," secs\n"))
 }
-############################## Tuning Parameter ######################
+
 t1=Sys.time()
 q=length(Lvec)
 Btheta1=array(0,c(p,q,q))
@@ -76,18 +85,34 @@ cluster2=cluster.ini.2
 m1=length(cluster1)
 m2=length(cluster2)
 cluster.ratio=cluster.ratio.ini
+gamma=gamma.ini
 iter=0
 error=1
 fit.susie2=NULL
 while(iter<max.iter&error>max.eps){
 theta11=theta1
 theta22=theta2
+
+if(sum(gamma!=0)){
+if(isLD){
+tilde.res=as.vector(TC%*%(by-LD%*%gamma))
+}else{
+tilde.res=by-gamma
+}
+}else{
+if(isLD){
+tilde.res=tilde.y
+}else{
+tilde.res=by
+}
+}
+
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
 XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=XtX1-Rxysum1[1:p,1:p]
 XtX1=t(XtX1)/2+XtX1/2
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])-Rxysum1[1:p,1+p]
-yty1=sum(tilde.y[cluster1]^2)
+Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.res[cluster1])-Rxysum1[1:p,1+p]
+yty1=sum(tilde.res[cluster1]^2)
 adjX1=xtx_positive(XtX1,Xty1)
 XtX1=adjX1$XtX
 Xty1=adjX1$Xty
@@ -104,17 +129,17 @@ theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.min)
 theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1=theta.cs1$ind.keep
 if(length(pip.alive1)>0){
-  theta1[-pip.alive1]=0
+theta1[-pip.alive1]=0
 }else{
-  theta1=theta1*0
+theta1=theta1*0
 }
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])
 XtX2=XtX2-Rxysum2[1:p,1:p]
 XtX2=t(XtX2)/2+XtX2/2
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])-Rxysum2[1:p,1+p]
-yty2=sum(tilde.y[cluster2]^2)
+Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.res[cluster2])-Rxysum2[1:p,1+p]
+yty2=sum(tilde.res[cluster2]^2)
 adjX2=xtx_positive(XtX2,Xty2)
 XtX2=adjX2$XtX
 Xty2=adjX2$Xty
@@ -131,9 +156,9 @@ theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.min)
 theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2=theta.cs2$ind.keep
 if(length(pip.alive2)>0){
-  theta2[-pip.alive2]=0
+theta2[-pip.alive2]=0
 }else{
-  theta2=theta2*0
+theta2=theta2*0
 }
 Diff2=generate_block_matrix(summary(fit.susie2)$vars,length(cluster2)/diag(XtX2),theta2)
 }else{
@@ -163,11 +188,11 @@ XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix
 Xty2=Xty2[indtheta2]
 theta2[indtheta2]=as.vector(solve(XtX2)%*%Xty2)
 }
-sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
-sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
+sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
+sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
 sigma2=max(0.25,sigma2)
 sigma1=max(0.25,sigma1)
-Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
+Voting=cluster_voting(by=tilde.res,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
 cluster2=which(Voting$Cluster[,2]==1)
 if(length(cluster2)==0){
 cluster2=c(1:min.cluster.size)
@@ -176,16 +201,17 @@ cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
 m2=length(cluster2)
 cluster.ratio=c(length(cluster1),length(cluster2))/m
+gamma=update_gamma_mcp(tau, by, bX, theta1, theta2, cluster1, cluster2, gamma, LD, isLD, step = step.size)
 iter=iter+1
 if(iter>3){
-error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
+error=max(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
 }
 Btheta1[,v,l]=theta1
 Btheta2[,v,l]=theta2
 df1=min(sum(theta1!=0),Lvec[v])
 df2=min(sum(theta2!=0),Lvec[l])
-Bbic[v,l]=MRFit(by=tilde.y,bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)
+Bbic[v,l]=MRFit(by=tilde.res,bX=tilde.X,theta1=theta1,theta2=theta2,cluster1=cluster1,cluster2=cluster2,df1=df1,df2=df2)+(df2+df1)*(log(p*2)*ebic.theta+log(m))+log(m)
 SIG1[v,l]=sigma1
 SIG2[v,l]=sigma2
 M1[v,l]=m1
@@ -193,7 +219,7 @@ M2[v,l]=m2
 }
 }
 Bbic=Bbic/m
-######################## Final Estimate #################################
+
 vstar=bimin(Bbic)[1]
 lstar=bimin(Bbic)[2]
 theta1=Btheta1[,vstar,lstar]
@@ -202,7 +228,18 @@ sigma1=SIG1[vstar,lstar]
 sigma2=SIG2[vstar,lstar]
 m1=M1[vstar,lstar]
 m2=M2[vstar,lstar]
-Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
+
+gamma=gamma.ini
+if(sum(gamma!=0)){
+if(isLD){
+tilde.res.final=as.vector(TC%*%(by-LD%*%gamma))
+}else{
+tilde.res.final=by-gamma
+}
+}else{
+tilde.res.final=tilde.y
+}
+Voting=cluster_voting(by=tilde.res.final,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
 cluster2=which(Voting$Cluster[,2]==1)
 cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
@@ -215,12 +252,27 @@ fit.susie1=fit.susie2=NULL
 while(iter<(max.iter*2)&error>max.eps){
 theta11=theta1
 theta22=theta2
+
+if(sum(gamma!=0)){
+if(isLD){
+tilde.res=as.vector(TC%*%(by-LD%*%gamma))
+}else{
+tilde.res=by-gamma
+}
+}else{
+if(isLD){
+tilde.res=tilde.y
+}else{
+tilde.res=by
+}
+}
+
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
 XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])
 XtX1=XtX1-Rxysum1[1:p,1:p]
 XtX1=t(XtX1)/2+XtX1/2
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.y[cluster1])-Rxysum1[1:p,1+p]
-yty1=sum(tilde.y[cluster1]^2)
+Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.res[cluster1])-Rxysum1[1:p,1+p]
+yty1=sum(tilde.res[cluster1]^2)
 adjX1=xtx_positive(XtX1,Xty1)
 XtX1=adjX1$XtX
 Xty1=adjX1$Xty
@@ -237,17 +289,17 @@ theta1=coef.susie(fit.susie1)[-1]*(fit.susie1$pip>pip.min)
 theta.cs1=group.pip.filter(pip.summary=summary(fit.susie1)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1=theta.cs1$ind.keep
 if(length(pip.alive1)>0){
-  theta1[-pip.alive1]=0
+theta1[-pip.alive1]=0
 }else{
-  theta1=theta1*0
+theta1=theta1*0
 }
 if(length(cluster2)>min.cluster.size){
 
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])-Rxysum2[1:p,1:p]
 XtX2=t(XtX2)/2+XtX2/2
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.y[cluster2])-Rxysum2[1:p,1+p]
-yty2=sum(tilde.y[cluster2]^2)
+Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.res[cluster2])-Rxysum2[1:p,1+p]
+yty2=sum(tilde.res[cluster2]^2)
 adjX2=xtx_positive(XtX2,Xty2)
 XtX2=adjX2$XtX
 Xty2=adjX2$Xty
@@ -264,9 +316,9 @@ theta2=coef.susie(fit.susie2)[-1]*(fit.susie2$pip>pip.min)
 theta.cs2=group.pip.filter(pip.summary=summary(fit.susie2)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2=theta.cs2$ind.keep
 if(length(pip.alive2)>0){
-  theta2[-pip.alive2]=0
+theta2[-pip.alive2]=0
 }else{
-  theta2=theta2*0
+theta2=theta2*0
 }
 Diff2=generate_block_matrix(summary(fit.susie2)$vars,length(cluster2)/diag(XtX2),theta2)
 }else{
@@ -296,11 +348,11 @@ XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix
 Xty2=Xty2[indtheta2]
 theta2[indtheta2]=c(solve(XtX2)%*%Xty2)
 }
-sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
-sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
+sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
+sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
 sigma2=max(0.25,sigma2)
 sigma1=max(0.25,sigma1)
-Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
+Voting=cluster_voting(by=tilde.res,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
 cluster2=which(Voting$Cluster[,2]==1)
 if(length(cluster2)==0){
 cluster2=c(1:min.cluster.size)
@@ -309,9 +361,10 @@ cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
 m2=length(cluster2)
 cluster.ratio=c(length(cluster1),length(cluster2))/m
+gamma=update_gamma_mcp(tau, by, bX, theta1, theta2, cluster1, cluster2, gamma, LD, isLD, step = step.size)
 iter=iter+1
 if(iter>3){
-error=min(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
+error=max(norm(theta1-theta11,"2"),norm(theta2-theta22,"2"))
 }
 }
 t2=Sys.time()
@@ -319,7 +372,7 @@ time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
 cat(paste0("Estimation ends: ",time_to_print," secs\n"))
 }
-############################### inference #########################
+
 t1=Sys.time()
 cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
@@ -346,19 +399,21 @@ tryCatch({
 if(isLD==T){
 if (sampling.strategy == "bootstrap") {
 cluster.sampling <- sample(1:max(cluster.index),
-                           size = max(cluster.index),
-                           replace = TRUE,
-                           prob = cluster_prob)
+             size = max(cluster.index),
+             replace = TRUE,
+             prob = cluster_prob)
 } else {
 cluster.sampling <- sample(1:max(cluster.index),
-                           size = 0.5 * max(cluster.index),
-                           replace = FALSE,
-                           prob = cluster_prob)
+             size = 0.5 * max(cluster.index),
+             replace = FALSE,
+             prob = cluster_prob)
 }
-  cluster.sampling=sort(cluster.sampling)
+cluster.sampling=sort(cluster.sampling)
 sampled_blocks <- cluster_cache[cluster.sampling]
 indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
 indj <- sort(indj)
+LDj=LD[indj,indj]
+TCj=TC[indj,indj]
 tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
 tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
 bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
@@ -376,6 +431,7 @@ bXj=tilde.Xj=bX[indj,]
 bXsej=bXse[indj,]
 byj=tilde.yj=by[indj]
 bysej=byse[indj]
+LDj=LD[indj,indj]
 }
 theta1j=theta1*runif(p,0.95,1.05)*0.95
 theta2j=theta2*runif(p,0.95,1.05)*0.95
@@ -386,6 +442,7 @@ m2j=length(cluster2j)
 sigma1j=sigma1
 sigma2j=sigma2
 errorj=1
+gammaj=gamma[indj]
 if(sampling.strategy=="bootstrap"){
 fit.susie1j=fit.susie1
 fit.susie2j=fit.susie2
@@ -395,13 +452,28 @@ fit.susie2j=NULL
 }
 
 for(jiter in 1:sampling.iter){
+
+if(sum(gammaj!=0)){
+if(isLD){
+tilde.resj=as.vector(TCj%*%(byj-LDj%*%gammaj))
+}else{
+tilde.resj=byj-gammaj
+}
+}else{
+if(isLD){
+tilde.resj=tilde.yj
+}else{
+tilde.resj=byj
+}
+}
+
 theta_prev1j=theta1j
 theta_prev2j=theta2j
 Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
 XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])-Rxysum1j[1:p,1:p]
 XtX1j=t(XtX1j)/2+XtX1j/2
-Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.yj[cluster1j])-Rxysum1j[1:p,1+p]
-yty1j=sum(tilde.yj[cluster1j]^2)
+Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.resj[cluster1j])-Rxysum1j[1:p,1+p]
+yty1j=sum(tilde.resj[cluster1j]^2)
 adjX1j=xtx_positive(XtX1j,Xty1j)
 XtX1j=adjX1j$XtX
 Xty1j=adjX1j$Xty
@@ -418,17 +490,17 @@ theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
 theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive1j=theta.cs1j$ind.keep
 if(length(pip.alive1j)>0){
-  theta1j[-pip.alive1j]=0
+theta1j[-pip.alive1j]=0
 }else{
-  theta1j=theta1j*0
+theta1j=theta1j*0
 }
 if(length(cluster2j)>(min.cluster.size/2)){
 
 Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
 XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum2j[1:p,1:p]
 XtX2j=XtX2j/2+t(XtX2j)/2
-Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.yj[cluster2j])-Rxysum2j[1:p,1+p]
-yty2j=sum(tilde.yj[cluster2j]^2)
+Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.resj[cluster2j])-Rxysum2j[1:p,1+p]
+yty2j=sum(tilde.resj[cluster2j]^2)
 adjX2j=xtx_positive(XtX2j,Xty2j)
 XtX2j=adjX2j$XtX
 Xty2j=adjX2j$Xty
@@ -445,9 +517,9 @@ theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
 theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
 pip.alive2j=theta.cs2j$ind.keep
 if(length(pip.alive2j)>0){
-  theta2j[-pip.alive2j]=0
+theta2j[-pip.alive2j]=0
 }else{
-  theta2j=theta2j*0
+theta2j=theta2j*0
 }
 Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j),theta2j)
 }else{
@@ -477,11 +549,11 @@ XtX2j=XtX2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff
 Xty2j=Xty2j[indtheta2j]
 theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
 }
-sigma1j=sum((tilde.yj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
-sigma2j=sum((tilde.yj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
+sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
+sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
 sigma2j=max(0.25,sigma2j)
 sigma1j=max(0.25,sigma1j)
-Votingj=cluster_voting(by=tilde.yj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
+Votingj=cluster_voting(by=tilde.resj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
 cluster2j=which(Votingj$Cluster[,2]==1)
 if(length(cluster2j)==0){
 cluster2j=c(1:2)
@@ -489,6 +561,7 @@ cluster2j=c(1:2)
 cluster1j=which(Votingj$Cluster[,1]==1)
 m1j=length(cluster1j)
 m2j=length(cluster2j)
+gammaj=update_gamma_mcp(tau, byj, bXj, theta1j, theta2j, cluster1j, cluster2j, gammaj, LDj, isLD, step = step.size)
 if(jiter>4) errorj=max(norm(theta1j-theta_prev1j,"2"),norm(theta2j-theta_prev2j,"2"))
 if(errorj<max.eps) break
 }
@@ -501,13 +574,12 @@ ThetaList1[j, ] <- theta1j
 ThetaList2[j, ] <- theta2j
 j=j+1
 }, error = function(e) {
-# Error handling block
 cat("Error occurred: ", e$message, "\n")
-indicator <<- TRUE  # Set indicator to TRUE if an error occurs
-j <<- j - 1  # Decrement the iteration counter to retry
+indicator <<- TRUE
+j <<- j - 1
 })
 if (indicator) {
-next  # Retry the current iteration
+next
 }
 }
 close(pb)
@@ -547,5 +619,6 @@ A$Diff1=Diff1
 A$Diff2=Diff2
 A$Group_Penalty1=Diff_matrix1
 A$Group_Penalty2=Diff_matrix2
+A$gamma=gamma
 return(A)
 }

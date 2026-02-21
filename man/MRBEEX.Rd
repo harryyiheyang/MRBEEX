@@ -22,6 +22,8 @@ MRBEEX(
   min.cluster.size = 5,
   tauvec = seq(4, 8, by = 0.5),
   admm.rho = 2,
+  tau = 5,
+  step.size = 0.5,
   Lvec = c(1:min(10, ncol(bX))),
   pip.thres = 0.25,
   estimate_residual_variance = T,
@@ -80,9 +82,13 @@ MRBEEX(
 
 \item{min.cluster.size}{When choosing \code{"Mixture"}, a minimum sample size of the second mixture.  Default is \code{5}.}
 
-\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
+\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{5}.}
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
+
+\item{tau}{When choosing \code{"Mixture"}, the universal tuning parameter for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
+
+\item{step.size}{Step size for the proximal gradient update (default 0.5).  It controls the update speed of outlier effects (gamma) under the IPOD-MCP framework.}
 
 \item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
 

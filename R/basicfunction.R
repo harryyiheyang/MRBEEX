@@ -962,3 +962,27 @@ byse = byseg
 
 return(cluster_cache)
 }
+
+update_gamma_mcp <- function(tau, by, bX, theta1, theta2, cluster1, cluster2, gamma_old, LD, is.LD, step = 0.1) {
+m = length(by)
+eta = rep(0, m)
+eta[cluster1] = matrixVectorMultiply(bX[cluster1, ],theta1)
+eta[cluster2] = matrixVectorMultiply(bX[cluster2, ],theta2)
+if(is.LD){
+res = as.vector(by - eta - LD%*%gamma_old)
+}else{
+res = by - eta - gamma_old
+}
+w = gamma_old + step * res
+lambda = tau
+a = 3
+gamma_new = mapply(function(wi) {
+abs_wi = abs(wi)
+if (abs_wi <= lambda) return(0)
+if (abs_wi <= a * lambda) {
+return(sign(wi) * (abs_wi - lambda) / (1 - 1/a))
+}
+return(wi)
+}, w)
+return(gamma_new)
+}

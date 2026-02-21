@@ -80,25 +80,25 @@ fit.susie1=MRBEEX(method="IPOD",use.susie=T,by,bX,byse,bXse,LD=LD,Lvec=c(1:6),pi
 t2=Sys.time()
 susie.time=difftime(t2, t1, units = "secs")
 
-# t1=Sys.time()
-# fit.mixture=MRBEEX(method="Mixture",use.susie=F,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=100,maxdiff=3,reliability.thres=0.8,pip.thres=0.15,sampling.iter=5)
-# t2=Sys.time()
-# mixture.time=difftime(t2, t1, units = "secs")
-# ThetaVec=cbind(fit.mixture$theta1,fit.mixture$theta2)
-# ThetaVecSE=cbind(fit.mixture$theta.se1,fit.mixture$theta.se2)
-# ThetaNorm=colMeans((ThetaVec-cbind(theta0,theta0))^2)
-# mixture.theta=ThetaVec[,which.min(ThetaNorm)]
-# mixture.theta.se=ThetaVecSE[,which.min(ThetaNorm)]
+t1=Sys.time()
+fit.mixture=MRBEEX(method="Mixture",use.susie=F,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=100,maxdiff=3,reliability.thres=0.8,pip.thres=0.15,sampling.iter=5)
+t2=Sys.time()
+mixture.time=difftime(t2, t1, units = "secs")
+ThetaVec=cbind(fit.mixture$theta1,fit.mixture$theta2)
+ThetaVecSE=cbind(fit.mixture$theta.se1,fit.mixture$theta.se2)
+ThetaNorm=colMeans((ThetaVec-cbind(theta0,theta0))^2)
+mixture.theta=ThetaVec[,which.min(ThetaNorm)]
+mixture.theta.se=ThetaVecSE[,which.min(ThetaNorm)]
 
-# t1=Sys.time()
-# fit.mixture.susie=MRBEEX(method="Mixture",use.susie=T,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=100,maxdiff=3,reliability.thres=0.8,sampling.iter=10,sampling.strategy="subsampling")
-# t2=Sys.time()
-# mixture.susie.time=difftime(t2, t1, units = "secs")
-# ThetaVec=cbind(fit.mixture.susie$theta1,fit.mixture.susie$theta2)
-# ThetaVecSE=cbind(fit.mixture.susie$theta.se1,fit.mixture.susie$theta.se2)
-# ThetaNorm=colMeans((ThetaVec-cbind(theta0,theta0))^2)
-# mixture.susie.theta=ThetaVec[,which.min(ThetaNorm)]
-# mixture.susie.theta.se=ThetaVecSE[,which.min(ThetaNorm)]
+t1=Sys.time()
+fit.mixture.susie=MRBEEX(method="Mixture",use.susie=T,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=100,maxdiff=3,reliability.thres=0.8,sampling.iter=10,sampling.strategy="subsampling")
+t2=Sys.time()
+mixture.susie.time=difftime(t2, t1, units = "secs")
+ThetaVec=cbind(fit.mixture.susie$theta1,fit.mixture.susie$theta2)
+ThetaVecSE=cbind(fit.mixture.susie$theta.se1,fit.mixture.susie$theta.se2)
+ThetaNorm=colMeans((ThetaVec-cbind(theta0,theta0))^2)
+mixture.susie.theta=ThetaVec[,which.min(ThetaNorm)]
+mixture.susie.theta.se=ThetaVecSE[,which.min(ThetaNorm)]
 #
 # t1=Sys.time()
 # fit.mixture.susie1=MRBEEX(method="Mixture",use.susie=T,by,bX,byse,bXse,LD=LD,Rxy=Ruv*Rnn,ebic.gamma=1,cluster.index=cluster.index,sampling.time=100,maxdiff=3,reliability.thres=0.8,sampling.iter=10,sampling.strategy="subsampling")
