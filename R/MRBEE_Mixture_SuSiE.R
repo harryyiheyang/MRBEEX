@@ -575,7 +575,6 @@ ThetaList2[j, ] <- theta2j
 j=j+1
 }, error = function(e) {
 indicator <<- TRUE
-j <<- j - 1
 })
 if (indicator) {
 next

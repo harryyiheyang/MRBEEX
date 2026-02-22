@@ -368,7 +368,6 @@ ThetaList[j, ] <- thetaj
 j=j+1
 }, error = function(e) {
 indicator <<- TRUE  # Set indicator to TRUE if an error occurs
-j <<- j - 1  # Decrement the iteration counter to retry
 })
 if (indicator) {
 next  # Retry the current iteration
