@@ -372,7 +372,6 @@ time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
 cat(paste0("Estimation ends: ",time_to_print," secs\n"))
 }
-
 t1=Sys.time()
 cat("Bootstrapping starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
@@ -382,209 +381,213 @@ colnames(ThetaList1)=colnames(ThetaList2)=colnames(bX)
 cluster.index <- as.integer(factor(cluster.index))
 cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
 j=1
+consec_error=0
 if(isLD==T){
-cluster_cache <- precompute_cluster_blocks_mixture(
-bX = bX,
-bXse = bXse,
-by = by,
-byse = byse,
-TC = TC,
-cluster.index = cluster.index
-)
+  cluster_cache <- precompute_cluster_blocks_mixture(
+    bX = bX,
+    bXse = bXse,
+    by = by,
+    byse = byse,
+    TC = TC,
+    cluster.index = cluster.index
+  )
 }
 while(j<=sampling.time){
-indicator <- FALSE
-setTxtProgressBar(pb, j)
-tryCatch({
-if(isLD==T){
-if (sampling.strategy == "bootstrap") {
-cluster.sampling <- sample(1:max(cluster.index),
-             size = max(cluster.index),
-             replace = TRUE,
-             prob = cluster_prob)
-} else {
-cluster.sampling <- sample(1:max(cluster.index),
-             size = 0.5 * max(cluster.index),
-             replace = FALSE,
-             prob = cluster_prob)
-}
-cluster.sampling=sort(cluster.sampling)
-sampled_blocks <- cluster_cache[cluster.sampling]
-indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-indj <- sort(indj)
-LDj=LD[indj,indj]
-TCj=TC[indj,indj]
-tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
-tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
-bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
-bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-bXj <- bX[indj, ]
-byj <- by[indj]
-}else{
-if (sampling.strategy == "bootstrap") {
-indj <- sample(1:m, size = m, replace = TRUE)
-} else {
-indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
-}
-indj=sort(indj)
-bXj=tilde.Xj=bX[indj,]
-bXsej=bXse[indj,]
-byj=tilde.yj=by[indj]
-bysej=byse[indj]
-LDj=LD[indj,indj]
-}
-theta1j=theta1*runif(p,0.95,1.05)*0.95
-theta2j=theta2*runif(p,0.95,1.05)*0.95
-cluster1j=which(indj%in%cluster1)
-cluster2j=which(indj%in%cluster2)
-m1j=length(cluster1j)
-m2j=length(cluster2j)
-sigma1j=sigma1
-sigma2j=sigma2
-errorj=1
-gammaj=gamma[indj]
-if(sampling.strategy=="bootstrap"){
-fit.susie1j=fit.susie1
-fit.susie2j=fit.susie2
-}else{
-fit.susie1j=NULL
-fit.susie2j=NULL
-}
+  indicator <- FALSE
+  setTxtProgressBar(pb, j)
+  tryCatch({
+    if(isLD==T){
+      if (sampling.strategy == "bootstrap") {
+        cluster.sampling <- sample(1:max(cluster.index),
+                                   size = max(cluster.index),
+                                   replace = TRUE,
+                                   prob = cluster_prob)
+      } else {
+        cluster.sampling <- sample(1:max(cluster.index),
+                                   size = 0.5 * max(cluster.index),
+                                   replace = FALSE,
+                                   prob = cluster_prob)
+      }
+      cluster.sampling=sort(cluster.sampling)
+      sampled_blocks <- cluster_cache[cluster.sampling]
+      indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
+      indj <- sort(indj)
+      LDj=LD[indj,indj]
+      TCj=TC[indj,indj]
+      tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
+      tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
+      bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
+      bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
+      bXj <- bX[indj, ]
+      byj <- by[indj]
+    }else{
+      if (sampling.strategy == "bootstrap") {
+        indj <- sample(1:m, size = m, replace = TRUE)
+      } else {
+        indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
+      }
+      indj=sort(indj)
+      bXj=tilde.Xj=bX[indj,]
+      bXsej=bXse[indj,]
+      byj=tilde.yj=by[indj]
+      bysej=byse[indj]
+      LDj=LD[indj,indj]
+    }
+    theta1j=theta1*runif(p,0.95,1.05)*0.95
+    theta2j=theta2*runif(p,0.95,1.05)*0.95
+    cluster1j=which(indj%in%cluster1)
+    cluster2j=which(indj%in%cluster2)
+    m1j=length(cluster1j)
+    m2j=length(cluster2j)
+    sigma1j=sigma1
+    sigma2j=sigma2
+    errorj=1
+    gammaj=gamma[indj]
+    tauj=ifelse(consec_error>10, 1e4, tau)
+    if(sampling.strategy=="bootstrap"){
+      fit.susie1j=fit.susie1
+      fit.susie2j=fit.susie2
+    }else{
+      fit.susie1j=NULL
+      fit.susie2j=NULL
+    }
 
-for(jiter in 1:sampling.iter){
+    for(jiter in 1:sampling.iter){
 
-if(sum(gammaj!=0)){
-if(isLD){
-tilde.resj=as.vector(TCj%*%(byj-LDj%*%gammaj))
-}else{
-tilde.resj=byj-gammaj
-}
-}else{
-if(isLD){
-tilde.resj=tilde.yj
-}else{
-tilde.resj=byj
-}
-}
+      if(sum(gammaj!=0)){
+        if(isLD){
+          tilde.resj=as.vector(TCj%*%(byj-LDj%*%gammaj))
+        }else{
+          tilde.resj=byj-gammaj
+        }
+      }else{
+        if(isLD){
+          tilde.resj=tilde.yj
+        }else{
+          tilde.resj=byj
+        }
+      }
 
-theta_prev1j=theta1j
-theta_prev2j=theta2j
-Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])-Rxysum1j[1:p,1:p]
-XtX1j=t(XtX1j)/2+XtX1j/2
-Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.resj[cluster1j])-Rxysum1j[1:p,1+p]
-yty1j=sum(tilde.resj[cluster1j]^2)
-adjX1j=xtx_positive(XtX1j,Xty1j)
-XtX1j=adjX1j$XtX
-Xty1j=adjX1j$Xty
-Diff_matrix1=diag(p)*0
-if(group.penalize==T){
-Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
-}
-tryCatch({
-fit.susie1j=susie_ss(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
-},error = function(e) {
-fit.susie1j=susie_ss(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
-})
-theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
-theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive1j=theta.cs1j$ind.keep
-if(length(pip.alive1j)>0){
-theta1j[-pip.alive1j]=0
-}else{
-theta1j=theta1j*0
-}
-if(length(cluster2j)>(min.cluster.size/2)){
+      theta_prev1j=theta1j
+      theta_prev2j=theta2j
+      Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+      XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])-Rxysum1j[1:p,1:p]
+      XtX1j=t(XtX1j)/2+XtX1j/2
+      Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.resj[cluster1j])-Rxysum1j[1:p,1+p]
+      yty1j=sum(tilde.resj[cluster1j]^2)
+      adjX1j=xtx_positive(XtX1j,Xty1j)
+      XtX1j=adjX1j$XtX
+      Xty1j=adjX1j$Xty
+      Diff_matrix1=diag(p)*0
+      if(group.penalize==T){
+        Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
+      }
+      tryCatch({
+        fit.susie1j=susie_ss(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
+      },error = function(e) {
+        fit.susie1j=susie_ss(XtX=XtX1j+Diff_matrix1,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
+      })
+      theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
+      theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
+      pip.alive1j=theta.cs1j$ind.keep
+      if(length(pip.alive1j)>0){
+        theta1j[-pip.alive1j]=0
+      }else{
+        theta1j=theta1j*0
+      }
+      if(length(cluster2j)>(min.cluster.size/2)){
 
-Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum2j[1:p,1:p]
-XtX2j=XtX2j/2+t(XtX2j)/2
-Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.resj[cluster2j])-Rxysum2j[1:p,1+p]
-yty2j=sum(tilde.resj[cluster2j]^2)
-adjX2j=xtx_positive(XtX2j,Xty2j)
-XtX2j=adjX2j$XtX
-Xty2j=adjX2j$Xty
-Diff_matrix2=diag(p)*0
-if(group.penalize==T){
-Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
-}
-tryCatch({
-fit.susie2j=susie_ss(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
-},error = function(e) {
-fit.susie2j=susie_ss(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
-})
-theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
-theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive2j=theta.cs2j$ind.keep
-if(length(pip.alive2j)>0){
-theta2j[-pip.alive2j]=0
-}else{
-theta2j=theta2j*0
-}
-Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j),theta2j)
-}else{
-theta2j=theta1j*0
-cluster2j=c(1:2)
-}
-indtheta1j=which(theta1j!=0)
-Diff1j=generate_block_matrix(summary(fit.susie1j)$vars,length(cluster1j)/diag(XtX1j),theta1j)
-if(length(indtheta1j)==1){
-xtx1j=XtX1j[indtheta1j,indtheta1j]
-xty1j=Xty1j[indtheta1j]
-theta1j[indtheta1j]=xty1j/xtx1j
-}
-if(length(indtheta1j)>1){
-XtX1j=XtX1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]/2
-Xty1j=Xty1j[indtheta1j]
-theta1j[indtheta1j]=c(solve(XtX1j)%*%Xty1j)
-}
-indtheta2j=which(theta2j!=0)
-if(length(indtheta2j)==1){
-xtx2j=XtX2j[indtheta2j,indtheta2j]
-xty2j=Xty2j[indtheta2j]
-theta2j[indtheta2j]=xty2j/xtx2j
-}
-if(length(indtheta2j)>1){
-XtX2j=XtX2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]/2
-Xty2j=Xty2j[indtheta2j]
-theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
-}
-sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
-sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
-sigma2j=max(0.25,sigma2j)
-sigma1j=max(0.25,sigma1j)
-Votingj=cluster_voting(by=tilde.resj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
-cluster2j=which(Votingj$Cluster[,2]==1)
-if(length(cluster2j)==0){
-cluster2j=c(1:2)
-}
-cluster1j=which(Votingj$Cluster[,1]==1)
-m1j=length(cluster1j)
-m2j=length(cluster2j)
-gammaj=update_gamma_mcp(tau, byj, bXj, theta1j, theta2j, cluster1j, cluster2j, gammaj, LDj, isLD, step = step.size)
-if(jiter>4) errorj=max(norm(theta1j-theta_prev1j,"2"),norm(theta2j-theta_prev2j,"2"))
-if(errorj<max.eps) break
-}
-ThetaVecj=cbind(theta1j,theta2j)
-ThetaNormj=colMeans((ThetaVecj-cbind(theta1,theta1))^2)
-theta1j=ThetaVecj[,which.min(ThetaNormj)]
-theta2j=ThetaVecj[,which.max(ThetaNormj)]
+        Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+        XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum2j[1:p,1:p]
+        XtX2j=XtX2j/2+t(XtX2j)/2
+        Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.resj[cluster2j])-Rxysum2j[1:p,1+p]
+        yty2j=sum(tilde.resj[cluster2j]^2)
+        adjX2j=xtx_positive(XtX2j,Xty2j)
+        XtX2j=adjX2j$XtX
+        Xty2j=adjX2j$Xty
+        Diff_matrix2=diag(p)*0
+        if(group.penalize==T){
+          Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
+        }
+        tryCatch({
+          fit.susie2j=susie_ss(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
+        },error = function(e) {
+          fit.susie2j=susie_ss(XtX=XtX2j+Diff_matrix2,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
+        })
+        theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
+        theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
+        pip.alive2j=theta.cs2j$ind.keep
+        if(length(pip.alive2j)>0){
+          theta2j[-pip.alive2j]=0
+        }else{
+          theta2j=theta2j*0
+        }
+        Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j),theta2j)
+      }else{
+        theta2j=theta1j*0
+        cluster2j=c(1:2)
+      }
+      indtheta1j=which(theta1j!=0)
+      Diff1j=generate_block_matrix(summary(fit.susie1j)$vars,length(cluster1j)/diag(XtX1j),theta1j)
+      if(length(indtheta1j)==1){
+        xtx1j=XtX1j[indtheta1j,indtheta1j]
+        xty1j=Xty1j[indtheta1j]
+        theta1j[indtheta1j]=xty1j/xtx1j
+      }
+      if(length(indtheta1j)>1){
+        XtX1j=XtX1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]/2
+        Xty1j=Xty1j[indtheta1j]
+        theta1j[indtheta1j]=c(solve(XtX1j)%*%Xty1j)
+      }
+      indtheta2j=which(theta2j!=0)
+      if(length(indtheta2j)==1){
+        xtx2j=XtX2j[indtheta2j,indtheta2j]
+        xty2j=Xty2j[indtheta2j]
+        theta2j[indtheta2j]=xty2j/xtx2j
+      }
+      if(length(indtheta2j)>1){
+        XtX2j=XtX2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]/2
+        Xty2j=Xty2j[indtheta2j]
+        theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
+      }
+      sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
+      sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
+      sigma2j=max(0.25,sigma2j)
+      sigma1j=max(0.25,sigma1j)
+      Votingj=cluster_voting(by=tilde.resj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
+      cluster2j=which(Votingj$Cluster[,2]==1)
+      if(length(cluster2j)==0){
+        cluster2j=c(1:2)
+      }
+      cluster1j=which(Votingj$Cluster[,1]==1)
+      m1j=length(cluster1j)
+      m2j=length(cluster2j)
+      gammaj=update_gamma_mcp(tauj, byj, bXj, theta1j, theta2j, cluster1j, cluster2j, gammaj, LDj, isLD, step = step.size)
+      if(jiter>4) errorj=max(norm(theta1j-theta_prev1j,"2"),norm(theta2j-theta_prev2j,"2"))
+      if(errorj<max.eps) break
+    }
+    ThetaVecj=cbind(theta1j,theta2j)
+    ThetaNormj=colMeans((ThetaVecj-cbind(theta1,theta1))^2)
+    theta1j=ThetaVecj[,which.min(ThetaNormj)]
+    theta2j=ThetaVecj[,which.max(ThetaNormj)]
 
-ThetaList1[j, ] <- theta1j
-ThetaList2[j, ] <- theta2j
-j=j+1
-}, error = function(e) {
-indicator <<- TRUE
-})
-if (indicator) {
-next
-}
+    ThetaList1[j, ] <- theta1j
+    ThetaList2[j, ] <- theta2j
+    j=j+1
+    consec_error=0
+  }, error = function(e) {
+    indicator <<- TRUE
+    consec_error <<- consec_error + 1
+  })
+  if (indicator) {
+    next
+  }
 }
 close(pb)
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+  cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
 }
 indtheta1=which(theta1!=0)
 indtheta2=which(theta2!=0)
