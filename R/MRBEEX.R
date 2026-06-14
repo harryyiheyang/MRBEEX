@@ -39,6 +39,8 @@
 #' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
 #' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
+#' @param theta.ini.1 Initial value of theta for cluster 1 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.2}. Default is \code{NULL}.
+#' @param theta.ini.2 Initial value of theta for cluster 2 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.1}. Default is \code{NULL}.
 #' @param prob_shrinkage_coef Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.
 #' @param prob_shrinkage_size Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
@@ -94,7 +96,7 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                estimate_residual_method="MoM",sampling.strategy="subsampling",
                sampling.time=300,sampling.iter=25,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
                maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,
-               theta.ini=F,gamma.ini=F,verbose=T,gcov=NULL,ldsc=NULL){
+               theta.ini=F,gamma.ini=F,theta.ini.1=NULL,theta.ini.2=NULL,verbose=T,gcov=NULL,ldsc=NULL){
 
 ##########################################################################
 cluster.index <- as.integer(factor(cluster.index))
@@ -111,7 +113,7 @@ A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=clus
 }
 ###########################################################################
 if(method[1]=="Mixture"&use.susie==T){
-A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize,tau=tau,step.size=step.size)
+A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize,tau=tau,step.size=step.size,theta.ini.1=theta.ini.1,theta.ini.2=theta.ini.2)
 }
 
 return(A)

@@ -46,6 +46,8 @@ MRBEEX(
   coverage.causal = 0.95,
   theta.ini = F,
   gamma.ini = F,
+  theta.ini.1 = NULL,
+  theta.ini.2 = NULL,
   verbose = T,
   gcov = NULL,
   ldsc = NULL
@@ -133,6 +135,10 @@ MRBEEX(
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
+
+\item{theta.ini.1}{Initial value of theta for cluster 1 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.2}. Default is \code{NULL}.}
+
+\item{theta.ini.2}{Initial value of theta for cluster 2 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.1}. Default is \code{NULL}.}
 
 \item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 
