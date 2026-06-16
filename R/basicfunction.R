@@ -871,6 +871,36 @@ Xty[i] <- 0
 return(list(XtX = XtX, Xty = Xty))
 }
 
+xtx_psd_project <- function(XtX, tol = 1e-8) {
+XtX <- XtX/2 + t(XtX)/2
+fit <- CppMatrix::matrixEigen(XtX)
+values <- as.numeric(fit$values)
+if(all(values >= -tol * max(1, max(abs(values))))){
+return(XtX)
+}
+values <- pmax(values, 0)
+XtX <- CppMatrix::matrixMultiply(fit$vectors, t(fit$vectors) * values)
+XtX <- XtX/2 + t(XtX)/2
+return(XtX)
+}
+
+new_xtx_projector <- function(tol = 1e-8) {
+last_key <- NULL
+last_XtX <- NULL
+force(tol)
+function(XtX, key = NULL) {
+if(!is.null(key)){
+key <- sort(as.integer(key))
+}
+if(!is.null(last_key) && identical(last_key, key)){
+return(last_XtX)
+}
+last_key <<- key
+last_XtX <<- xtx_psd_project(XtX, tol = tol)
+return(last_XtX)
+}
+}
+
 precompute_cluster_blocks <- function(bX, bXse, by, byse, LD, Theta, Thetarho, cluster.index) {
 unique_clusters <- sort(unique(cluster.index))
 n_clusters <- length(unique_clusters)

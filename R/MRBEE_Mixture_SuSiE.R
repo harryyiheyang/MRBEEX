@@ -98,6 +98,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       iter=0
       error=1
       fit.susie2=NULL
+      project_XtX1 <- new_xtx_projector()
+      project_XtX2 <- new_xtx_projector()
       while(iter<max.iter&error>max.eps){
         theta11=theta1
         theta22=theta2
@@ -125,6 +127,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         adjX1=xtx_positive(XtX1,Xty1)
         XtX1=adjX1$XtX
         Xty1=adjX1$Xty
+        XtX1=project_XtX1(XtX1, cluster1)
         Diff_matrix1=diag(p)*0
         if(group.penalize==T){
           Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
@@ -152,6 +155,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           adjX2=xtx_positive(XtX2,Xty2)
           XtX2=adjX2$XtX
           Xty2=adjX2$Xty
+          XtX2=project_XtX2(XtX2, cluster2)
           Diff_matrix2=diag(p)*0
           if(group.penalize==T){
             Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
@@ -258,6 +262,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   theta11=theta1*0
   theta22=theta2*0
   fit.susie1=fit.susie2=NULL
+  project_XtX1 <- new_xtx_projector()
+  project_XtX2 <- new_xtx_projector()
   while(iter<(max.iter*2)&error>max.eps){
     theta11=theta1
     theta22=theta2
@@ -285,6 +291,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     adjX1=xtx_positive(XtX1,Xty1)
     XtX1=adjX1$XtX
     Xty1=adjX1$Xty
+    XtX1=project_XtX1(XtX1, cluster1)
     Diff_matrix1=diag(p)*0
     if(group.penalize==T){
       Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
@@ -312,6 +319,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       adjX2=xtx_positive(XtX2,Xty2)
       XtX2=adjX2$XtX
       Xty2=adjX2$Xty
+      XtX2=project_XtX2(XtX2, cluster2)
       Diff_matrix2=diag(p)*0
       if(group.penalize==T){
         Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
@@ -460,6 +468,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         fit.susie1j=NULL
         fit.susie2j=NULL
       }
+      project_XtX1j <- new_xtx_projector()
+      project_XtX2j <- new_xtx_projector()
 
       for(jiter in 1:sampling.iter){
 
@@ -487,6 +497,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         adjX1j=xtx_positive(XtX1j,Xty1j)
         XtX1j=adjX1j$XtX
         Xty1j=adjX1j$Xty
+        XtX1j=project_XtX1j(XtX1j, cluster1j)
         Diff_matrix1=diag(p)*0
         if(group.penalize==T){
           Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
@@ -514,6 +525,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           adjX2j=xtx_positive(XtX2j,Xty2j)
           XtX2j=adjX2j$XtX
           Xty2j=adjX2j$Xty
+          XtX2j=project_XtX2j(XtX2j, cluster2j)
           Diff_matrix2=diag(p)*0
           if(group.penalize==T){
             Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)

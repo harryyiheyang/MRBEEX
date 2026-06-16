@@ -36,6 +36,7 @@ error=2
 iter=0
 gamma=gamma.ini
 gamma1=u=gamma*0
+project_XtX <- new_xtx_projector()
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -51,6 +52,7 @@ br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
 XtX=t(XtX)/2+XtX/2+Diff_matrix
+XtX=project_XtX(XtX, indvalid)
 Xty=c(matrixMultiply(bX,br.complement,transA=TRUE))-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 fit.susie=tryCatch({
@@ -107,6 +109,7 @@ fit.susie=NULL
 error=2
 iter=0
 gamma1=u=gamma*0
+project_XtX <- new_xtx_projector()
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -122,6 +125,7 @@ br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
 XtX=t(XtX)/2+XtX/2+Diff_matrix
+XtX=project_XtX(XtX, indvalid)
 Xty=c(matrixMultiply(bX,br.complement,transA=TRUE))-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 fit.susie=tryCatch({
@@ -201,6 +205,7 @@ fit.susiej=fit.susie
 fit.susiej=NULL
 }
 
+project_XtXj <- new_xtx_projector()
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj=which(gamma1j==0)
@@ -216,6 +221,7 @@ br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
 XtXj=BtBj-Rxysumj[1:p,1:p]
 XtXj=t(XtXj)/2+XtXj/2+Diff_matrix
+XtXj=project_XtXj(XtXj, indvalidj)
 Xtyj=c(matrixMultiply(bXj,br.complementj,transA=TRUE))-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum((br.complementj)^2)
 fit.susiej=tryCatch({
