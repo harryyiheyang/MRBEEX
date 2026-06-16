@@ -92,7 +92,8 @@ Diff_matrix1=diag(p)*0
 if(group.penalize==T){
 Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
 }
-theta1=c(CppMatrix::matrixSolve(XtX1+Diff_matrix1,Xty1))
+XtX1=xtx_psd_project(XtX1+Diff_matrix1)
+theta1=c(CppMatrix::matrixSolve(XtX1,Xty1))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
 XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Rxysum2[1:p,1:p]
@@ -104,7 +105,8 @@ Diff_matrix2=diag(p)*0
 if(group.penalize==T){
 Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
 }
-theta2=c(CppMatrix::matrixSolve(XtX2+Diff_matrix2,Xty2))
+XtX2=xtx_psd_project(XtX2+Diff_matrix2)
+theta2=c(CppMatrix::matrixSolve(XtX2,Xty2))
 }else{
 theta2=0*theta1
 cluster2=c(1:min.cluster.size)
@@ -233,7 +235,8 @@ while(j<=sampling.time){
       if(group.penalize==T){
         Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
       }
-      theta1j=c(CppMatrix::matrixSolve(XtX1j+Diff_matrix1/2,Xty1j))
+      XtX1j=xtx_psd_project(XtX1j+Diff_matrix1/2)
+      theta1j=c(CppMatrix::matrixSolve(XtX1j,Xty1j))
       if(length(cluster2j)>(min.cluster.size/2)){
         Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
         XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Rxysum2j[1:p,1:p]
@@ -241,10 +244,12 @@ while(j<=sampling.time){
         adjX2j=xtx_positive(XtX2j,Xty2j)
         XtX2j=adjX2j$XtX
         Xty2j=adjX2j$Xty
+        Diff_matrix2=diag(p)*0
         if(group.penalize==T){
           Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
         }
-        theta2j=c(CppMatrix::matrixSolve(XtX2j+Diff_matrix2/2,Xty2j))
+        XtX2j=xtx_psd_project(XtX2j+Diff_matrix2/2)
+        theta2j=c(CppMatrix::matrixSolve(XtX2j,Xty2j))
       }else{
         theta2j=0*theta1j
         cluster2j=c(1:4)
