@@ -159,7 +159,7 @@ theta.se=sqrt(vartheta)
 }else{
 adjf=m/(length(indvalid)-1)
 bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
-H=matrixMultiply(t(bZ),as.matrix(Theta%*%bZ))
+H=matrixMultiply(bZ,as.matrix(Theta%*%bZ),transA=TRUE)
 H[1,1]=H[1,1]-sum(bXse[indvalid]^2)*Rxy[1,1]-sum(LDSC[indvalid]*byseinv[indvalid]^2)*Omega[1,1]
 e=res
 Hinv=solve(H)

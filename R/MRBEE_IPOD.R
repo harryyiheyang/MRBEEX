@@ -28,7 +28,7 @@ LD=Theta=TC=Matrix(diag(m),sparse=T)
 RC=diag(m)
 bXinv=tilde.X=bX
 Bt=t(bX)
-BtB=matrixMultiply(t(bX),bX)
+BtB=matrixMultiply(bX,bX,transA=TRUE)
 tilde.y=by
 Thetarho=diag(m)*1/(1+rho)
 Thetarho=Matrix(Thetarho,sparse=T)
@@ -81,9 +81,8 @@ Rxysum=Rxyall
 }else{
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
-Hinv=matrixInverse(BtB-Rxysum[1:p,1:p]+Diff_matrix)
 g=matrixVectorMultiply(Bt,as.vector(by-LD%*%gamma))-Rxysum[1:p,p+1]
-theta=c(matrixVectorMultiply(Hinv,g))
+theta=c(CppMatrix::matrixSolve(BtB-Rxysum[1:p,1:p]+Diff_matrix,g))
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
@@ -211,9 +210,8 @@ indvalidj=sample(1:length(indj),0.6*length(indj))
 gamma1j[indvalidj]=gammaj[indvalidj]=0
 }
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
-Hinv <- solve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2)
 g <- matrixVectorMultiply(Btj, byj - as.vector(LDj%*%gammaj)) - Rxysumj[1:p, p + 1]
-thetaj <- c(matrixVectorMultiply(Hinv, g))
+thetaj <- c(CppMatrix::matrixSolve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
@@ -254,7 +252,7 @@ bZ=as.matrix(cbind(bX,LD[,which(gamma!=0)]))
 }else{
 bZ=as.matrix(bX)
 }
-H=matrixMultiply(t(bZ),as.matrix(Theta%*%bZ))
+H=matrixMultiply(bZ,as.matrix(Theta%*%bZ),transA=TRUE)
 H[1:p,1:p]=H[1:p,1:p]-Rxysum[1:p,1:p]+Diff_matrix
 e=res
 Hinv=solve(H)

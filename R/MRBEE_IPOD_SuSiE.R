@@ -25,7 +25,7 @@ isLD=F
 LD=Theta=TC=Matrix(diag(m),sparse=T)
 bXinv=tilde.X=bX
 Bt=t(bX)
-BtB=matrixMultiply(t(bX),bX)
+BtB=matrixMultiply(bX,bX,transA=TRUE)
 BtB=t(BtB)/2+BtB/2
 dBtB=diag(BtB)
 tilde.y=by
@@ -43,7 +43,7 @@ Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
 }
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=susie_ss(XtX=BtB+Diff_matrix,Xty=matrixVectorMultiply(t(bXinv),by),yty=sum(by*(Theta%*%by)),L=10,n=m,coverage = coverage.causal,standardize=standardize)
+fit0=susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by,transA=TRUE)),yty=sum(by*(Theta%*%by)),L=10,n=m,coverage = coverage.causal,standardize=standardize)
 theta.ini=theta.ini1=coef(fit0)[-1]
 gamma.ini=gamma.ini1=by*0
 }else{
@@ -112,7 +112,7 @@ theta[indtheta]=xty/xtx
 if(length(indtheta)>1){
 XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
 Xty=Xty[indtheta]
-theta[indtheta]=c(solve(XtX)%*%Xty)
+theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
@@ -193,7 +193,7 @@ theta[indtheta]=xty/xtx
 if(length(indtheta)>1){
 XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
 Xty=Xty[indtheta]
-theta[indtheta]=c(solve(XtX)%*%Xty)
+theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
@@ -346,7 +346,7 @@ thetaj[indthetaj]=xtyj/xtxj
 if(length(indthetaj)>1){
 XtXj=XtXj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]
 Xtyj=Xtyj[indthetaj]
-thetaj[indthetaj]=c(solve(XtXj)%*%Xtyj)
+thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
 }
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")

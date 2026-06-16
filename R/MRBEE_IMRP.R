@@ -41,7 +41,7 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:n))
 Diff_matrix=diag(p)*0
 if(group.penalize==T){
-  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=matrixMultiply(t(bX),bX/n))
+  Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=matrixMultiply(bX,bX/n,transA=TRUE))
 }
 ########## Initial Estimation ############
 fit=MASS::rlm(by~bX-1)

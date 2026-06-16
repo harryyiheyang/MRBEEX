@@ -14,8 +14,8 @@ Theta=matrixInverse(LD)
 }else{
 Theta=positiveinv(LD,min.eps=0)
 }
-bXinv=matrixMultiply(matrixInverse(LD*0.975+diag(m)*0.025),bX)
-Bt=matrixMultiply(t(bX),Theta)
+bXinv=CppMatrix::matrixSolve(LD*0.975+diag(m)*0.025,bX)
+Bt=matrixMultiply(bX,Theta,transA=TRUE)
 BtB=matrixMultiply(Bt,bX)
 BtB=(t(BtB)+BtB)/2
 dBtB=sqrt(diag(BtB)/m)
@@ -78,7 +78,7 @@ theta[indtheta]=xty/xtx
 if(length(indtheta)>1){
 XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge*Diff[indtheta,indtheta]
 Xty=Xty[indtheta]-Rxysum[indtheta,p+1]
-theta[indtheta]=c(solve(XtX)%*%Xty)
+theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
 gamma=as.vector(Thetarho%*%(by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1))
 gamma[pleiotropy.rm]=0
@@ -140,7 +140,7 @@ theta[indtheta]=xty/xtx
 if(length(indtheta)>1){
 XtX=XtX[indtheta,indtheta]-Rxysum[indtheta,indtheta]+ridge*Diff[indtheta,indtheta]
 Xty=Xty[indtheta]-Rxysum[indtheta,p+1]
-theta[indtheta]=c(solve(XtX)%*%Xty)
+theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
 gamma=matrixVectorMultiply(Thetarho,by-matrixVectorMultiply(bX,theta)-delta+rho*gamma1)
 gamma[pleiotropy.rm]=0

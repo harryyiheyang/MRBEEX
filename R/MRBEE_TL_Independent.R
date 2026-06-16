@@ -51,7 +51,7 @@ br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
 XtX=t(XtX)/2+XtX/2+Diff_matrix
-Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
+Xty=c(matrixMultiply(bX,br.complement,transA=TRUE))-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
 fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
@@ -77,7 +77,7 @@ delta.latent[inddelta]=xty/xtx
 if(length(inddelta)>1){
 xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
-delta.latent[inddelta]=c(solve(xtx)%*%xty)
+delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
@@ -122,7 +122,7 @@ br.complement=c(br-bX%*%delta.complement-gamma)
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 XtX=BtB-Rxysum[1:p,1:p]
 XtX=t(XtX)/2+XtX/2+Diff_matrix
-Xty=matrixVectorMultiply(t(bX),br.complement)-Rxysum[1+p,1:p]+addbias
+Xty=c(matrixMultiply(bX,br.complement,transA=TRUE))-Rxysum[1+p,1:p]+addbias
 yty=sum((br.complement)^2)
 tryCatch({
 fit.susie=susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method="EM",residual_variance=1,model_init=fit.susie,max_iter=susie.iter,residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
@@ -148,7 +148,7 @@ delta.latent[inddelta]=xty/xtx
 if(length(inddelta)>1){
 xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
-delta.latent[inddelta]=c(solve(xtx)%*%xty)
+delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
@@ -192,7 +192,7 @@ Rxyallj=biasterm(RxyList=RxyListj,c(1:nj))
 gammaj=gamma[indj]
 indvalidj=which(gammaj==0)
 deltaj=theta.source-thetaj
-BtBj=matrixMultiply(t(bXj),bXj)
+BtBj=matrixMultiply(bXj,bXj,transA=TRUE)
 gamma1j=uj=gammaj*0
 errorj=1
 if(sampling.strategy=="bootstrap"){
@@ -216,7 +216,7 @@ br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
 XtXj=BtBj-Rxysumj[1:p,1:p]
 XtXj=t(XtXj)/2+XtXj/2+Diff_matrix
-Xtyj=matrixVectorMultiply(t(bXj),br.complementj)-Rxysumj[1+p,1:p]+addbiasj
+Xtyj=c(matrixMultiply(bXj,br.complementj,transA=TRUE))-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum((br.complementj)^2)
 tryCatch({
 fit.susiej=susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),residual_variance_lowerbound=0.9,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
@@ -242,7 +242,7 @@ delta.latentj[inddeltaj]=xtyj/xtxj
 if(length(inddeltaj)>1){
 xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]+Diff_matrix[inddeltaj,inddeltaj]
 xtyj=Xtyj[inddeltaj]
-delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
+delta.latentj[inddeltaj]=c(CppMatrix::matrixSolve(xtxj,xtyj))
 }
 deltaj=delta.latentj+delta.complementj
 thetaj=deltaj+theta.source

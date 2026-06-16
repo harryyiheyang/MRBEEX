@@ -83,8 +83,8 @@ tilde.res=by
 }
 
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
-XtX1=matrixMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.X[cluster1,,drop=FALSE])-Rxysum1[1:p,1:p]
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.res[cluster1])-Rxysum1[1:p,p+1]
+XtX1=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)-Rxysum1[1:p,1:p]
+Xty1=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res[cluster1],transA=TRUE))-Rxysum1[1:p,p+1]
 adjX1=xtx_positive(XtX1,Xty1)
 XtX1=adjX1$XtX
 Xty1=adjX1$Xty
@@ -92,11 +92,11 @@ Diff_matrix1=diag(p)*0
 if(group.penalize==T){
 Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
 }
-theta1=c(solve(XtX1+Diff_matrix1)%*%Xty1)
+theta1=c(CppMatrix::matrixSolve(XtX1+Diff_matrix1,Xty1))
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
-XtX2=matrixMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.X[cluster2,,drop=FALSE])-Rxysum2[1:p,1:p]
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.res[cluster2])-Rxysum2[1:p,p+1]
+XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Rxysum2[1:p,1:p]
+Xty2=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res[cluster2],transA=TRUE))-Rxysum2[1:p,p+1]
 adjX2=xtx_positive(XtX2,Xty2)
 XtX2=adjX2$XtX
 Xty2=adjX2$Xty
@@ -104,7 +104,7 @@ Diff_matrix2=diag(p)*0
 if(group.penalize==T){
 Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
 }
-theta2=c(solve(XtX2+Diff_matrix2)%*%Xty2)
+theta2=c(CppMatrix::matrixSolve(XtX2+Diff_matrix2,Xty2))
 }else{
 theta2=0*theta1
 cluster2=c(1:min.cluster.size)
@@ -224,8 +224,8 @@ while(j<=sampling.time){
       theta_prev1j=theta1j
       theta_prev2j=theta2j
       Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-      XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.Xj[cluster1j,,drop=FALSE])-Rxysum1j[1:p,1:p]
-      Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.resj[cluster1j])-Rxysum1j[1:p,p+1]
+      XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Rxysum1j[1:p,1:p]
+      Xty1j=c(matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.resj[cluster1j],transA=TRUE))-Rxysum1j[1:p,p+1]
       adjX1j=xtx_positive(XtX1j,Xty1j)
       XtX1j=adjX1j$XtX
       Xty1j=adjX1j$Xty
@@ -233,18 +233,18 @@ while(j<=sampling.time){
       if(group.penalize==T){
         Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
       }
-      theta1j=c(solve(XtX1j+Diff_matrix1/2)%*%Xty1j)
+      theta1j=c(CppMatrix::matrixSolve(XtX1j+Diff_matrix1/2,Xty1j))
       if(length(cluster2j)>(min.cluster.size/2)){
         Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-        XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.Xj[cluster2j,,drop=FALSE])-Rxysum2j[1:p,1:p]
-        Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.resj[cluster2j])-Rxysum2j[1:p,p+1]
+        XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Rxysum2j[1:p,1:p]
+        Xty2j=c(matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.resj[cluster2j],transA=TRUE))-Rxysum2j[1:p,p+1]
         adjX2j=xtx_positive(XtX2j,Xty2j)
         XtX2j=adjX2j$XtX
         Xty2j=adjX2j$Xty
         if(group.penalize==T){
           Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
         }
-        theta2j=c(solve(XtX2j+Diff_matrix2/2)%*%Xty2j)
+        theta2j=c(CppMatrix::matrixSolve(XtX2j+Diff_matrix2/2,Xty2j))
       }else{
         theta2j=0*theta1j
         cluster2j=c(1:4)

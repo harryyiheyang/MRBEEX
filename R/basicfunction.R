@@ -148,15 +148,14 @@ return(RxyList)
 }
 
 biasterm=function(RxyList,indvalid,Weight=NULL){
-if(is.null(Weight)==1){
-Weight=rep(1,dim(RxyList)[1])
-}
 X=RxyList[1,,]*0
-n=dim(RxyList)[1]
-for(i in indvalid){
-X=X+RxyList[i,,]*Weight[i]
-}
+if(length(indvalid)==0){
 return(X)
+}
+if(is.null(Weight)==1){
+return(colSums(RxyList[indvalid,,,drop=FALSE]))
+}
+return(colSums(RxyList[indvalid,,,drop=FALSE]*Weight[indvalid]))
 }
 
 standardized.residual=function(res,RxyList,theta,adjust=1){
@@ -218,6 +217,15 @@ a[i]=sd(A[,i])
 return(a)
 }
 
+normal_winsor_sd <- function(probs = c(0.015, 0.985)) {
+z <- stats::qnorm(probs)
+phi <- stats::dnorm(z)
+mean_win <- z[1] * probs[1] + phi[1] - phi[2] + z[2] * (1 - probs[2])
+second_win <- z[1]^2 * probs[1] + (probs[2] - probs[1]) +
+z[1] * phi[1] - z[2] * phi[2] + z[2]^2 * (1 - probs[2])
+sqrt(second_win - mean_win^2)
+}
+
 colSDMAD <- function(A, probs = c(0.015, 0.985), consistancy_correction = TRUE){
 A <- as.matrix(A)
 winsor_sd_one <- function(x) {
@@ -226,13 +234,10 @@ x_win <- pmin(pmax(x, lims[1]), lims[2])
 sd_raw <- sd(x_win, na.rm = TRUE)
 return(sd_raw)
 }
-sds <- apply(A, 2, winsor_sd_one)
+sds <- vapply(seq_len(ncol(A)), function(i) winsor_sd_one(A[,i]), numeric(1))
+names(sds) <- colnames(A)
 if (consistancy_correction) {
-sim_norm <- rnorm(100000)
-lims_sim <- quantile(sim_norm, probs = probs)
-sim_win <- pmin(pmax(sim_norm, lims_sim[1]), lims_sim[2])
-factor <- 1 / sd(sim_win)
-sds <- sds * factor
+sds <- sds / normal_winsor_sd(probs)
 }
 return(sds)
 }
@@ -242,11 +247,7 @@ lims   <- stats::quantile(x, probs = probs, na.rm = TRUE)
 x_win <- pmin(pmax(x, lims[1]), lims[2])
 sd_raw <- stats::sd(x_win, na.rm = TRUE)
 if (consistancy_correction) {
-sim_norm <- stats::rnorm(100000)
-lims_sim <- stats::quantile(sim_norm, probs = probs)
-sim_win  <- pmin(pmax(sim_norm, lims_sim[1]), lims_sim[2])
-factor   <- 1 / stats::sd(sim_win)
-sd_raw   <- sd_raw * factor
+sd_raw <- sd_raw / normal_winsor_sd(probs)
 }
 return(sd_raw)
 }
@@ -298,8 +299,7 @@ r=total.var/error.var*(1-thres)
 r=sqrt(r)
 }else{
 r=1
-Theta=as.matrix(Theta)
-total.var=mean(bx*(Theta%*%bx))
+total.var=mean(bx*as.vector(Theta%*%bx))
 error.var=mean(bxse^2)
 reliability=(total.var-error.var)/total.var
 if(reliability<thres){
@@ -325,9 +325,9 @@ r=sqrt(r)
 }else{
 p=ncol(bX)
 r=rep(1,p)
-m=length(bX[,1])
-Theta=as.matrix(Theta)
-total.var=as.vector(diag(t(bX)%*%Theta%*%bX)/m)
+m=nrow(bX)
+Theta_bX=as.matrix(Theta%*%bX)
+total.var=colSums(bX*Theta_bX)/m
 error.var=colMeans(bXse^2)
 reliability=(total.var-error.var)/total.var
 ind=which(reliability<thres)
@@ -672,8 +672,8 @@ if(is.matrix(A)==T){
 Varinf=LD
 Var2=LD2
 V=Theta/var.res
-AT=matrixMultiply(t(A),V)
-P=V-matrixMultiply(t(AT),matrixMultiply(CppMatrix::matrixGeneralizedInverse(matrixMultiply(AT,A)),AT))
+AT=matrixMultiply(A,V,transA=TRUE)
+P=V-matrixMultiply(AT,matrixMultiply(CppMatrix::matrixGeneralizedInverse(matrixMultiply(AT,A)),AT),transA=TRUE)
 u=sum(res.inf^2)/2
 PVar2=matrixMultiply(P,Var2)
 e=sum(diag(PVar2))/2
@@ -686,7 +686,7 @@ A=c(A)
 Var2=LD2
 V=Theta/var.res
 delta=1/sum(A*matrixVectorMultiply(V,A))
-AAT=matrixMultiply(t(t(A)),t(A))/delta
+AAT=matrixMultiply(A,A,transB=TRUE)/delta
 P=V-matrixListProduct(list(V,AAT,V))
 u=sum(res.inf^2)/2/var.res
 PVar2=matrixMultiply(P,Var2)
@@ -800,9 +800,9 @@ sd_sel[j] = sqrt(sum(alpha[j, ] * sd_mat[j, ]^2))
 # Step 2: Sample one effect size per component
 noise = rnorm(L)
 beta_sample = mu_sel + noise * sd_sel  # length L
-beta_matrix=matrixVectorMultiply(t(alpha),beta_sample)
+beta_matrix=c(matrixMultiply(alpha,beta_sample,transA=TRUE))
 # Step 4: Compute LD-propagated signal
-bx_mean = matrixVectorMultiply(LD, beta_matrix)
+bx_mean = as.vector(LD%*%beta_matrix)
 a_mean = beta_matrix
 return(list(bx = bx_mean, bx0 = a_mean))
 }

@@ -157,7 +157,7 @@ delta.latent[inddelta]=xty/xtx
 if(length(inddelta)>1){
 xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
-delta.latent[inddelta]=c(solve(xtx)%*%xty)
+delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
@@ -228,7 +228,7 @@ delta.latent[inddelta]=xty/xtx
 if(length(inddelta)>1){
 xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
 xty=Xty[inddelta]
-delta.latent[inddelta]=c(solve(xtx)%*%xty)
+delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
 delta=delta.latent+delta.complement
 theta=delta+theta.source
@@ -349,7 +349,7 @@ delta.latentj[inddeltaj]=xtyj/xtxj
 if(length(inddeltaj)>1){
 xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]+Diff_matrix[inddeltaj,inddeltaj]
 xtyj=Xtyj[inddeltaj]
-delta.latentj[inddeltaj]=c(solve(xtxj)%*%xtyj)
+delta.latentj[inddeltaj]=c(CppMatrix::matrixSolve(xtxj,xtyj))
 }
 deltaj=delta.latentj+delta.complementj
 thetaj=deltaj+theta.source

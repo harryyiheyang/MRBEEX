@@ -117,10 +117,10 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
 
         Rxysum1=biasterm(RxyList=RxyList,cluster1)
-        XtX1=matrixMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.X[cluster1,,drop=FALSE])
+        XtX1=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)
         XtX1=XtX1-Rxysum1[1:p,1:p]
         XtX1=t(XtX1)/2+XtX1/2
-        Xty1=matrixVectorMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.res[cluster1])-Rxysum1[1:p,1+p]
+        Xty1=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res[cluster1],transA=TRUE))-Rxysum1[1:p,1+p]
         yty1=sum(tilde.res[cluster1]^2)
         adjX1=xtx_positive(XtX1,Xty1)
         XtX1=adjX1$XtX
@@ -144,10 +144,10 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
         if(length(cluster2)>min.cluster.size){
           Rxysum2=biasterm(RxyList=RxyList,cluster2)
-          XtX2=matrixMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.X[cluster2,,drop=FALSE])
+          XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)
           XtX2=XtX2-Rxysum2[1:p,1:p]
           XtX2=t(XtX2)/2+XtX2/2
-          Xty2=matrixVectorMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.res[cluster2])-Rxysum2[1:p,1+p]
+          Xty2=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res[cluster2],transA=TRUE))-Rxysum2[1:p,1+p]
           yty2=sum(tilde.res[cluster2]^2)
           adjX2=xtx_positive(XtX2,Xty2)
           XtX2=adjX2$XtX
@@ -184,7 +184,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(indtheta1)>1){
           XtX1=XtX1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]+Diff_matrix1[indtheta1,indtheta1]
           Xty1=Xty1[indtheta1]
-          theta1[indtheta1]=as.vector(solve(XtX1)%*%Xty1)
+          theta1[indtheta1]=as.vector(CppMatrix::matrixSolve(XtX1,Xty1))
         }
         indtheta2=which(theta2!=0)
         if(length(indtheta2)==1){
@@ -195,7 +195,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(indtheta2)>1){
           XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix2[indtheta2,indtheta2]
           Xty2=Xty2[indtheta2]
-          theta2[indtheta2]=as.vector(solve(XtX2)%*%Xty2)
+          theta2[indtheta2]=as.vector(CppMatrix::matrixSolve(XtX2,Xty2))
         }
         sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,,drop=FALSE]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
         sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,,drop=FALSE]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
@@ -277,10 +277,10 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     }
 
     Rxysum1=biasterm(RxyList=RxyList,cluster1)
-    XtX1=matrixMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.X[cluster1,,drop=FALSE])
+    XtX1=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)
     XtX1=XtX1-Rxysum1[1:p,1:p]
     XtX1=t(XtX1)/2+XtX1/2
-    Xty1=matrixVectorMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.res[cluster1])-Rxysum1[1:p,1+p]
+    Xty1=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res[cluster1],transA=TRUE))-Rxysum1[1:p,1+p]
     yty1=sum(tilde.res[cluster1]^2)
     adjX1=xtx_positive(XtX1,Xty1)
     XtX1=adjX1$XtX
@@ -305,9 +305,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     if(length(cluster2)>min.cluster.size){
 
       Rxysum2=biasterm(RxyList=RxyList,cluster2)
-      XtX2=matrixMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.X[cluster2,,drop=FALSE])-Rxysum2[1:p,1:p]
+      XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Rxysum2[1:p,1:p]
       XtX2=t(XtX2)/2+XtX2/2
-      Xty2=matrixVectorMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.res[cluster2])-Rxysum2[1:p,1+p]
+      Xty2=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res[cluster2],transA=TRUE))-Rxysum2[1:p,1+p]
       yty2=sum(tilde.res[cluster2]^2)
       adjX2=xtx_positive(XtX2,Xty2)
       XtX2=adjX2$XtX
@@ -344,7 +344,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     if(length(indtheta1)>1){
       XtX1=XtX1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]+Diff_matrix1[indtheta1,indtheta1]
       Xty1=Xty1[indtheta1]
-      theta1[indtheta1]=c(solve(XtX1)%*%Xty1)
+      theta1[indtheta1]=c(CppMatrix::matrixSolve(XtX1,Xty1))
     }
     indtheta2=which(theta2!=0)
     if(length(indtheta2)==1){
@@ -355,7 +355,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     if(length(indtheta2)>1){
       XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]+Diff_matrix2[indtheta2,indtheta2]
       Xty2=Xty2[indtheta2]
-      theta2[indtheta2]=c(solve(XtX2)%*%Xty2)
+      theta2[indtheta2]=c(CppMatrix::matrixSolve(XtX2,Xty2))
     }
     sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,,drop=FALSE]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
     sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,,drop=FALSE]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
@@ -480,9 +480,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         theta_prev1j=theta1j
         theta_prev2j=theta2j
         Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-        XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.Xj[cluster1j,,drop=FALSE])-Rxysum1j[1:p,1:p]
+        XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Rxysum1j[1:p,1:p]
         XtX1j=t(XtX1j)/2+XtX1j/2
-        Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.resj[cluster1j])-Rxysum1j[1:p,1+p]
+        Xty1j=c(matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.resj[cluster1j],transA=TRUE))-Rxysum1j[1:p,1+p]
         yty1j=sum(tilde.resj[cluster1j]^2)
         adjX1j=xtx_positive(XtX1j,Xty1j)
         XtX1j=adjX1j$XtX
@@ -507,9 +507,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(cluster2j)>(min.cluster.size/2)){
 
           Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-          XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.Xj[cluster2j,,drop=FALSE])-Rxysum2j[1:p,1:p]
+          XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Rxysum2j[1:p,1:p]
           XtX2j=XtX2j/2+t(XtX2j)/2
-          Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.resj[cluster2j])-Rxysum2j[1:p,1+p]
+          Xty2j=c(matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.resj[cluster2j],transA=TRUE))-Rxysum2j[1:p,1+p]
           yty2j=sum(tilde.resj[cluster2j]^2)
           adjX2j=xtx_positive(XtX2j,Xty2j)
           XtX2j=adjX2j$XtX
@@ -546,7 +546,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(indtheta1j)>1){
           XtX1j=XtX1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]+Diff_matrix1[indtheta1j,indtheta1j]/2
           Xty1j=Xty1j[indtheta1j]
-          theta1j[indtheta1j]=c(solve(XtX1j)%*%Xty1j)
+          theta1j[indtheta1j]=c(CppMatrix::matrixSolve(XtX1j,Xty1j))
         }
         indtheta2j=which(theta2j!=0)
         if(length(indtheta2j)==1){
@@ -557,7 +557,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(indtheta2j)>1){
           XtX2j=XtX2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]+Diff_matrix2[indtheta2j,indtheta2j]/2
           Xty2j=Xty2j[indtheta2j]
-          theta2j[indtheta2j]=c(solve(XtX2j)%*%Xty2j)
+          theta2j[indtheta2j]=c(CppMatrix::matrixSolve(XtX2j,Xty2j))
         }
         sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,,drop=FALSE]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
         sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,,drop=FALSE]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))

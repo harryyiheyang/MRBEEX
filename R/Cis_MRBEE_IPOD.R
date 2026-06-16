@@ -59,9 +59,8 @@ Rxysum=Rxyall
 }else{
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
-Hinv=matrixInverse(BtB-Rxysum[1:p,1:p])
 g=matrixVectorMultiply(Bt,as.vector(by-LD%*%gamma))-Rxysum[1:p,p+1]
-theta=c(matrixVectorMultiply(Hinv,g))
+theta=c(CppMatrix::matrixSolve(BtB-Rxysum[1:p,1:p],g))
 if((norm(theta,"2")/norm(theta.ini,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini,"2")
 }
