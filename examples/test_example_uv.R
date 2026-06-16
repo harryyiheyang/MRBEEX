@@ -75,7 +75,7 @@ Btheta[iter,]=cbind(fit.ipod$theta,fit.greedy$theta,fit.ipod1$theta1,fit.greedy1
 Bse[iter,]=cbind(fit.ipod$theta.se,fit.greedy$theta.se,fit.ipod1$theta.se,fit.greedy1$theta.se)
 Bcov[iter,]=cbind(is_coverage(fit.ipod$theta,theta0[1],fit.ipod$theta.se),is_coverage(fit.greedy$theta,theta0[1],fit.greedy$theta.se),is_coverage(fit.ipod1$theta,theta0[1],fit.ipod1$theta.se),is_coverage(fit.greedy1$theta,theta0[1],fit.greedy1$theta.se))
 if(iter %% 10 ==0){
-colMeans(Bcov[1:iter,])
+colMeans(Bcov[1:iter,,drop=FALSE])
 }
 iter=iter+1
 }

@@ -289,8 +289,8 @@ indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
 }
 indj=sort(indj)
 LDj=Matrix(diag(length(indj)),sparse=T)
-bXj=bX[indj,]
-bXsej=bXse[indj,]
+bXj=bX[indj,,drop=FALSE]
+bXsej=bXse[indj,,drop=FALSE]
 byj=by[indj]
 bysej=byse[indj]
 Btj <- t(bXj)

@@ -210,6 +210,7 @@ return(selected_indices)
 }
 
 colSD=function(A){
+  A=as.matrix(A)
 a=A[1,]
 for(i in 1:ncol(A)){
 a[i]=sd(A[,i])
@@ -218,6 +219,7 @@ return(a)
 }
 
 colSDMAD <- function(A, probs = c(0.015, 0.985), consistancy_correction = TRUE){
+A <- as.matrix(A)
 winsor_sd_one <- function(x) {
 lims <- quantile(x, probs = probs, na.rm = TRUE)
 x_win <- pmin(pmax(x, lims[1]), lims[2])
@@ -250,6 +252,7 @@ return(sd_raw)
 }
 
 covmad=function(A){
+A=as.matrix(A)
 R=cor(A,method="spearman")
 R=2*sin(R/6*pi)
 R[is.na(R)]=0
@@ -708,6 +711,7 @@ return(pv)
 }
 
 findUniqueNonZeroRows <- function(M) {
+M <- as.matrix(M)
 nonZeroCounts <- colSums(M != 0)
 uniqueCols <- which(nonZeroCounts == 1)
 
@@ -718,7 +722,7 @@ if(length(uniqueCols)==1){
 uniqueRows=which(M[,uniqueCols]!=0)
 }
 if(length(uniqueCols)>1){
-nonZeroCounts=rowSums(M[,uniqueCols]!=0)
+nonZeroCounts=rowSums(M[,uniqueCols,drop=FALSE]!=0)
 uniqueRows <- unique(which(nonZeroCounts>0))
 }
 return(uniqueRows)
@@ -966,8 +970,8 @@ return(cluster_cache)
 update_gamma_mcp <- function(tau, by, bX, theta1, theta2, cluster1, cluster2, gamma_old, LD, is.LD, step = 0.1) {
 m = length(by)
 eta = rep(0, m)
-eta[cluster1] = matrixVectorMultiply(bX[cluster1, ],theta1)
-eta[cluster2] = matrixVectorMultiply(bX[cluster2, ],theta2)
+eta[cluster1] = matrixVectorMultiply(bX[cluster1, , drop = FALSE],theta1)
+eta[cluster2] = matrixVectorMultiply(bX[cluster2, , drop = FALSE],theta2)
 if(is.LD){
 res = as.vector(by - eta - LD%*%gamma_old)
 }else{

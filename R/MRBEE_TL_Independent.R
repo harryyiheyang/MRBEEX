@@ -181,9 +181,9 @@ indj <- sample(1:n, size = n, replace = TRUE)
 indj <- sample(1:n, size = 0.5 * n, replace = FALSE)
 }
 nj=length(indj)
-bXj=bX[indj,]
+bXj=bX[indj,,drop=FALSE]
 byj=by[indj]
-bXsej=bXse[indj,]
+bXsej=bXse[indj,,drop=FALSE]
 bysej=byse[indj]
 brj=br[indj]
 thetaj=theta*runif(length(theta),0.95,1.05)

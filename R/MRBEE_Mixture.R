@@ -38,8 +38,8 @@ m1=length(cluster1)
 m2=length(cluster2)
 theta1=fit.init$beta[,max.cluster]
 theta2=fit.init$beta[,setdiff(1:2,max.cluster)]
-sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
-sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
+sigma1=sum((tilde.y[cluster1]-tilde.X[cluster1,,drop=FALSE]%*%theta1)^2)/(length(cluster1)-sum(theta1!=0))
+sigma2=sum((tilde.y[cluster2]-tilde.X[cluster2,,drop=FALSE]%*%theta2)^2)/(length(cluster2)-sum(theta2!=0))
 sigma2=max(0.25,sigma2)
 sigma1=max(0.25,sigma1)
 Voting=cluster_voting(by=tilde.y,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
@@ -48,7 +48,7 @@ cluster1=which(Voting$Cluster[,1]==1)
 m1=length(cluster1)
 m2=length(cluster2)
 eta = matrixVectorMultiply(bX,theta1)
-eta[cluster2] = matrixVectorMultiply(bX[cluster2, ],theta2)
+eta[cluster2] = matrixVectorMultiply(bX[cluster2, , drop = FALSE],theta2)
 if(isLD){
   initial_res = as.vector(Theta %*% (by - eta))
 } else {
@@ -83,8 +83,8 @@ tilde.res=by
 }
 
 Rxysum1=biasterm(RxyList=RxyList,cluster1)
-XtX1=matrixMultiply(t(tilde.X[cluster1,]),tilde.X[cluster1,])-Rxysum1[1:p,1:p]
-Xty1=matrixVectorMultiply(t(tilde.X[cluster1,]),tilde.res[cluster1])-Rxysum1[1:p,p+1]
+XtX1=matrixMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.X[cluster1,,drop=FALSE])-Rxysum1[1:p,1:p]
+Xty1=matrixVectorMultiply(t(tilde.X[cluster1,,drop=FALSE]),tilde.res[cluster1])-Rxysum1[1:p,p+1]
 adjX1=xtx_positive(XtX1,Xty1)
 XtX1=adjX1$XtX
 Xty1=adjX1$Xty
@@ -95,8 +95,8 @@ Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
 theta1=c(solve(XtX1+Diff_matrix1)%*%Xty1)
 if(length(cluster2)>min.cluster.size){
 Rxysum2=biasterm(RxyList=RxyList,cluster2)
-XtX2=matrixMultiply(t(tilde.X[cluster2,]),tilde.X[cluster2,])-Rxysum2[1:p,1:p]
-Xty2=matrixVectorMultiply(t(tilde.X[cluster2,]),tilde.res[cluster2])-Rxysum2[1:p,p+1]
+XtX2=matrixMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.X[cluster2,,drop=FALSE])-Rxysum2[1:p,1:p]
+Xty2=matrixVectorMultiply(t(tilde.X[cluster2,,drop=FALSE]),tilde.res[cluster2])-Rxysum2[1:p,p+1]
 adjX2=xtx_positive(XtX2,Xty2)
 XtX2=adjX2$XtX
 Xty2=adjX2$Xty
@@ -109,8 +109,8 @@ theta2=c(solve(XtX2+Diff_matrix2)%*%Xty2)
 theta2=0*theta1
 cluster2=c(1:min.cluster.size)
 }
-sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,]%*%theta1)^2)/(length(cluster1)-p)
-sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,]%*%theta2)^2)/(length(cluster2)-p)
+sigma1=sum((tilde.res[cluster1]-tilde.X[cluster1,,drop=FALSE]%*%theta1)^2)/(length(cluster1)-p)
+sigma2=sum((tilde.res[cluster2]-tilde.X[cluster2,,drop=FALSE]%*%theta2)^2)/(length(cluster2)-p)
 sigma2=max(0.25,sigma2)
 sigma1=max(0.25,sigma1)
 Voting=cluster_voting(by=tilde.res,bX=tilde.X,cluster.index=cluster.index,theta1=theta1,theta2=theta2,sigma1=sigma1,sigma2=sigma2,main.cluster.thres=main.cluster.thres,m1=m1,m2=m2)
@@ -183,7 +183,7 @@ while(j<=sampling.time){
       tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
       bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
       bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-      bXj <- bX[indj, ]
+      bXj <- bX[indj, , drop = FALSE]
       byj <- by[indj]
     }else{
       if (sampling.strategy == "bootstrap") {
@@ -192,8 +192,8 @@ while(j<=sampling.time){
         indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
       }
       indj=sort(indj)
-      bXj=tilde.Xj=bX[indj,]
-      bXsej=bXse[indj,]
+      bXj=tilde.Xj=bX[indj,,drop=FALSE]
+      bXsej=bXse[indj,,drop=FALSE]
       byj=tilde.yj=by[indj]
       bysej=byse[indj]
       LDj=LD[indj,indj]
@@ -224,8 +224,8 @@ while(j<=sampling.time){
       theta_prev1j=theta1j
       theta_prev2j=theta2j
       Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-      XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,]),tilde.Xj[cluster1j,])-Rxysum1j[1:p,1:p]
-      Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,]),tilde.resj[cluster1j])-Rxysum1j[1:p,p+1]
+      XtX1j=matrixMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.Xj[cluster1j,,drop=FALSE])-Rxysum1j[1:p,1:p]
+      Xty1j=matrixVectorMultiply(t(tilde.Xj[cluster1j,,drop=FALSE]),tilde.resj[cluster1j])-Rxysum1j[1:p,p+1]
       adjX1j=xtx_positive(XtX1j,Xty1j)
       XtX1j=adjX1j$XtX
       Xty1j=adjX1j$Xty
@@ -236,8 +236,8 @@ while(j<=sampling.time){
       theta1j=c(solve(XtX1j+Diff_matrix1/2)%*%Xty1j)
       if(length(cluster2j)>(min.cluster.size/2)){
         Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-        XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,]),tilde.Xj[cluster2j,])-Rxysum2j[1:p,1:p]
-        Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,]),tilde.resj[cluster2j])-Rxysum2j[1:p,p+1]
+        XtX2j=matrixMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.Xj[cluster2j,,drop=FALSE])-Rxysum2j[1:p,1:p]
+        Xty2j=matrixVectorMultiply(t(tilde.Xj[cluster2j,,drop=FALSE]),tilde.resj[cluster2j])-Rxysum2j[1:p,p+1]
         adjX2j=xtx_positive(XtX2j,Xty2j)
         XtX2j=adjX2j$XtX
         Xty2j=adjX2j$Xty
@@ -249,8 +249,8 @@ while(j<=sampling.time){
         theta2j=0*theta1j
         cluster2j=c(1:4)
       }
-      sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
-      sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
+      sigma1j=sum((tilde.resj[cluster1j]-tilde.Xj[cluster1j,,drop=FALSE]%*%theta1j)^2)/(length(cluster1j)-sum(theta1j!=0))
+      sigma2j=sum((tilde.resj[cluster2j]-tilde.Xj[cluster2j,,drop=FALSE]%*%theta2j)^2)/(length(cluster2j)-sum(theta2j!=0))
       sigma2j=max(0.25,sigma2j)
       sigma1j=max(0.25,sigma1j)
       Votingj=cluster_voting(by=tilde.resj,bX=tilde.Xj,cluster.index=cluster.index[indj],theta1=theta1j,theta2=theta2j,sigma1=sigma1j,sigma2=sigma2j,main.cluster.thres=main.cluster.thres,m1=m1j,m2=m2j)
