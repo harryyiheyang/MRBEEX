@@ -128,6 +128,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         adjX1=xtx_positive(XtX1,Xty1)
         XtX1=adjX1$XtX
         Xty1=adjX1$Xty
+        XtX1.raw=XtX1
         Diff_matrix1=diag(p)*0
         if(group.penalize==T){
           Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
@@ -157,6 +158,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           adjX2=xtx_positive(XtX2,Xty2)
           XtX2=adjX2$XtX
           Xty2=adjX2$Xty
+          XtX2.raw=XtX2
           Diff_matrix2=diag(p)*0
           if(group.penalize==T){
             Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
@@ -182,24 +184,29 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
         indtheta1=which(theta1!=0)
         Diff1=generate_block_matrix(summary(fit.susie1)$vars,length(cluster1)/diag(XtX1),theta1)
+        XtX1.reols=XtX1.raw+Diff_matrix1
         if(length(indtheta1)==1){
-          xtx1=XtX1[indtheta1,indtheta1]
+          xtx1=project_select_xtx(XtX1.reols[indtheta1,indtheta1,drop=FALSE])
+          xtx1=xtx1[1,1]
           xty1=Xty1[indtheta1]
           theta1[indtheta1]=xty1/xtx1
         }
         if(length(indtheta1)>1){
-          XtX1=XtX1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]
+          XtX1=project_select_xtx(XtX1.reols[indtheta1,indtheta1,drop=FALSE]+ridge.diff*Diff1[indtheta1,indtheta1,drop=FALSE])
           Xty1=Xty1[indtheta1]
           theta1[indtheta1]=as.vector(CppMatrix::matrixSolve(XtX1,Xty1))
         }
         indtheta2=which(theta2!=0)
         if(length(indtheta2)==1){
-          xtx2=XtX2[indtheta2,indtheta2]
+          XtX2.reols=XtX2.raw+Diff_matrix2
+          xtx2=project_select_xtx(XtX2.reols[indtheta2,indtheta2,drop=FALSE])
+          xtx2=xtx2[1,1]
           xty2=Xty2[indtheta2]
           theta2[indtheta2]=xty2/xtx2
         }
         if(length(indtheta2)>1){
-          XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]
+          XtX2.reols=XtX2.raw+Diff_matrix2
+          XtX2=project_select_xtx(XtX2.reols[indtheta2,indtheta2,drop=FALSE]+ridge.diff*Diff2[indtheta2,indtheta2,drop=FALSE])
           Xty2=Xty2[indtheta2]
           theta2[indtheta2]=as.vector(CppMatrix::matrixSolve(XtX2,Xty2))
         }
@@ -294,6 +301,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     adjX1=xtx_positive(XtX1,Xty1)
     XtX1=adjX1$XtX
     Xty1=adjX1$Xty
+    XtX1.raw=XtX1
     Diff_matrix1=diag(p)*0
     if(group.penalize==T){
       Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
@@ -323,6 +331,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       adjX2=xtx_positive(XtX2,Xty2)
       XtX2=adjX2$XtX
       Xty2=adjX2$Xty
+      XtX2.raw=XtX2
       Diff_matrix2=diag(p)*0
       if(group.penalize==T){
         Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
@@ -348,24 +357,29 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     }
     indtheta1=which(theta1!=0)
     Diff1=generate_block_matrix(summary(fit.susie1)$vars,length(cluster1)/diag(XtX1),theta1)
+    XtX1.reols=XtX1.raw+Diff_matrix1
     if(length(indtheta1)==1){
-      xtx1=XtX1[indtheta1,indtheta1]
+      xtx1=project_select_xtx(XtX1.reols[indtheta1,indtheta1,drop=FALSE])
+      xtx1=xtx1[1,1]
       xty1=Xty1[indtheta1]
       theta1[indtheta1]=xty1/xtx1
     }
     if(length(indtheta1)>1){
-      XtX1=XtX1[indtheta1,indtheta1]+ridge.diff*Diff1[indtheta1,indtheta1]
+      XtX1=project_select_xtx(XtX1.reols[indtheta1,indtheta1,drop=FALSE]+ridge.diff*Diff1[indtheta1,indtheta1,drop=FALSE])
       Xty1=Xty1[indtheta1]
       theta1[indtheta1]=c(CppMatrix::matrixSolve(XtX1,Xty1))
     }
     indtheta2=which(theta2!=0)
     if(length(indtheta2)==1){
-      xtx2=XtX2[indtheta2,indtheta2]
+      XtX2.reols=XtX2.raw+Diff_matrix2
+      xtx2=project_select_xtx(XtX2.reols[indtheta2,indtheta2,drop=FALSE])
+      xtx2=xtx2[1,1]
       xty2=Xty2[indtheta2]
       theta2[indtheta2]=xty2/xtx2
     }
     if(length(indtheta2)>1){
-      XtX2=XtX2[indtheta2,indtheta2]+ridge.diff*Diff2[indtheta2,indtheta2]
+      XtX2.reols=XtX2.raw+Diff_matrix2
+      XtX2=project_select_xtx(XtX2.reols[indtheta2,indtheta2,drop=FALSE]+ridge.diff*Diff2[indtheta2,indtheta2,drop=FALSE])
       Xty2=Xty2[indtheta2]
       theta2[indtheta2]=c(CppMatrix::matrixSolve(XtX2,Xty2))
     }
@@ -393,6 +407,43 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   if(verbose==T){
     cat(paste0("Estimation ends: ",time_to_print," secs\n"))
   }
+  if(sum(gamma!=0)){
+    if(isLD){
+      tilde.res.ref=as.vector(TC%*%(by-LD%*%gamma))
+    }else{
+      tilde.res.ref=by-gamma
+    }
+  }else{
+    if(isLD){
+      tilde.res.ref=tilde.y
+    }else{
+      tilde.res.ref=by
+    }
+  }
+  Rxysum1.ref=biasterm(RxyList=RxyList,cluster1)
+  Cmat1.ref=Rxysum1.ref[1:p,1:p]
+  XtX1.ref=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)-Cmat1.ref
+  XtX1.ref=XtX1.ref/2+t(XtX1.ref)/2
+  Xty1.ref=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res.ref[cluster1],transA=TRUE))-Rxysum1.ref[1:p,1+p]
+  adjX1.ref=xtx_positive(XtX1.ref,Xty1.ref)
+  XtX1.ref=adjX1.ref$XtX
+  Diff_matrix1=diag(p)*0
+  if(group.penalize==T){
+    Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1.ref)
+  }
+  Veigen1=FProject_basis(XtX1.ref+Diff_matrix1)
+  Rxysum2.ref=biasterm(RxyList=RxyList,cluster2)
+  Cmat2.ref=Rxysum2.ref[1:p,1:p]
+  XtX2.ref=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Cmat2.ref
+  XtX2.ref=XtX2.ref/2+t(XtX2.ref)/2
+  Xty2.ref=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res.ref[cluster2],transA=TRUE))-Rxysum2.ref[1:p,1+p]
+  adjX2.ref=xtx_positive(XtX2.ref,Xty2.ref)
+  XtX2.ref=adjX2.ref$XtX
+  Diff_matrix2=diag(p)*0
+  if(group.penalize==T){
+    Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2.ref)
+  }
+  Veigen2=FProject_basis(XtX2.ref+Diff_matrix2)
   t1=Sys.time()
   cat("Bootstrapping starts:\n")
   pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
@@ -472,8 +523,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         fit.susie1j=NULL
         fit.susie2j=NULL
       }
-      project_XtX1j <- new_adj_projector()
-      project_XtX2j <- new_adj_projector()
+      project_XtX1j <- new_FProjector(Veigen1)
+      project_XtX2j <- new_FProjector(Veigen2)
 
       for(jiter in 1:sampling.iter){
 
@@ -495,22 +546,22 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         theta_prev2j=theta2j
         Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
         Cmat1j=Rxysum1j[1:p,1:p]
-        XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Cmat1j
-        XtX1j=t(XtX1j)/2+XtX1j/2
+        XtX1j.raw=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Cmat1j
+        XtX1j.raw=t(XtX1j.raw)/2+XtX1j.raw/2
         Xty1j=c(matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.resj[cluster1j],transA=TRUE))-Rxysum1j[1:p,1+p]
         yty1j=sum(tilde.resj[cluster1j]^2)
-        adjX1j=xtx_positive(XtX1j,Xty1j)
-        XtX1j=adjX1j$XtX
+        adjX1j=xtx_positive(XtX1j.raw,Xty1j)
+        XtX1j.raw=adjX1j$XtX
         Xty1j=adjX1j$Xty
-        Diff_matrix1=diag(p)*0
+        Diff_matrix1j=diag(p)*0
         if(group.penalize==T){
-          Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
+          Diff_matrix1j=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j.raw)
         }
-        XtX1j=project_XtX1j(XtX1j+Cmat1j+Diff_matrix1, Cmat1j, cluster1j)
+        XtX1j.susie=project_XtX1j(XtX1j.raw, Diff_matrix1j, cluster1j)
         fit.susie1j=tryCatch({
-          susie_ss(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
+          susie_ss(XtX=XtX1j.susie,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
         },error = function(e) {
-          susie_ss(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
+          susie_ss(XtX=XtX1j.susie,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
         })
         theta1j=coef.susie(fit.susie1j)[-1]*(fit.susie1j$pip>pip.min)
         theta.cs1j=group.pip.filter(pip.summary=summary(fit.susie1j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -524,22 +575,22 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
 
           Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
           Cmat2j=Rxysum2j[1:p,1:p]
-          XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Cmat2j
-          XtX2j=XtX2j/2+t(XtX2j)/2
+          XtX2j.raw=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Cmat2j
+          XtX2j.raw=XtX2j.raw/2+t(XtX2j.raw)/2
           Xty2j=c(matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.resj[cluster2j],transA=TRUE))-Rxysum2j[1:p,1+p]
           yty2j=sum(tilde.resj[cluster2j]^2)
-          adjX2j=xtx_positive(XtX2j,Xty2j)
-          XtX2j=adjX2j$XtX
+          adjX2j=xtx_positive(XtX2j.raw,Xty2j)
+          XtX2j.raw=adjX2j$XtX
           Xty2j=adjX2j$Xty
-          Diff_matrix2=diag(p)*0
+          Diff_matrix2j=diag(p)*0
           if(group.penalize==T){
-            Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
+            Diff_matrix2j=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j.raw)
           }
-          XtX2j=project_XtX2j(XtX2j+Cmat2j+Diff_matrix2, Cmat2j, cluster2j)
+          XtX2j.susie=project_XtX2j(XtX2j.raw, Diff_matrix2j, cluster2j)
           fit.susie2j=tryCatch({
-            susie_ss(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
+            susie_ss(XtX=XtX2j.susie,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
           },error = function(e) {
-            susie_ss(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
+            susie_ss(XtX=XtX2j.susie,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
           })
           theta2j=coef.susie(fit.susie2j)[-1]*(fit.susie2j$pip>pip.min)
           theta.cs2j=group.pip.filter(pip.summary=summary(fit.susie2j)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
@@ -549,31 +600,36 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           }else{
             theta2j=theta2j*0
           }
-          Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j),theta2j)
+          Diff2j=generate_block_matrix(summary(fit.susie2j)$vars,length(cluster2j)/diag(XtX2j.susie),theta2j)
         }else{
           theta2j=theta1j*0
           cluster2j=c(1:2)
         }
         indtheta1j=which(theta1j!=0)
-        Diff1j=generate_block_matrix(summary(fit.susie1j)$vars,length(cluster1j)/diag(XtX1j),theta1j)
+        Diff1j=generate_block_matrix(summary(fit.susie1j)$vars,length(cluster1j)/diag(XtX1j.susie),theta1j)
+        XtX1j.reols=XtX1j.raw+Diff_matrix1j
         if(length(indtheta1j)==1){
-          xtx1j=XtX1j[indtheta1j,indtheta1j]
+          xtx1j=project_select_xtx(XtX1j.reols[indtheta1j,indtheta1j,drop=FALSE])
+          xtx1j=xtx1j[1,1]
           xty1j=Xty1j[indtheta1j]
           theta1j[indtheta1j]=xty1j/xtx1j
         }
         if(length(indtheta1j)>1){
-          XtX1j=XtX1j[indtheta1j,indtheta1j]+ridge.diff*Diff1j[indtheta1j,indtheta1j]
+          XtX1j=project_select_xtx(XtX1j.reols[indtheta1j,indtheta1j,drop=FALSE]+ridge.diff*Diff1j[indtheta1j,indtheta1j,drop=FALSE])
           Xty1j=Xty1j[indtheta1j]
           theta1j[indtheta1j]=c(CppMatrix::matrixSolve(XtX1j,Xty1j))
         }
         indtheta2j=which(theta2j!=0)
         if(length(indtheta2j)==1){
-          xtx2j=XtX2j[indtheta2j,indtheta2j]
+          XtX2j.reols=XtX2j.raw+Diff_matrix2j
+          xtx2j=project_select_xtx(XtX2j.reols[indtheta2j,indtheta2j,drop=FALSE])
+          xtx2j=xtx2j[1,1]
           xty2j=Xty2j[indtheta2j]
           theta2j[indtheta2j]=xty2j/xtx2j
         }
         if(length(indtheta2j)>1){
-          XtX2j=XtX2j[indtheta2j,indtheta2j]+ridge.diff*Diff2j[indtheta2j,indtheta2j]
+          XtX2j.reols=XtX2j.raw+Diff_matrix2j
+          XtX2j=project_select_xtx(XtX2j.reols[indtheta2j,indtheta2j,drop=FALSE]+ridge.diff*Diff2j[indtheta2j,indtheta2j,drop=FALSE])
           Xty2j=Xty2j[indtheta2j]
           theta2j[indtheta2j]=c(CppMatrix::matrixSolve(XtX2j,Xty2j))
         }

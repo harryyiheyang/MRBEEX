@@ -104,6 +104,7 @@ Diff_matrix=diag(p)*0
 if(group.penalize==T){
 Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
 }
+Veigen=FProject_basis(BtB+Diff_matrix)
 ########## Iteration ###################
 Bic=matrix(0,length(Lvec),length(tauvec))
 Btheta=array(0,c(length(Lvec),length(tauvec),p))
@@ -116,7 +117,7 @@ error=2
 iter=0
 gamma=gamma.ini
 u=gamma1=gamma*0
-project_XtX <- new_adj_projector()
+project_XtX <- new_FProjector(Veigen)
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -131,7 +132,8 @@ delta.cluster=fit.cluster$cluster
 br.complement=as.vector(br-bX%*%delta.complement-as.vector(LD%*%gamma))
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 Cmat=Rxysum[1:p,1:p]
-XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
+XtX.raw=BtB-Cmat
+XtX=project_XtX(XtX.raw, Diff_matrix, indvalid)
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 fit.susie=tryCatch({
@@ -151,12 +153,13 @@ inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
 if(length(inddelta)==1){
-xtx=XtX[inddelta,inddelta]
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE])
+xtx=xtx[1,1]
 xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE])
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
@@ -188,7 +191,7 @@ delta=theta.source-theta
 fit.susie=NULL
 error=2
 iter=0
-project_XtX <- new_adj_projector()
+project_XtX <- new_FProjector(Veigen)
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -203,7 +206,8 @@ delta.cluster=fit.cluster$cluster
 br.complement=as.vector(br-bX%*%delta.complement-as.vector(LD%*%gamma))
 addbias=matrixVectorMultiply(Rxysum[1:p,1:p],theta.source+delta.complement)
 Cmat=Rxysum[1:p,1:p]
-XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
+XtX.raw=BtB-Cmat
+XtX=project_XtX(XtX.raw, Diff_matrix, indvalid)
 Xty=matrixVectorMultiply(Bt,br.complement)-Rxysum[1+p,1:p]+addbias
 yty=sum(br.complement*(Theta%*%br.complement))
 fit.susie=tryCatch({
@@ -223,12 +227,13 @@ inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
 if(length(inddelta)==1){
-xtx=XtX[inddelta,inddelta]
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE])
+xtx=xtx[1,1]
 xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=XtX[inddelta,inddelta]+ridge.diff*Diff[inddelta,inddelta]+Diff_matrix[inddelta,inddelta]
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE])
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
@@ -310,7 +315,7 @@ fit.susiej=fit.susie
 }else{
 fit.susiej=NULL
 }
-project_XtXj <- new_adj_projector()
+project_XtXj <- new_FProjector(Veigen)
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj=which(gamma1j==0)
@@ -325,7 +330,8 @@ delta.clusterj=fit.clusterj$clusterj
 br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
 Cmatj=Rxysumj[1:p,1:p]
-XtXj=project_XtXj(BtBj+Diff_matrix, Cmatj, indvalidj)
+XtXj.raw=BtBj-Cmatj
+XtXj=project_XtXj(XtXj.raw, Diff_matrix, indvalidj)
 Xtyj=matrixVectorMultiply(Btj,br.complementj)-Rxysumj[1+p,1:p]+addbiasj
 ytyj=sum(br.complementj*(Thetaj%*%br.complementj))
 fit.susiej=tryCatch({
@@ -345,12 +351,13 @@ inddeltaj=which(delta.latentj!=0)
 Diffj=generate_block_matrix(summary(fit.susiej)$vars,nj/diag(BtBj),delta.latentj)
 deltaj=deltaj*0
 if(length(inddeltaj)==1){
-xtxj=XtXj[inddeltaj,inddeltaj]
+xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE])
+xtxj=xtxj[1,1]
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=xtyj/xtxj
 }
 if(length(inddeltaj)>1){
-xtxj=XtXj[inddeltaj,inddeltaj]+ridge.diff*Diffj[inddeltaj,inddeltaj]+Diff_matrix[inddeltaj,inddeltaj]
+xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE]+ridge.diff*Diffj[inddeltaj,inddeltaj,drop=FALSE])
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=c(CppMatrix::matrixSolve(xtxj,xtyj))
 }

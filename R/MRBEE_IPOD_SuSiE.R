@@ -41,6 +41,7 @@ Diff_matrix=diag(p)*0
 if(group.penalize==T){
 Diff_matrix=group.diff*generate_group_matrix(group_index=group.index,COV=BtB)
 }
+Veigen=FProject_basis(BtB+Diff_matrix)
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
 fit0=susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by,transA=TRUE)),yty=sum(by*(Theta%*%by)),L=10,n=m,coverage = coverage.causal,standardize=standardize)
@@ -71,7 +72,7 @@ gamma1=gamma
 delta=gamma1*0
 error=1
 iter=1
-project_XtX <- new_adj_projector()
+project_XtX <- new_FProjector(Veigen)
 
 while(error>max.eps&iter<max.iter){
 theta1=theta
@@ -87,7 +88,8 @@ Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
 Cmat=Rxysum[1:p,1:p]
-XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
+XtX.raw=BtB-Cmat
+XtX=project_XtX(XtX.raw, Diff_matrix, indvalid)
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=tryCatch({
@@ -106,12 +108,13 @@ theta=theta*0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=XtX[indtheta,indtheta]
+xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE])
+xtx=xtx[1,1]
 xty=Xty[indtheta]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
+XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE])
 Xty=Xty[indtheta]
 theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
@@ -154,7 +157,7 @@ delta=0*gamma
 error=1
 iter=1
 fit.theta=NULL
-project_XtX <- new_adj_projector()
+project_XtX <- new_FProjector(Veigen)
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -169,7 +172,8 @@ Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
 Cmat=Rxysum[1:p,1:p]
-XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
+XtX.raw=BtB-Cmat
+XtX=project_XtX(XtX.raw, Diff_matrix, indvalid)
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=tryCatch({
@@ -188,12 +192,13 @@ theta=theta*0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=XtX[indtheta,indtheta]
+xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE])
+xtx=xtx[1,1]
 xty=Xty[indtheta]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=XtX[indtheta,indtheta]+ridge.diff*Diff[indtheta,indtheta]
+XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE])
 Xty=Xty[indtheta]
 theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
@@ -311,7 +316,7 @@ fit.thetaj=fit.theta
 }else{
 fit.thetaj=NULL
 }
-project_XtXj <- new_adj_projector()
+project_XtXj <- new_FProjector(Veigen)
 
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
@@ -323,7 +328,8 @@ gamma1j[indvalidj]=gammaj[indvalidj]=0
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
 res.thetaj=byj-as.vector(LDj%*%gammaj)
 Cmatj=Rxysumj[1:p,1:p]
-XtXj=project_XtXj(BtBj+Diff_matrix/2, Cmatj, indvalidj)
+XtXj.raw=BtBj-Cmatj
+XtXj=project_XtXj(XtXj.raw, Diff_matrix/2, indvalidj)
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,p+1]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=tryCatch({
@@ -342,12 +348,13 @@ if(length(pip.alivej)>0){
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){
-xtxj=XtXj[indthetaj,indthetaj]
+xtxj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2)
+xtxj=xtxj[1,1]
 xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
-XtXj=XtXj[indthetaj,indthetaj]+ridge.diff*Diffj[indthetaj,indthetaj]
+XtXj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2+ridge.diff*Diffj[indthetaj,indthetaj,drop=FALSE])
 Xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
 }

@@ -928,6 +928,72 @@ return(last_XtX)
 }
 }
 
+FProject_basis <- function(B, tol = 1e-8) {
+B <- as.matrix(B)
+B <- B/2 + t(B)/2
+fit <- CppMatrix::matrixEigen(B)
+values <- as.numeric(fit$values)
+scale_B <- max(abs(values))
+if(!is.finite(scale_B) || scale_B <= 0){
+return(matrix(0, nrow(B), 0))
+}
+keep <- values > tol * scale_B
+fit$vectors[, keep, drop = FALSE]
+}
+
+FProject <- function(Veigen, B, C, tol = 1e-8) {
+B <- as.matrix(B)
+C <- as.matrix(C)
+if(!all(dim(B) == dim(C))){
+stop("B and C must have the same dimensions.")
+}
+if(ncol(Veigen) == 0L){
+A0 <- matrix(0, nrow(B), ncol(B), dimnames = dimnames(B))
+return(A0)
+}
+A <- B + C
+A <- A/2 + t(A)/2
+A_S <- CppMatrix::matrixListProduct(list(t(Veigen), A, Veigen))
+A_S <- A_S/2 + t(A_S)/2
+fit <- CppMatrix::matrixEigen(A_S)
+lambda <- pmax(as.numeric(fit$values), 0)
+W <- CppMatrix::matrixMultiply(Veigen, fit$vectors)
+A_adj <- CppMatrix::matrixListProduct(list(W, diag(lambda, nrow = length(lambda)), t(W)))
+A_adj <- A_adj/2 + t(A_adj)/2
+dimnames(A_adj) <- dimnames(B)
+return(A_adj)
+}
+
+new_FProjector <- function(Veigen, tol = 1e-8) {
+last_key <- NULL
+last_XtX <- NULL
+force(Veigen)
+force(tol)
+function(B, C, cache_key) {
+cache_key <- sort(as.integer(cache_key))
+if(!is.null(last_key) && identical(last_key, cache_key)){
+return(last_XtX)
+}
+last_key <<- cache_key
+last_XtX <<- FProject(Veigen, B, C, tol = tol)
+return(last_XtX)
+}
+}
+
+project_select_xtx <- function(XtX, tol = 1e-8) {
+XtX <- as.matrix(XtX)
+XtX <- XtX/2 + t(XtX)/2
+fit <- CppMatrix::matrixEigen(XtX)
+values <- as.numeric(fit$values)
+if(all(values >= -tol * max(1, max(abs(values))))){
+return(XtX)
+}
+values <- pmax(values, 0)
+XtX <- CppMatrix::matrixMultiply(fit$vectors, t(fit$vectors) * values)
+XtX <- XtX/2 + t(XtX)/2
+return(XtX)
+}
+
 precompute_cluster_blocks <- function(bX, bXse, by, byse, LD, Theta, Thetarho, cluster.index) {
 unique_clusters <- sort(unique(cluster.index))
 n_clusters <- length(unique_clusters)
