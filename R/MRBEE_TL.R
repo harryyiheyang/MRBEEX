@@ -25,6 +25,7 @@
 #' @param coverage.causal The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.
 #' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.
 #' @param cred.pip.thres The threshold of PIP of each credible set. Defaults to \code{0.95}.
+#' @param projection.eigen.floor The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.
 #' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.
 #' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
@@ -55,7 +56,7 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
   max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
   estimate_residual_method="MoM",sampling.strategy="bootstrap",
-  sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
+  projection.eigen.floor=1,sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        theta.source=theta.source,theta.source.cov=theta.source.cov,
@@ -65,6 +66,7 @@ A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
        estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,
        reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=coverage.causal,
+       projection.eigen.floor=projection.eigen.floor,
        sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
 }else{
@@ -117,7 +119,7 @@ error=2
 iter=0
 gamma=gamma.ini
 u=gamma1=gamma*0
-project_XtX <- new_FProjector(Veigen)
+project_XtX <- new_FProjector(Veigen, eigen.floor=projection.eigen.floor)
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -153,13 +155,13 @@ inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
 if(length(inddelta)==1){
-xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xtx=xtx[1,1]
 xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
@@ -191,7 +193,7 @@ delta=theta.source-theta
 fit.susie=NULL
 error=2
 iter=0
-project_XtX <- new_FProjector(Veigen)
+project_XtX <- new_FProjector(Veigen, eigen.floor=projection.eigen.floor)
 while(error>max.eps&iter<max.iter){
 delta1=delta
 indvalid=which(gamma1==0)
@@ -227,13 +229,13 @@ inddelta=which(delta.latent!=0)
 Diff=generate_block_matrix(summary(fit.susie)$vars,n/diag(BtB),delta.latent)
 delta=delta*0
 if(length(inddelta)==1){
-xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xtx=xtx[1,1]
 xty=Xty[inddelta]
 delta.latent[inddelta]=xty/xtx
 }
 if(length(inddelta)>1){
-xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[inddelta,inddelta,drop=FALSE]+Diff_matrix[inddelta,inddelta,drop=FALSE]+ridge.diff*Diff[inddelta,inddelta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xty=Xty[inddelta]
 delta.latent[inddelta]=c(CppMatrix::matrixSolve(xtx,xty))
 }
@@ -315,7 +317,8 @@ fit.susiej=fit.susie
 }else{
 fit.susiej=NULL
 }
-project_XtXj <- new_FProjector(Veigen)
+projection.eigen.floorj <- projection.eigen.floor*nj/n
+project_XtXj <- new_FProjector(Veigen, eigen.floor=projection.eigen.floorj)
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
 indvalidj=which(gamma1j==0)
@@ -351,13 +354,13 @@ inddeltaj=which(delta.latentj!=0)
 Diffj=generate_block_matrix(summary(fit.susiej)$vars,nj/diag(BtBj),delta.latentj)
 deltaj=deltaj*0
 if(length(inddeltaj)==1){
-xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE])
+xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE],eigen.floor=projection.eigen.floorj)
 xtxj=xtxj[1,1]
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=xtyj/xtxj
 }
 if(length(inddeltaj)>1){
-xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE]+ridge.diff*Diffj[inddeltaj,inddeltaj,drop=FALSE])
+xtxj=project_select_xtx(XtXj.raw[inddeltaj,inddeltaj,drop=FALSE]+Diff_matrix[inddeltaj,inddeltaj,drop=FALSE]+ridge.diff*Diffj[inddeltaj,inddeltaj,drop=FALSE],eigen.floor=projection.eigen.floorj)
 xtyj=Xtyj[inddeltaj]
 delta.latentj[inddeltaj]=c(CppMatrix::matrixSolve(xtxj,xtyj))
 }

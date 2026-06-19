@@ -871,11 +871,15 @@ Xty[i] <- 0
 return(list(XtX = XtX, Xty = Xty))
 }
 
-project_adj <- function(B, C, tol = 1e-8) {
+project_adj <- function(B, C, tol = 1e-8, eigen.floor = 1) {
 B <- as.matrix(B)
 C <- as.matrix(C)
 if(!all(dim(B) == dim(C))){
 stop("B and C must have the same dimensions.")
+}
+eigen.floor <- as.numeric(eigen.floor)[1]
+if(!is.finite(eigen.floor) || eigen.floor < 0){
+stop("eigen.floor must be a non-negative finite number.")
 }
 B <- B/2 + t(B)/2
 C <- C/2 + t(C)/2
@@ -883,7 +887,7 @@ A <- B - C
 A <- A/2 + t(A)/2
 fit_A <- CppMatrix::matrixEigen(A)
 values_A <- as.numeric(fit_A$values)
-if(all(values_A >= -tol * max(1, max(abs(values_A))))){
+if(all(values_A >= eigen.floor)){
 return(A)
 }
 fit_B <- CppMatrix::matrixEigen(B)
@@ -904,7 +908,7 @@ D_S <- pmax(values_B[keep], 0)
 A_S <- diag(D_S, nrow = r) - crossprod(U_S, C %*% U_S)
 A_S <- A_S/2 + t(A_S)/2
 fit_S <- CppMatrix::matrixEigen(A_S)
-lambda <- pmax(as.numeric(fit_S$values), 0)
+lambda <- pmax(as.numeric(fit_S$values), eigen.floor)
 W <- U_S %*% fit_S$vectors
 W_scaled <- t(t(W) * sqrt(lambda))
 A_adj <- tcrossprod(W_scaled)
@@ -913,17 +917,21 @@ dimnames(A_adj) <- dimnames(B)
 return(A_adj)
 }
 
-new_adj_projector <- function(tol = 1e-8) {
+new_adj_projector <- function(tol = 1e-8, eigen.floor = 1) {
 last_key <- NULL
+last_floor <- NULL
 last_XtX <- NULL
 force(tol)
-function(B, C, cache_key) {
+force(eigen.floor)
+function(B, C, cache_key, current.eigen.floor = eigen.floor) {
 cache_key <- sort(as.integer(cache_key))
-if(!is.null(last_key) && identical(last_key, cache_key)){
+current.eigen.floor <- as.numeric(current.eigen.floor)[1]
+if(!is.null(last_key) && identical(last_key, cache_key) && identical(last_floor, current.eigen.floor)){
 return(last_XtX)
 }
 last_key <<- cache_key
-last_XtX <<- project_adj(B, C, tol = tol)
+last_floor <<- current.eigen.floor
+last_XtX <<- project_adj(B, C, tol = tol, eigen.floor = current.eigen.floor)
 return(last_XtX)
 }
 }
@@ -941,11 +949,15 @@ keep <- values > tol * scale_B
 fit$vectors[, keep, drop = FALSE]
 }
 
-FProject <- function(Veigen, B, C, tol = 1e-8) {
+FProject <- function(Veigen, B, C, tol = 1e-8, eigen.floor = 1) {
 B <- as.matrix(B)
 C <- as.matrix(C)
 if(!all(dim(B) == dim(C))){
 stop("B and C must have the same dimensions.")
+}
+eigen.floor <- as.numeric(eigen.floor)[1]
+if(!is.finite(eigen.floor) || eigen.floor < 0){
+stop("eigen.floor must be a non-negative finite number.")
 }
 if(ncol(Veigen) == 0L){
 A0 <- matrix(0, nrow(B), ncol(B), dimnames = dimnames(B))
@@ -956,7 +968,7 @@ A <- A/2 + t(A)/2
 A_S <- CppMatrix::matrixListProduct(list(t(Veigen), A, Veigen))
 A_S <- A_S/2 + t(A_S)/2
 fit <- CppMatrix::matrixEigen(A_S)
-lambda <- pmax(as.numeric(fit$values), 0)
+lambda <- pmax(as.numeric(fit$values), eigen.floor)
 W <- CppMatrix::matrixMultiply(Veigen, fit$vectors)
 A_adj <- CppMatrix::matrixListProduct(list(W, diag(lambda, nrow = length(lambda)), t(W)))
 A_adj <- A_adj/2 + t(A_adj)/2
@@ -964,31 +976,39 @@ dimnames(A_adj) <- dimnames(B)
 return(A_adj)
 }
 
-new_FProjector <- function(Veigen, tol = 1e-8) {
+new_FProjector <- function(Veigen, tol = 1e-8, eigen.floor = 1) {
 last_key <- NULL
+last_floor <- NULL
 last_XtX <- NULL
 force(Veigen)
 force(tol)
-function(B, C, cache_key) {
+force(eigen.floor)
+function(B, C, cache_key, current.eigen.floor = eigen.floor) {
 cache_key <- sort(as.integer(cache_key))
-if(!is.null(last_key) && identical(last_key, cache_key)){
+current.eigen.floor <- as.numeric(current.eigen.floor)[1]
+if(!is.null(last_key) && identical(last_key, cache_key) && identical(last_floor, current.eigen.floor)){
 return(last_XtX)
 }
 last_key <<- cache_key
-last_XtX <<- FProject(Veigen, B, C, tol = tol)
+last_floor <<- current.eigen.floor
+last_XtX <<- FProject(Veigen, B, C, tol = tol, eigen.floor = current.eigen.floor)
 return(last_XtX)
 }
 }
 
-project_select_xtx <- function(XtX, tol = 1e-8) {
+project_select_xtx <- function(XtX, eigen.floor = 1) {
 XtX <- as.matrix(XtX)
 XtX <- XtX/2 + t(XtX)/2
+eigen.floor <- as.numeric(eigen.floor)[1]
+if(!is.finite(eigen.floor) || eigen.floor < 0){
+stop("eigen.floor must be a non-negative finite number.")
+}
 fit <- CppMatrix::matrixEigen(XtX)
 values <- as.numeric(fit$values)
-if(all(values >= -tol * max(1, max(abs(values))))){
+if(all(values >= eigen.floor)){
 return(XtX)
 }
-values <- pmax(values, 0)
+values <- pmax(values, eigen.floor)
 XtX <- CppMatrix::matrixMultiply(fit$vectors, t(fit$vectors) * values)
 XtX <- XtX/2 + t(XtX)/2
 return(XtX)

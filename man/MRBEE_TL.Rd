@@ -37,6 +37,7 @@ MRBEE_TL(
   prob_shrinkage_size = 4,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
+  projection.eigen.floor = 1,
   sampling.time = 300,
   sampling.iter = 25,
   ldsc = NULL,
@@ -107,6 +108,8 @@ MRBEE_TL(
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
 \item{sampling.strategy}{"bootstrap" or "subsampling" (0.5 sample without replacement).}
+
+\item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 
 \item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
 

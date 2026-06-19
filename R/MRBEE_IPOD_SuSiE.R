@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=T){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=T){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -72,7 +72,7 @@ gamma1=gamma
 delta=gamma1*0
 error=1
 iter=1
-project_XtX <- new_FProjector(Veigen)
+project_XtX <- new_FProjector(Veigen, eigen.floor=projection.eigen.floor)
 
 while(error>max.eps&iter<max.iter){
 theta1=theta
@@ -108,13 +108,13 @@ theta=theta*0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xtx=xtx[1,1]
 xty=Xty[indtheta]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE])
+XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE],eigen.floor=projection.eigen.floor)
 Xty=Xty[indtheta]
 theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
@@ -157,7 +157,7 @@ delta=0*gamma
 error=1
 iter=1
 fit.theta=NULL
-project_XtX <- new_FProjector(Veigen)
+project_XtX <- new_FProjector(Veigen, eigen.floor=projection.eigen.floor)
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -192,13 +192,13 @@ theta=theta*0
 indtheta=which(theta!=0)
 Diff=generate_block_matrix(summary(fit.theta)$vars,m/dBtB,theta)
 if(length(indtheta)==1){
-xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE])
+xtx=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE],eigen.floor=projection.eigen.floor)
 xtx=xtx[1,1]
 xty=Xty[indtheta]
 theta[indtheta]=xty/xtx
 }
 if(length(indtheta)>1){
-XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE])
+XtX=project_select_xtx(XtX.raw[indtheta,indtheta,drop=FALSE]+Diff_matrix[indtheta,indtheta,drop=FALSE]+ridge.diff*Diff[indtheta,indtheta,drop=FALSE],eigen.floor=projection.eigen.floor)
 Xty=Xty[indtheta]
 theta[indtheta]=c(CppMatrix::matrixSolve(XtX,Xty))
 }
@@ -316,7 +316,8 @@ fit.thetaj=fit.theta
 }else{
 fit.thetaj=NULL
 }
-project_XtXj <- new_FProjector(Veigen)
+projection.eigen.floorj <- projection.eigen.floor*mj/m
+project_XtXj <- new_FProjector(Veigen, eigen.floor=projection.eigen.floorj)
 
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
@@ -348,13 +349,13 @@ if(length(pip.alivej)>0){
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){
-xtxj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2)
+xtxj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2,eigen.floor=projection.eigen.floorj)
 xtxj=xtxj[1,1]
 xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
-XtXj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2+ridge.diff*Diffj[indthetaj,indthetaj,drop=FALSE])
+XtXj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2+ridge.diff*Diffj[indthetaj,indthetaj,drop=FALSE],eigen.floor=projection.eigen.floorj)
 Xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
 }
