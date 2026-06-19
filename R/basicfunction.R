@@ -871,32 +871,59 @@ Xty[i] <- 0
 return(list(XtX = XtX, Xty = Xty))
 }
 
-xtx_psd_project <- function(XtX, tol = 1e-8) {
-XtX <- XtX/2 + t(XtX)/2
-fit <- CppMatrix::matrixEigen(XtX)
-values <- as.numeric(fit$values)
-if(all(values >= -tol * max(1, max(abs(values))))){
-return(XtX)
+project_adj <- function(B, C, tol = 1e-8) {
+B <- as.matrix(B)
+C <- as.matrix(C)
+if(!all(dim(B) == dim(C))){
+stop("B and C must have the same dimensions.")
 }
-values <- pmax(values, 0)
-XtX <- CppMatrix::matrixMultiply(fit$vectors, t(fit$vectors) * values)
-XtX <- XtX/2 + t(XtX)/2
-return(XtX)
+B <- B/2 + t(B)/2
+C <- C/2 + t(C)/2
+A <- B - C
+A <- A/2 + t(A)/2
+fit_A <- CppMatrix::matrixEigen(A)
+values_A <- as.numeric(fit_A$values)
+if(all(values_A >= -tol * max(1, max(abs(values_A))))){
+return(A)
+}
+fit_B <- CppMatrix::matrixEigen(B)
+values_B <- as.numeric(fit_B$values)
+scale_B <- max(abs(values_B))
+if(!is.finite(scale_B) || scale_B <= 0){
+A0 <- matrix(0, nrow(B), ncol(B), dimnames = dimnames(B))
+return(A0)
+}
+keep <- values_B > tol * scale_B
+r <- sum(keep)
+if(r == 0L){
+A0 <- matrix(0, nrow(B), ncol(B), dimnames = dimnames(B))
+return(A0)
+}
+U_S <- fit_B$vectors[, keep, drop = FALSE]
+D_S <- pmax(values_B[keep], 0)
+A_S <- diag(D_S, nrow = r) - crossprod(U_S, C %*% U_S)
+A_S <- A_S/2 + t(A_S)/2
+fit_S <- CppMatrix::matrixEigen(A_S)
+lambda <- pmax(as.numeric(fit_S$values), 0)
+W <- U_S %*% fit_S$vectors
+W_scaled <- t(t(W) * sqrt(lambda))
+A_adj <- tcrossprod(W_scaled)
+A_adj <- A_adj/2 + t(A_adj)/2
+dimnames(A_adj) <- dimnames(B)
+return(A_adj)
 }
 
-new_xtx_projector <- function(tol = 1e-8) {
+new_adj_projector <- function(tol = 1e-8) {
 last_key <- NULL
 last_XtX <- NULL
 force(tol)
-function(XtX, key = NULL) {
-if(!is.null(key)){
-key <- sort(as.integer(key))
-}
-if(!is.null(last_key) && identical(last_key, key)){
+function(B, C, cache_key) {
+cache_key <- sort(as.integer(cache_key))
+if(!is.null(last_key) && identical(last_key, cache_key)){
 return(last_XtX)
 }
-last_key <<- key
-last_XtX <<- xtx_psd_project(XtX, tol = tol)
+last_key <<- cache_key
+last_XtX <<- project_adj(B, C, tol = tol)
 return(last_XtX)
 }
 }

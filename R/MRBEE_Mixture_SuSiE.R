@@ -98,8 +98,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       iter=0
       error=1
       fit.susie2=NULL
-      project_XtX1 <- new_xtx_projector()
-      project_XtX2 <- new_xtx_projector()
+      project_XtX1 <- new_adj_projector()
+      project_XtX2 <- new_adj_projector()
       while(iter<max.iter&error>max.eps){
         theta11=theta1
         theta22=theta2
@@ -119,8 +119,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
 
         Rxysum1=biasterm(RxyList=RxyList,cluster1)
+        Cmat1=Rxysum1[1:p,1:p]
         XtX1=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)
-        XtX1=XtX1-Rxysum1[1:p,1:p]
+        XtX1=XtX1-Cmat1
         XtX1=t(XtX1)/2+XtX1/2
         Xty1=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res[cluster1],transA=TRUE))-Rxysum1[1:p,1+p]
         yty1=sum(tilde.res[cluster1]^2)
@@ -131,7 +132,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(group.penalize==T){
           Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
         }
-        XtX1=project_XtX1(XtX1+Diff_matrix1, cluster1)
+        XtX1=project_XtX1(XtX1+Cmat1+Diff_matrix1, Cmat1, cluster1)
         fit.susie1=tryCatch({
           susie_ss(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[v],max_iter=susie.iter,estimate_prior_method="EM",model_init=fit.susie1,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
         },error = function(e) {
@@ -147,8 +148,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
         if(length(cluster2)>min.cluster.size){
           Rxysum2=biasterm(RxyList=RxyList,cluster2)
+          Cmat2=Rxysum2[1:p,1:p]
           XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)
-          XtX2=XtX2-Rxysum2[1:p,1:p]
+          XtX2=XtX2-Cmat2
           XtX2=t(XtX2)/2+XtX2/2
           Xty2=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res[cluster2],transA=TRUE))-Rxysum2[1:p,1+p]
           yty2=sum(tilde.res[cluster2]^2)
@@ -159,7 +161,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           if(group.penalize==T){
             Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
           }
-          XtX2=project_XtX2(XtX2+Diff_matrix2, cluster2)
+          XtX2=project_XtX2(XtX2+Cmat2+Diff_matrix2, Cmat2, cluster2)
           fit.susie2=tryCatch({
             susie_ss(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[l],max_iter=susie.iter,estimate_prior_method="EM",model_init=fit.susie2,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
           },error = function(e) {
@@ -262,8 +264,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   theta11=theta1*0
   theta22=theta2*0
   fit.susie1=fit.susie2=NULL
-  project_XtX1 <- new_xtx_projector()
-  project_XtX2 <- new_xtx_projector()
+  project_XtX1 <- new_adj_projector()
+  project_XtX2 <- new_adj_projector()
   while(iter<(max.iter*2)&error>max.eps){
     theta11=theta1
     theta22=theta2
@@ -283,8 +285,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     }
 
     Rxysum1=biasterm(RxyList=RxyList,cluster1)
+    Cmat1=Rxysum1[1:p,1:p]
     XtX1=matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.X[cluster1,,drop=FALSE],transA=TRUE)
-    XtX1=XtX1-Rxysum1[1:p,1:p]
+    XtX1=XtX1-Cmat1
     XtX1=t(XtX1)/2+XtX1/2
     Xty1=c(matrixMultiply(tilde.X[cluster1,,drop=FALSE],tilde.res[cluster1],transA=TRUE))-Rxysum1[1:p,1+p]
     yty1=sum(tilde.res[cluster1]^2)
@@ -295,7 +298,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     if(group.penalize==T){
       Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1)
     }
-    XtX1=project_XtX1(XtX1+Diff_matrix1, cluster1)
+    XtX1=project_XtX1(XtX1+Cmat1+Diff_matrix1, Cmat1, cluster1)
     fit.susie1=tryCatch({
       susie_ss(XtX=XtX1,Xty=Xty1,yty=yty1,n=length(cluster1),L=Lvec[vstar],max_iter=susie.iter,estimate_prior_method="EM",model_init=fit.susie1,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
     },error = function(e) {
@@ -312,7 +315,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
     if(length(cluster2)>min.cluster.size){
 
       Rxysum2=biasterm(RxyList=RxyList,cluster2)
-      XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Rxysum2[1:p,1:p]
+      Cmat2=Rxysum2[1:p,1:p]
+      XtX2=matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.X[cluster2,,drop=FALSE],transA=TRUE)-Cmat2
       XtX2=t(XtX2)/2+XtX2/2
       Xty2=c(matrixMultiply(tilde.X[cluster2,,drop=FALSE],tilde.res[cluster2],transA=TRUE))-Rxysum2[1:p,1+p]
       yty2=sum(tilde.res[cluster2]^2)
@@ -323,7 +327,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       if(group.penalize==T){
         Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2)
       }
-      XtX2=project_XtX2(XtX2+Diff_matrix2, cluster2)
+      XtX2=project_XtX2(XtX2+Cmat2+Diff_matrix2, Cmat2, cluster2)
       fit.susie2=tryCatch({
         susie_ss(XtX=XtX2,Xty=Xty2,yty=yty2,n=length(cluster2),L=Lvec[lstar],max_iter=susie.iter,estimate_prior_method="EM",model_init=fit.susie2,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
       },error = function(e) {
@@ -468,8 +472,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         fit.susie1j=NULL
         fit.susie2j=NULL
       }
-      project_XtX1j <- new_xtx_projector()
-      project_XtX2j <- new_xtx_projector()
+      project_XtX1j <- new_adj_projector()
+      project_XtX2j <- new_adj_projector()
 
       for(jiter in 1:sampling.iter){
 
@@ -490,7 +494,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         theta_prev1j=theta1j
         theta_prev2j=theta2j
         Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
-        XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Rxysum1j[1:p,1:p]
+        Cmat1j=Rxysum1j[1:p,1:p]
+        XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Cmat1j
         XtX1j=t(XtX1j)/2+XtX1j/2
         Xty1j=c(matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.resj[cluster1j],transA=TRUE))-Rxysum1j[1:p,1+p]
         yty1j=sum(tilde.resj[cluster1j]^2)
@@ -501,7 +506,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(group.penalize==T){
           Diff_matrix1=group.diff*generate_group_matrix(group_index=group.index,COV=XtX1j)
         }
-        XtX1j=project_XtX1j(XtX1j+Diff_matrix1, cluster1j)
+        XtX1j=project_XtX1j(XtX1j+Cmat1j+Diff_matrix1, Cmat1j, cluster1j)
         fit.susie1j=tryCatch({
           susie_ss(XtX=XtX1j,Xty=Xty1j,yty=yty1j,n=length(cluster1j),L=Lvec[vstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie1j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
         },error = function(e) {
@@ -518,7 +523,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         if(length(cluster2j)>(min.cluster.size/2)){
 
           Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
-          XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Rxysum2j[1:p,1:p]
+          Cmat2j=Rxysum2j[1:p,1:p]
+          XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Cmat2j
           XtX2j=XtX2j/2+t(XtX2j)/2
           Xty2j=c(matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.resj[cluster2j],transA=TRUE))-Rxysum2j[1:p,1+p]
           yty2j=sum(tilde.resj[cluster2j]^2)
@@ -529,7 +535,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
           if(group.penalize==T){
             Diff_matrix2=group.diff*generate_group_matrix(group_index=group.index,COV=XtX2j)
           }
-          XtX2j=project_XtX2j(XtX2j+Diff_matrix2, cluster2j)
+          XtX2j=project_XtX2j(XtX2j+Cmat2j+Diff_matrix2, Cmat2j, cluster2j)
           fit.susie2j=tryCatch({
             susie_ss(XtX=XtX2j,Xty=Xty2j,yty=yty2j,n=length(cluster2j),L=Lvec[lstar],max_iter=ifelse(jiter==1,1000,30),model_init=fit.susie2j,estimate_prior_method="EM",coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
           },error = function(e) {

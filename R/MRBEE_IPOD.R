@@ -82,9 +82,7 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 g=matrixVectorMultiply(Bt,as.vector(by-LD%*%gamma))-Rxysum[1:p,p+1]
-XtX=BtB-Rxysum[1:p,1:p]+Diff_matrix
-XtX=xtx_psd_project(XtX)
-theta=c(CppMatrix::matrixSolve(XtX,g))
+theta=c(CppMatrix::matrixSolve(BtB-Rxysum[1:p,1:p]+Diff_matrix,g))
 if((norm(theta,"2")/norm(theta.ini1,"2"))>maxdiff){
 theta=theta/norm(theta,"2")*maxdiff*norm(theta.ini1,"2")
 }
@@ -213,9 +211,7 @@ gamma1j[indvalidj]=gammaj[indvalidj]=0
 }
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
 g <- matrixVectorMultiply(Btj, byj - as.vector(LDj%*%gammaj)) - Rxysumj[1:p, p + 1]
-XtXj <- BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2
-XtXj <- xtx_psd_project(XtXj)
-thetaj <- c(CppMatrix::matrixSolve(XtXj, g))
+thetaj <- c(CppMatrix::matrixSolve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }

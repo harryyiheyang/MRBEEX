@@ -71,7 +71,7 @@ gamma1=gamma
 delta=gamma1*0
 error=1
 iter=1
-project_XtX <- new_xtx_projector()
+project_XtX <- new_adj_projector()
 
 while(error>max.eps&iter<max.iter){
 theta1=theta
@@ -86,9 +86,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
-XtX=XtX/2+t(XtX)/2
-XtX=project_XtX(XtX, indvalid)
+Cmat=Rxysum[1:p,1:p]
+XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=tryCatch({
@@ -155,7 +154,7 @@ delta=0*gamma
 error=1
 iter=1
 fit.theta=NULL
-project_XtX <- new_xtx_projector()
+project_XtX <- new_adj_projector()
 while(error>max.eps&iter<max.iter){
 theta1=theta
 indvalid=which(gamma1==0)
@@ -169,9 +168,8 @@ Rxysum=Rxyall
 Rxysum=Rxyall-biasterm(RxyList=RxyList,setdiff(1:m,indvalid))
 }
 res.theta=by-as.vector(LD%*%gamma)
-XtX=BtB+Diff_matrix-Rxysum[1:p,1:p]
-XtX=XtX/2+t(XtX)/2
-XtX=project_XtX(XtX, indvalid)
+Cmat=Rxysum[1:p,1:p]
+XtX=project_XtX(BtB+Diff_matrix, Cmat, indvalid)
 Xty=matrixVectorMultiply(Bt,res.theta)-Rxysum[1:p,1+p]
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=tryCatch({
@@ -313,7 +311,7 @@ fit.thetaj=fit.theta
 }else{
 fit.thetaj=NULL
 }
-project_XtXj <- new_xtx_projector()
+project_XtXj <- new_adj_projector()
 
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
@@ -324,9 +322,8 @@ gamma1j[indvalidj]=gammaj[indvalidj]=0
 }
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
 res.thetaj=byj-as.vector(LDj%*%gammaj)
-XtXj=BtBj+Diff_matrix/2-Rxysumj[1:p,1:p]
-XtXj=XtXj/2+t(XtXj)/2
-XtXj=project_XtXj(XtXj, indvalidj)
+Cmatj=Rxysumj[1:p,1:p]
+XtXj=project_XtXj(BtBj+Diff_matrix/2, Cmatj, indvalidj)
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,p+1]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
 fit.thetaj=tryCatch({
