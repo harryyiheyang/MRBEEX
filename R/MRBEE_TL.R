@@ -32,11 +32,11 @@
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
-#' @param sampling.strategy "bootstrap" or "subsampling" (0.5 sample without replacement).
-#' @param sampling.time A scale of number of subsampling in estimating the standard error. Default is \code{100}.
-#' @param sampling.iter A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
-#' @param prob_shrinkage_coef Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.
-#' @param prob_shrinkage_size Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.
+#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
+#' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
+#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
+#' @param sampling.time Number of resampling repeats for standard-error estimation. Default is \code{100}.
+#' @param sampling.iter Number of estimation iterations per resampling repeat. Default is \code{10}.
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
 
@@ -54,8 +54,8 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=T,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-  max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
-  estimate_residual_method="MoM",sampling.strategy="bootstrap",
+  max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,
+  estimate_residual_method="MoM",sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,
   projection.eigen.floor=1,sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
@@ -257,10 +257,12 @@ res=gamma1*byse1
 names(res)=rownames(bX)
 ThetaList=DeltaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
-cat("Bootstrapping process:\n")
+cat("Resampling process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
+cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                         resampling.weight = resampling.weight,
+                                         group_size = group_size)
 j=1
 cluster_cache <- precompute_cluster_blocks(
 bX = bX,
@@ -276,21 +278,10 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-if (sampling.strategy == "bootstrap") {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = max(cluster.index),
-                           replace = TRUE,
-                           prob = cluster_prob)
-} else {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = 0.5 * max(cluster.index),
-                           replace = FALSE,
-                           prob = cluster_prob)
-}
+cluster.sampling <- sample_cluster_blocks(cluster_sampler)
 cluster.sampling=sort(cluster.sampling)
 sampled_blocks <- cluster_cache[cluster.sampling]
 indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-indj <- sort(indj)
 nj <- length(indj)
 LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
 Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
@@ -312,7 +303,7 @@ uj=gamma1j=gammaj*0
 indvalidj=which(gammaj==0)
 deltaj=theta.source-thetaj
 errorj=1
-if(sampling.strategy=="bootstrap"){
+if(is_bootstrap_sampling(sampling.strategy)){
 fit.susiej=fit.susie
 }else{
 fit.susiej=NULL

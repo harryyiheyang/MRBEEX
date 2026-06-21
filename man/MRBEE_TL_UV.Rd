@@ -28,7 +28,9 @@ MRBEE_TL_UV(
   sampling.iter = 10,
   ldsc = NULL,
   gcov = NULL,
-  prob.shrinkage = 0.5
+  sampling.strategy = "subsampling",
+  resampling.weight = "stratified",
+  group_size = 4
 )
 }
 \arguments{
@@ -70,15 +72,19 @@ MRBEE_TL_UV(
 
 \item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.}
 
-\item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
+\item{sampling.time}{Number of resampling repeats for standard-error estimation. Default is \code{100}.}
 
-\item{sampling.iter}{A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.}
+\item{sampling.iter}{Number of estimation iterations per resampling repeat. Default is \code{10}.}
 
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
 
 \item{gcov}{A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.}
 
-\item{prob.shrinkage}{Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.}
+\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
+
+\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
+
+\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 }
 \value{
 A list containing the estimated causal effect, its covariance, and pleiotropy.

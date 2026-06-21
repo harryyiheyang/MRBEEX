@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=T,tau=5,step.size=0.5,theta.ini.1=NULL,theta.ini.2=NULL){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_method="MoM",sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,standardize=T,tau=5,step.size=0.5,theta.ini.1=NULL,theta.ini.2=NULL){
   t1=Sys.time()
   by=by/byse
   byseinv=1/byse
@@ -449,16 +449,18 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   }
   Veigen2=FProject_basis(XtX2.ref+Diff_matrix2)
   t1=Sys.time()
-  cat("Bootstrapping starts:\n")
+  cat("Resampling starts:\n")
   pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
   names(theta1)=names(theta2)=colnames(bX)
   ThetaList1=ThetaList2=matrix(0,sampling.time,p)
   colnames(ThetaList1)=colnames(ThetaList2)=colnames(bX)
   cluster.index <- as.integer(factor(cluster.index))
-  cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
   j=1
   consec_error=0
   if(isLD==T){
+    cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                             resampling.weight = resampling.weight,
+                                             group_size = group_size)
     cluster_cache <- precompute_cluster_blocks_mixture(
       bX = bX,
       bXse = bXse,
@@ -471,23 +473,12 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   while(j<=sampling.time){
     indicator <- FALSE
     setTxtProgressBar(pb, j)
-    tryCatch({
+      tryCatch({
       if(isLD==T){
-        if (sampling.strategy == "bootstrap") {
-          cluster.sampling <- sample(1:max(cluster.index),
-                                     size = max(cluster.index),
-                                     replace = TRUE,
-                                     prob = cluster_prob)
-        } else {
-          cluster.sampling <- sample(1:max(cluster.index),
-                                     size = 0.5 * max(cluster.index),
-                                     replace = FALSE,
-                                     prob = cluster_prob)
-        }
+        cluster.sampling <- sample_cluster_blocks(cluster_sampler)
         cluster.sampling=sort(cluster.sampling)
         sampled_blocks <- cluster_cache[cluster.sampling]
         indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-        indj <- sort(indj)
         LDj=LD[indj,indj]
         TCj=TC[indj,indj]
         tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
@@ -497,7 +488,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         bXj <- bX[indj, , drop = FALSE]
         byj <- by[indj]
       }else{
-        if (sampling.strategy == "bootstrap") {
+        if (is_bootstrap_sampling(sampling.strategy)) {
           indj <- sample(1:m, size = m, replace = TRUE)
         } else {
           indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
@@ -509,6 +500,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         bysej=byse[indj]
         LDj=LD[indj,indj]
       }
+      Rxyallj <- biasterm(RxyList = RxyList, indj)
       theta1j=theta1*runif(p,0.95,1.05)*0.95
       theta2j=theta2*runif(p,0.95,1.05)*0.95
       cluster1j=which(indj%in%cluster1)
@@ -520,7 +512,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       errorj=1
       gammaj=gamma[indj]
       tauj=ifelse(consec_error>10, 1e4, tau)
-      if(sampling.strategy=="bootstrap"){
+      if(is_bootstrap_sampling(sampling.strategy)){
         fit.susie1j=fit.susie1
         fit.susie2j=fit.susie2
       }else{
@@ -548,7 +540,19 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
 
         theta_prev1j=theta1j
         theta_prev2j=theta2j
-        Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+        cluster_partitionj <- length(intersect(cluster1j, cluster2j)) == 0 &&
+          length(unique(c(cluster1j, cluster2j))) == length(indj)
+        if(cluster_partitionj){
+          if(length(cluster1j) <= length(cluster2j)){
+            Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+            Rxysum2j=Rxyallj-Rxysum1j
+          }else{
+            Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+            Rxysum1j=Rxyallj-Rxysum2j
+          }
+        }else{
+          Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+        }
         Cmat1j=Rxysum1j[1:p,1:p]
         XtX1j.raw=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Cmat1j
         XtX1j.raw=t(XtX1j.raw)/2+XtX1j.raw/2
@@ -578,7 +582,9 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
         }
         if(length(cluster2j)>(min.cluster.size/2)){
 
+          if(!cluster_partitionj){
           Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+          }
           Cmat2j=Rxysum2j[1:p,1:p]
           XtX2j.raw=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Cmat2j
           XtX2j.raw=XtX2j.raw/2+t(XtX2j.raw)/2
@@ -676,7 +682,7 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   t2=Sys.time()
   time_to_print=round(difftime(t2, t1, units = "secs"),3)
   if(verbose==T){
-    cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+    cat(paste0("Resampling ends: ",time_to_print," secs\n"))
   }
   indtheta1=which(theta1!=0)
   indtheta2=which(theta2!=0)

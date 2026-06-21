@@ -1,4 +1,4 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,sampling.strategy="bootstrap",tau=5,step.size=0.5){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,tau=5,step.size=0.5){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -139,14 +139,15 @@ t1=Sys.time()
 names(theta1)=names(theta2)=colnames(bX)
 ThetaList1=ThetaList2=matrix(0,sampling.time,p)
 colnames(ThetaList1)=colnames(ThetaList2)=colnames(bX)
-cat("Bootstrapping starts:\n")
+cat("Resampling starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
-
 j=1
 consec_error=0
 if(isLD==T){
+  cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                           resampling.weight = resampling.weight,
+                                           group_size = group_size)
   cluster_cache <- precompute_cluster_blocks_mixture(
     bX = bX,
     bXse = bXse,
@@ -162,21 +163,10 @@ while(j<=sampling.time){
   setTxtProgressBar(pb, j)
   tryCatch({
     if(isLD==T){
-      if (sampling.strategy == "bootstrap") {
-        cluster.sampling <- sample(1:max(cluster.index),
-                                   size = max(cluster.index),
-                                   replace = TRUE,
-                                   prob = cluster_prob)
-      } else {
-        cluster.sampling <- sample(1:max(cluster.index),
-                                   size = 0.5 * max(cluster.index),
-                                   replace = FALSE,
-                                   prob = cluster_prob)
-      }
+      cluster.sampling <- sample_cluster_blocks(cluster_sampler)
       cluster.sampling=sort(cluster.sampling)
       sampled_blocks <- cluster_cache[cluster.sampling]
       indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-      indj <- sort(indj)
       LDj=LD[indj,indj]
       TCj=TC[indj,indj]
       tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
@@ -186,7 +176,7 @@ while(j<=sampling.time){
       bXj <- bX[indj, , drop = FALSE]
       byj <- by[indj]
     }else{
-      if (sampling.strategy == "bootstrap") {
+      if (is_bootstrap_sampling(sampling.strategy)) {
         indj <- sample(1:m, size = m, replace = TRUE)
       } else {
         indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
@@ -198,6 +188,7 @@ while(j<=sampling.time){
       bysej=byse[indj]
       LDj=LD[indj,indj]
     }
+    Rxyallj <- biasterm(RxyList = RxyList, indj)
     theta1j=theta1*runif(p,0.95,1.05)*0.95
     theta2j=theta2*runif(p,0.95,1.05)*0.95
     cluster1j=which(indj%in%cluster1)
@@ -223,7 +214,19 @@ while(j<=sampling.time){
       }
       theta_prev1j=theta1j
       theta_prev2j=theta2j
-      Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+      cluster_partitionj <- length(intersect(cluster1j, cluster2j)) == 0 &&
+        length(unique(c(cluster1j, cluster2j))) == length(indj)
+      if(cluster_partitionj){
+        if(length(cluster1j) <= length(cluster2j)){
+          Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+          Rxysum2j=Rxyallj-Rxysum1j
+        }else{
+          Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+          Rxysum1j=Rxyallj-Rxysum2j
+        }
+      }else{
+        Rxysum1j=biasterm(RxyList=RxyList,indj[cluster1j])
+      }
       XtX1j=matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.Xj[cluster1j,,drop=FALSE],transA=TRUE)-Rxysum1j[1:p,1:p]
       Xty1j=c(matrixMultiply(tilde.Xj[cluster1j,,drop=FALSE],tilde.resj[cluster1j],transA=TRUE))-Rxysum1j[1:p,p+1]
       adjX1j=xtx_positive(XtX1j,Xty1j)
@@ -235,7 +238,9 @@ while(j<=sampling.time){
       }
       theta1j=c(CppMatrix::matrixSolve(XtX1j+Diff_matrix1/2,Xty1j))
       if(length(cluster2j)>(min.cluster.size/2)){
+        if(!cluster_partitionj){
         Rxysum2j=biasterm(RxyList=RxyList,indj[cluster2j])
+        }
         XtX2j=matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.Xj[cluster2j,,drop=FALSE],transA=TRUE)-Rxysum2j[1:p,1:p]
         Xty2j=c(matrixMultiply(tilde.Xj[cluster2j,,drop=FALSE],tilde.resj[cluster2j],transA=TRUE))-Rxysum2j[1:p,p+1]
         adjX2j=xtx_positive(XtX2j,Xty2j)
@@ -287,7 +292,7 @@ close(pb)
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-  cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+  cat(paste0("Resampling ends: ",time_to_print," secs\n"))
 }
 indtheta1=which(theta1!=0)
 indtheta2=which(theta2!=0)

@@ -36,14 +36,14 @@
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
 #' @param ebic.theta EBIC factor on causal effect. Default is \code{0}.
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy. Default is \code{1}.
-#' @param sampling.strategy "bootstrap" or "subsampling" (0.5 sample without replacement).
-#' @param sampling.time Number of blockwise bootstrapping times. Default is \code{100}.
-#' @param sampling.iter Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.
+#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
+#' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
+#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
+#' @param sampling.time Number of resampling repeats. Default is \code{100}.
+#' @param sampling.iter Number of estimation iterations per resampling repeat. Default is \code{10}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param theta.ini.1 Initial value of theta for cluster 1 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.2}. Default is \code{NULL}.
 #' @param theta.ini.2 Initial value of theta for cluster 2 (length \code{p}, no intercept). If \code{NULL}, the default \code{regmixEM} + per-cluster SuSiE initialization is used. Must be provided together with \code{theta.ini.1}. Default is \code{NULL}.
-#' @param prob_shrinkage_coef Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.
-#' @param prob_shrinkage_size Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
@@ -63,24 +63,24 @@
 #'   \item{\code{theta}}{Causal effect estimate.}
 #'   \item{\code{theta.se}}{Standard error of the causal effect estimate.}
 #'   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
-#'   \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.}
+#'   \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the resampling procedure.}
 #'   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
 #'   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
 #'   \item{\code{theta.ini}}{Initial value of \code{theta} used in the estimation procedure.}
 #'   \item{\code{gamma.ini}}{Initial value of \code{gamma} used in the estimation procedure.}
 #'   \item{\code{reliability.adjust}}{Estimated reliability-adjusted values.}
-#'   \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the subsampling procedure.}
-#'   \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.}
+#'   \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the resampling procedure.}
+#'   \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the resampling procedure.}
 #'   \item{\code{theta1}}{Causal effect estimate for the first mixture component (when \code{method="Mixture"}).}
 #'   \item{\code{theta2}}{Causal effect estimate for the second mixture component (when \code{method="Mixture"}).}
 #'   \item{\code{theta.se1}}{Standard error of \code{theta1}.}
 #'   \item{\code{theta.se2}}{Standard error of \code{theta2}.}
 #'   \item{\code{theta.cov1}}{Covariance matrix of \code{theta1}.}
 #'   \item{\code{theta.cov2}}{Covariance matrix of \code{theta2}.}
-#'   \item{\code{theta.pip1}}{Empirical PIP of \code{theta1} in the subsampling procedure.}
-#'   \item{\code{theta.pip2}}{Empirical PIP of \code{theta2} in the subsampling procedure.}
-#'   \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.}
-#'   \item{\code{thetalist2}}{List of \code{theta2} estimates recorded during each iteration in the subsampling procedure.}
+#'   \item{\code{theta.pip1}}{Empirical PIP of \code{theta1} in the resampling procedure.}
+#'   \item{\code{theta.pip2}}{Empirical PIP of \code{theta2} in the resampling procedure.}
+#'   \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the resampling procedure.}
+#'   \item{\code{thetalist2}}{List of \code{theta2} estimates recorded during each iteration in the resampling procedure.}
 #'   \item{\code{Voting}}{A list that contains (1) the weights of two mixtures and (2) the voting results of two mixture based on main.cluster.thres.}
 #' }
 #' @export
@@ -94,8 +94,8 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
                pip.min=0.1,cred.pip.thres=0.95,
                max.iter=50,max.eps=1e-6,susie.iter=100,
                ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
-               estimate_residual_method="MoM",sampling.strategy="subsampling",
-               sampling.time=300,sampling.iter=25,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,
+               estimate_residual_method="MoM",sampling.strategy="subsampling",resampling.weight="stratified",
+               group_size=4,sampling.time=300,sampling.iter=25,
                maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,
                theta.ini=F,gamma.ini=F,theta.ini.1=NULL,theta.ini.2=NULL,verbose=T,gcov=NULL,ldsc=NULL,
                projection.eigen.floor=1){
@@ -103,19 +103,19 @@ MRBEEX=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
 ##########################################################################
 cluster.index <- as.integer(factor(cluster.index))
 if(method[1]=="IPOD"&use.susie==T){
-A=MRBEE_IPOD_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize)
+A=MRBEE_IPOD_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size,standardize=standardize)
 }
 ##########################################################################
 if(method[1]=="IPOD"&use.susie==F){
-A=MRBEE_IPOD(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ebic.theta=ebic.theta,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,sampling.strategy=sampling.strategy)
+A=MRBEE_IPOD(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ebic.theta=ebic.theta,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size)
 }
 ##########################################################################
 if(method[1]=="Mixture"&use.susie==F){
-A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,sampling.strategy=sampling.strategy,tau=tau,step.size=step.size)
+A=MRBEE_Mixture(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,reliability.thres=reliability.thres,sampling.time=sampling.time,ebic.theta=ebic.theta,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,LDSC=ldsc,Omega=gcov,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size,tau=tau,step.size=step.size)
 }
 ###########################################################################
 if(method[1]=="Mixture"&use.susie==T){
-A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,prob_shrinkage_size=prob_shrinkage_size,prob_shrinkage_coef=prob_shrinkage_coef,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,standardize=standardize,tau=tau,step.size=step.size,theta.ini.1=theta.ini.1,theta.ini.2=theta.ini.2)
+A=MRBEE_Mixture_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,ebic.theta=ebic.theta,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,susie.iter=susie.iter,main.cluster.thres=main.cluster.thres,min.cluster.size=min.cluster.size,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size,standardize=standardize,tau=tau,step.size=step.size,theta.ini.1=theta.ini.1,theta.ini.2=theta.ini.2)
 }
 
 return(A)

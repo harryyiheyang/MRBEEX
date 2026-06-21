@@ -33,10 +33,10 @@ MRBEE_TL(
   max.eps = 1e-06,
   reliability.thres = 0.5,
   ridge.diff = 100,
-  prob_shrinkage_coef = 0.5,
-  prob_shrinkage_size = 4,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
+  resampling.weight = "stratified",
+  group_size = 4,
   projection.eigen.floor = 1,
   sampling.time = 300,
   sampling.iter = 25,
@@ -101,19 +101,19 @@ MRBEE_TL(
 
 \item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
 
-\item{prob_shrinkage_coef}{Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.}
-
-\item{prob_shrinkage_size}{Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.}
-
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{"bootstrap" or "subsampling" (0.5 sample without replacement).}
+\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
+
+\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
+
+\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 
 \item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 
-\item{sampling.time}{A scale of number of subsampling in estimating the standard error. Default is \code{100}.}
+\item{sampling.time}{Number of resampling repeats for standard-error estimation. Default is \code{100}.}
 
-\item{sampling.iter}{A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.}
+\item{sampling.iter}{Number of estimation iterations per resampling repeat. Default is \code{10}.}
 
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
 

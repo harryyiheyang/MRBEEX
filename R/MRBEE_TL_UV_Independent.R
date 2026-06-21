@@ -127,7 +127,7 @@ error=sqrt(sum((theta-theta1)^2))
 res=gamma*byse1
 names(res)=rownames(bX)
 ThetaList=c(1:sampling.time)
-cat("Bootstrapping process:\n")
+cat("Resampling process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
 while(j<=sampling.time) {

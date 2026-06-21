@@ -175,14 +175,14 @@ res=gamma*byse1
 names(res)=rownames(bX)
 ThetaList=DeltaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(DeltaList)=colnames(bX)
-cat("Bootstrapping process:\n")
+cat("Resampling process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
 while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-if (sampling.strategy == "bootstrap") {
+if (is_bootstrap_sampling(sampling.strategy)) {
 indj <- sample(1:n, size = n, replace = TRUE)
 } else {
 indj <- sample(1:n, size = 0.5 * n, replace = FALSE)
@@ -202,7 +202,7 @@ deltaj=theta.source-thetaj
 BtBj=matrixMultiply(bXj,bXj,transA=TRUE)
 gamma1j=uj=gammaj*0
 errorj=1
-if(sampling.strategy=="bootstrap"){
+if(is_bootstrap_sampling(sampling.strategy)){
 fit.susiej=fit.susie
 }else{
 fit.susiej=NULL

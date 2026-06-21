@@ -21,11 +21,13 @@
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.
-#' @param sampling.time A scale of number of subsampling in estimating the standard error. Default is \code{100}.
-#' @param sampling.iter A scale of iteration in subsampling in estimating the standard error. Default is \code{10}.
+#' @param sampling.time Number of resampling repeats for standard-error estimation. Default is \code{100}.
+#' @param sampling.iter Number of estimation iterations per resampling repeat. Default is \code{10}.
 #' @param gcov A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
 #' @param ldsc A vector (n x 1) of the LDSCs of the IVs.
-#' @param prob.shrinkage Exponent for power-law scaling of selection probabilities based on Effective Sample Size (ESS). Controls the balance between favoring information-rich blocks and ensuring diversity. A value of 1 implies probability proportional to ESS; 0 implies uniform probability; 0.5 (default) uses square-root weighting to dampen the dominance of large blocks.
+#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
+#' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
+#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
 
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy.
 #' @importFrom CppMatrix matrixMultiply matrixVectorMultiply matrixListProduct
@@ -35,7 +37,7 @@
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 #'
-MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL,prob.shrinkage=0.5){
+MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL,sampling.strategy="subsampling",resampling.weight="stratified",group_size=4){
 if(LD[1]=="identity"){
 A=MRBEE_TL_UV_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,theta.source=theta.source,theta.source.cov=theta.source.cov,tauvec=tauvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,max.iter=max.iter,max.eps=max.eps,reliability.thres=reliability.thres,sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
@@ -181,24 +183,37 @@ error=sqrt(sum((theta-theta1)^2))
 res=gamma1*byse1
 names(res)=rownames(bX)
 ThetaList=c(1:sampling.time)
-cat("Bootstrapping process:\n")
+cat("Resampling process:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
 cluster.index <- as.integer(factor(cluster.index))
-cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob.shrinkage)
-k <- floor(length(cluster_prob) * 0.5)
+cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                         resampling.weight = resampling.weight,
+                                         group_size = group_size)
+cluster_cache <- precompute_cluster_blocks_uv(
+bX = bX,
+bXse = bXse,
+by = by,
+byse = byse,
+LD = LD,
+Theta = Theta,
+Thetarho = Thetarho,
+cluster.index = cluster.index,
+rho = admm.rho
+)
 while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-cluster.sampling <- sample(1:max(cluster.index), k, replace = F,prob = cluster_prob)
-indj=which(cluster.index%in%cluster.sampling)
-indj=sort(indj)
+cluster.sampling <- sample_cluster_blocks(cluster_sampler)
+cluster.sampling=sort(cluster.sampling)
+sampled_blocks <- cluster_cache[cluster.sampling]
+indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
 nj=length(indj)
-bXj=bX[indj]
-byj=by[indj]
-bXsej=bXse[indj]
-bysej=byse[indj]
+bXj=unlist(lapply(sampled_blocks, function(b) b$bX))
+byj=unlist(lapply(sampled_blocks, function(b) b$by))
+bXsej=unlist(lapply(sampled_blocks, function(b) b$bXse))
+bysej=unlist(lapply(sampled_blocks, function(b) b$byse))
 thetaj=theta*runif(length(theta),0.95,1.05)
 RxyListj=RxyList[indj,,]
 Rxyallj=biasterm(RxyList=RxyListj,c(1:nj))
@@ -207,11 +222,11 @@ uj=gamma1j=gammaj*0
 indvalidj=which(gammaj==0)
 fit.susiej=fit.susie
 deltaj=theta.source-thetaj
-LDj=LD[indj,indj]
-Thetaj <- Theta[indj,indj]
-Thetarhoj <- Thetarho[indj,indj]
-bXinvj <- as.vector(Thetaj %*% bXj)
-BtBj <- sum(bXinvj*bXj)
+LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
+Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
+Thetarhoj <- bdiag(lapply(sampled_blocks, function(b) b$Thetarho))
+bXinvj <- unlist(lapply(sampled_blocks, function(b) b$Bt))
+BtBj <- sum(sapply(sampled_blocks, function(b) b$BtB))
 for(iterj in 1:sampling.iter){
 indvalidj=which(gamma1j==0)
 if(length(indvalidj)==nj){

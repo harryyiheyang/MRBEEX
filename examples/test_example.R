@@ -63,7 +63,7 @@ Rxy=A$Rxy
 #plot(A$bX0[c(1:480),]%*%theta0,A$by0[c(1:480)])
 Lvec=c(1:min(10,nrow(bX)));pip.thres=0.5;tauvec=seq(3,50,by=2);max.iter=100;max.eps=0.001;susie.iter=100;ebic.theta=1;ebic.gamma=2;reliability.thres=0.8;admm.rho=2;maxdiff=1.5;sampling.time=10;sampling.iter=5;theta.ini=F;gamma.ini=F
 main.cluster.thres=0.45
-ridge.diff=1e5;verbose=T;pip.min=0.1;cred.pip.thres=0.95;group.penalize=F;group.index=c(1:ncol(bX)[1]);group.diff=10;coverage.causal=0.95;LDSC=NULL;Omega=NULL;estimate_residual_variance=T;prob.shrinkage=0.5;estimate_residual_method="MoM";sampling.strategy="bootstrap"
+ridge.diff=1e5;verbose=T;pip.min=0.1;cred.pip.thres=0.95;group.penalize=F;group.index=c(1:ncol(bX)[1]);group.diff=10;coverage.causal=0.95;LDSC=NULL;Omega=NULL;estimate_residual_variance=T;estimate_residual_method="MoM";sampling.strategy="bootstrap"
 
 t1=Sys.time()
 fit.ipod=MRBEEX(method="IPOD",use.susie=F,by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rnn*Ruv,cluster.index=cluster.index,reliability.thres=0.8,tauvec=c(2.5,3,3.5,4,5,6),admm.rho=1,sampling.time=100,maxdiff=3,sampling.iter=8)

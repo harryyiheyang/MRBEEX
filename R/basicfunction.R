@@ -152,8 +152,27 @@ X=RxyList[1,,]*0
 if(length(indvalid)==0){
 return(X)
 }
-if(is.null(Weight)==1){
+indvalid=as.integer(indvalid)
+if(is.null(Weight)){
+if(anyDuplicated(indvalid)){
+n=dim(RxyList)[1]
+w=tabulate(indvalid,nbins=n)
+out=as.numeric(crossprod(w,matrix(RxyList,nrow=n)))
+dim(out)=dim(X)
+dimnames(out)=dimnames(X)
+return(out)
+}
 return(colSums(RxyList[indvalid,,,drop=FALSE]))
+}
+if(anyDuplicated(indvalid)){
+n=dim(RxyList)[1]
+w_sum=rowsum(Weight[indvalid],group=indvalid,reorder=FALSE)
+w=numeric(n)
+w[as.integer(rownames(w_sum))]=w_sum[,1]
+out=as.numeric(crossprod(w,matrix(RxyList,nrow=n)))
+dim(out)=dim(X)
+dimnames(out)=dimnames(X)
+return(out)
 }
 return(colSums(RxyList[indvalid,,,drop=FALSE]*Weight[indvalid]))
 }
@@ -829,7 +848,13 @@ return(max(idx))
 }
 
 #' @export
-cluster_prob <- function(cluster.index, R, alpha = 0, group_size = 4) {
+cluster_prob <- function(cluster.index, R) {
+eff <- cluster_effective_size(cluster.index, R)
+p0 <- eff / sum(eff)
+return(p0)
+}
+
+cluster_effective_size <- function(cluster.index, R) {
 ids <- sort(unique(cluster.index))
 w <- sapply(ids, function(i) {
 idx <- which(cluster.index == i)
@@ -839,22 +864,93 @@ sr  <- sum(ev)^2 / sum(ev^2)
 if (!is.finite(sr) || sr <= 0) sr <- 1e-8
 sr
 })
-p0 <- w / sum(w)
-if (alpha <= 0) {
-names(p0) <- ids
-return(p0)
+names(w) <- ids
+return(w)
 }
-ord       <- order(p0)
-p_sorted  <- p0[ord]
-n         <- length(p_sorted)
-group_id  <- ceiling(seq_len(n) / group_size)
-med <- tapply(p_sorted, group_id, median)
-alpha <- max(min(alpha, 1), 0)
-p_smooth_sorted <- (1 - alpha) * p_sorted + alpha * med[group_id]
-p_smooth <- p_smooth_sorted[order(ord)]
-p_smooth <- p_smooth / sum(p_smooth)
-names(p_smooth) <- ids
-return(p_smooth)
+
+cluster_sampling_plan <- function(cluster.index, R, sampling.strategy = "subsampling",
+                                  resampling.weight = "stratified", group_size = 4,
+                                  sampling.fraction = 0.5) {
+sampling.type <- normalize_sampling_strategy(sampling.strategy)
+scheme <- normalize_resampling_weight(resampling.weight)
+replace <- sampling.type == "bootstrap"
+ids <- sort(unique(cluster.index))
+eff <- cluster_effective_size(cluster.index, R)
+eff <- eff[as.character(ids)]
+eff[!is.finite(eff) | eff <= 0] <- 1e-8
+prob <- eff / sum(eff)
+J <- length(ids)
+if (J == 0) stop("cluster.index must contain at least one cluster.")
+total_size <- if (replace) J else max(1L, floor(sampling.fraction * J))
+
+strata <- rep(1L, J)
+stratum_counts <- NULL
+if (scheme == "stratified") {
+group_size <- as.integer(ceiling(group_size[1]))
+if (!is.finite(group_size) || group_size < 2L) group_size <- 2L
+if (group_size %% 2L == 1L) group_size <- group_size + 1L
+ord <- order(eff, ids)
+strata[ord] <- ceiling(seq_along(ids) / group_size)
+stratum_sizes <- tabulate(strata, nbins = max(strata))
+if (replace) {
+stratum_counts <- stratum_sizes
+} else {
+raw_counts <- sampling.fraction * stratum_sizes
+stratum_counts <- floor(raw_counts)
+remainder <- total_size - sum(stratum_counts)
+if (remainder > 0) {
+add_order <- order(raw_counts - stratum_counts, decreasing = TRUE)
+for (h in add_order) {
+if (remainder <= 0) break
+if (stratum_counts[h] < stratum_sizes[h]) {
+stratum_counts[h] <- stratum_counts[h] + 1L
+remainder <- remainder - 1L
+}
+}
+}
+}
+} else {
+group_size <- NA_integer_
+}
+
+return(list(ids = ids, eff = eff, prob = prob, strategy = sampling.type,
+            scheme = scheme, replace = replace, total_size = total_size,
+            strata = strata, stratum_counts = stratum_counts,
+            group_size = group_size, sampling.fraction = sampling.fraction))
+}
+
+sample_cluster_blocks <- function(plan) {
+if (plan$scheme != "stratified" || length(unique(plan$strata)) == 1) {
+return(sort(sample(plan$ids, size = plan$total_size, replace = plan$replace, prob = plan$prob)))
+}
+selected <- integer(0)
+for (h in sort(unique(plan$strata))) {
+ids_h <- plan$ids[plan$strata == h]
+kh <- plan$stratum_counts[h]
+if (kh <= 0) next
+prob_h <- plan$prob[as.character(ids_h)]
+if (!is.finite(sum(prob_h)) || sum(prob_h) <= 0) prob_h <- NULL
+selected <- c(selected, sample(ids_h, size = kh, replace = plan$replace, prob = prob_h))
+}
+return(sort(selected))
+}
+
+normalize_sampling_strategy <- function(sampling.strategy) {
+strategy <- tolower(sampling.strategy[1])
+if (strategy %in% c("bootstrap", "subsampling")) return(strategy)
+stop("sampling.strategy must be 'bootstrap' or 'subsampling'.")
+}
+
+normalize_resampling_weight <- function(resampling.weight = "stratified") {
+weight <- tolower(resampling.weight[1])
+if (!weight %in% c("stratified", "weighted")) {
+stop("resampling.weight must be 'stratified' or 'weighted'.")
+}
+weight
+}
+
+is_bootstrap_sampling <- function(sampling.strategy) {
+normalize_sampling_strategy(sampling.strategy) == "bootstrap"
 }
 
 xtx_positive <- function(XtX, Xty, eps = 1e-10) {

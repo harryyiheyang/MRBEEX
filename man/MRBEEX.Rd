@@ -37,10 +37,10 @@ MRBEEX(
   ridge.diff = 1000,
   estimate_residual_method = "MoM",
   sampling.strategy = "subsampling",
+  resampling.weight = "stratified",
+  group_size = 4,
   sampling.time = 300,
   sampling.iter = 25,
-  prob_shrinkage_coef = 0.5,
-  prob_shrinkage_size = 4,
   maxdiff = 3,
   reliability.thres = 0.6,
   coverage.causal = 0.95,
@@ -74,8 +74,6 @@ MRBEEX(
 \item{use.susie}{An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.}
 
 \item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.}
-
-\item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled or mixture-component matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 
 \item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
@@ -119,15 +117,15 @@ MRBEEX(
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{"bootstrap" or "subsampling" (0.5 sample without replacement).}
+\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
 
-\item{sampling.time}{Number of blockwise bootstrapping times. Default is \code{100}.}
+\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
 
-\item{sampling.iter}{Number of iterations per blockwise bootstrapping procedure. Default is \code{10}.}
+\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 
-\item{prob_shrinkage_coef}{Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.}
+\item{sampling.time}{Number of resampling repeats. Default is \code{100}.}
 
-\item{prob_shrinkage_size}{Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.}
+\item{sampling.iter}{Number of estimation iterations per resampling repeat. Default is \code{10}.}
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 
@@ -148,6 +146,8 @@ MRBEEX(
 \item{gcov}{A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.}
 
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
+
+\item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled or mixture-component matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 }
 \value{
 A list that contains the results of the MRBEEX with respect to different methods applied:
@@ -155,24 +155,24 @@ A list that contains the results of the MRBEEX with respect to different methods
   \item{\code{theta}}{Causal effect estimate.}
   \item{\code{theta.se}}{Standard error of the causal effect estimate.}
   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
-  \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the subsampling procedure.}
+  \item{\code{theta.pip}}{Empirical posterior inclusion probability (PIP) of the causal effect in the resampling procedure.}
   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
   \item{\code{theta.ini}}{Initial value of \code{theta} used in the estimation procedure.}
   \item{\code{gamma.ini}}{Initial value of \code{gamma} used in the estimation procedure.}
   \item{\code{reliability.adjust}}{Estimated reliability-adjusted values.}
-  \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.}
+  \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the resampling procedure.}
+  \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the resampling procedure.}
   \item{\code{theta1}}{Causal effect estimate for the first mixture component (when \code{method="Mixture"}).}
   \item{\code{theta2}}{Causal effect estimate for the second mixture component (when \code{method="Mixture"}).}
   \item{\code{theta.se1}}{Standard error of \code{theta1}.}
   \item{\code{theta.se2}}{Standard error of \code{theta2}.}
   \item{\code{theta.cov1}}{Covariance matrix of \code{theta1}.}
   \item{\code{theta.cov2}}{Covariance matrix of \code{theta2}.}
-  \item{\code{theta.pip1}}{Empirical PIP of \code{theta1} in the subsampling procedure.}
-  \item{\code{theta.pip2}}{Empirical PIP of \code{theta2} in the subsampling procedure.}
-  \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{thetalist2}}{List of \code{theta2} estimates recorded during each iteration in the subsampling procedure.}
+  \item{\code{theta.pip1}}{Empirical PIP of \code{theta1} in the resampling procedure.}
+  \item{\code{theta.pip2}}{Empirical PIP of \code{theta2} in the resampling procedure.}
+  \item{\code{thetalist1}}{List of \code{theta1} estimates recorded during each iteration in the resampling procedure.}
+  \item{\code{thetalist2}}{List of \code{theta2} estimates recorded during each iteration in the resampling procedure.}
   \item{\code{Voting}}{A list that contains (1) the weights of two mixtures and (2) the voting results of two mixture based on main.cluster.thres.}
 }
 }

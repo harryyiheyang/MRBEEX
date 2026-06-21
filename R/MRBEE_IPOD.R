@@ -1,4 +1,4 @@
-MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,sampling.strategy="bootstrap"){
+MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -132,11 +132,13 @@ ThetaList=matrix(0,sampling.time,p)
 colnames(ThetaList)=colnames(bX)
 GammaList=matrix(0,sampling.time,m)
 colnames(GammaList)=rownames(bX)
-cat("Bootstrapping starts:\n")
+cat("Resampling starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
-cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
 j=1
 if(isLD) {
+cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                         resampling.weight = resampling.weight,
+                                         group_size = group_size)
 cluster_cache <- precompute_cluster_blocks(
 bX = bX,
 bXse = bXse,
@@ -153,21 +155,10 @@ indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-if (sampling.strategy == "bootstrap") {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = max(cluster.index),
-                           replace = TRUE,
-                           prob = cluster_prob)
-} else {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = 0.5 * max(cluster.index),
-                           replace = FALSE,
-                           prob = cluster_prob)
-}
+cluster.sampling <- sample_cluster_blocks(cluster_sampler)
   cluster.sampling=sort(cluster.sampling)
 sampled_blocks <- cluster_cache[cluster.sampling]
 indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-indj <- sort(indj)
 mj <- length(indj)
 LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
 Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
@@ -181,7 +172,7 @@ BtBj <- (t(BtBj) + BtBj) / 2
 dBtBj <- diag(BtBj)
 Btj <- do.call(cbind, lapply(sampled_blocks, function(b) b$Bt))
 }else{
-if (sampling.strategy == "bootstrap") {
+if (is_bootstrap_sampling(sampling.strategy)) {
 indj <- sample(1:m, size = m, replace = TRUE)
 } else {
 indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
@@ -198,6 +189,7 @@ BtBj=matrixMultiply(Btj,bXj)
 BtBj=(t(BtBj)+BtBj)/2
 dBtBj=diag(BtBj)
 }
+Rxyallj <- biasterm(RxyList = RxyList, indj)
 thetaj=theta*runif(p,0.95,1.05)
 gammaj=gamma1j=gamma[indj]*runif(1,0.975,1.025)
 deltaj=0*gammaj
@@ -209,7 +201,12 @@ if(length(indvalidj)<(0.55*length(indj))){
 indvalidj=sample(1:length(indj),0.6*length(indj))
 gamma1j[indvalidj]=gammaj[indvalidj]=0
 }
+invalidj <- which(gamma1j!=0)
+if(length(invalidj)<length(indvalidj)){
+Rxysumj <- Rxyallj-biasterm(RxyList = RxyList, indj[invalidj])
+}else{
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
+}
 g <- matrixVectorMultiply(Btj, byj - as.vector(LDj%*%gammaj)) - Rxysumj[1:p, p + 1]
 thetaj <- c(CppMatrix::matrixSolve(BtBj - Rxysumj[1:p, 1:p]+Diff_matrix/2, g))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
@@ -240,7 +237,7 @@ close(pb)
 t2=Sys.time()
 time_to_print=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){
-cat(paste0("Bootstrapping ends: ",time_to_print," secs\n"))
+cat(paste0("Resampling ends: ",time_to_print," secs\n"))
 }
 theta.se=colSDMAD(ThetaList)
 theta.cov=covmad(ThetaList)

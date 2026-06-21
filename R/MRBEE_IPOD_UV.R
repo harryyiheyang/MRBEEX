@@ -1,4 +1,4 @@
-MRBEE_IPOD_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,prob_shrinkage_coef=0.5,prob_shrinkage_size=4,sampling.strategy="bootstrap"){
+MRBEE_IPOD_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -89,7 +89,9 @@ res=by-bX*theta-as.vector(LD%*%gamma)
 var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
 if(sampling.time>0){
 ThetaList=c(1:sampling.time)
-cluster_prob <- cluster_prob(cluster.index,LD,alpha=prob_shrinkage_coef,group_size=prob_shrinkage_size)
+cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
+                                         resampling.weight = resampling.weight,
+                                         group_size = group_size)
 cluster_cache <- precompute_cluster_blocks_uv(
 bX = bX,
 bXse = bXse,
@@ -102,17 +104,7 @@ cluster.index = cluster.index,
 rho = rho
 )
 for(j in 1:sampling.time){
-if (sampling.strategy == "bootstrap") {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = max(cluster.index),
-                           replace = TRUE,
-                           prob = cluster_prob)
-} else {
-cluster.sampling <- sample(1:max(cluster.index),
-                           size = 0.5 * max(cluster.index),
-                           replace = FALSE,
-                           prob = cluster_prob)
-}
+cluster.sampling <- sample_cluster_blocks(cluster_sampler)
 cluster.sampling=sort(cluster.sampling)
 sampled_blocks <- cluster_cache[cluster.sampling]
 indj <- unlist(lapply(sampled_blocks, function(b) b$idx))

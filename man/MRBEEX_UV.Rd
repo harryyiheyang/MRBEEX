@@ -22,10 +22,10 @@ MRBEEX_UV(
   max.eps = 0.001,
   maxdiff = 3,
   sampling.strategy = "subsampling",
+  resampling.weight = "stratified",
+  group_size = 4,
   sampling.time = 1000,
   sampling.iter = 20,
-  prob_shrinkage_coef = 0.5,
-  prob_shrinkage_size = 4,
   theta.ini = F,
   gamma.ini = F,
   ldsc = NULL,
@@ -65,15 +65,15 @@ MRBEEX_UV(
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.}
 
-\item{sampling.strategy}{"bootstrap" or "subsampling" (0.5 sample without replacement).}
+\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
+
+\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
+
+\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 
 \item{sampling.time}{Number of resampling times. Default is \code{100}.}
 
 \item{sampling.iter}{Number of iterations per resampling. Default is \code{20}.}
-
-\item{prob_shrinkage_coef}{Shrinkage coefficient (alpha) used to smooth block sampling probabilities within each group. 0 = no shrinkage; 1 = full shrinkage to group median.}
-
-\item{prob_shrinkage_size}{Number of blocks per smoothing group (e.g., 3–5). Blocks are sorted by weight and grouped before applying shrinkage.}
 
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 
@@ -89,14 +89,14 @@ A list containing the results of the MRBEEX.UV analysis:
   \item{\code{theta}}{Causal effect estimate.}
   \item{\code{theta.se}}{Standard error of the causal effect estimate.}
   \item{\code{theta.cov}}{Covariance matrix of the causal effect estimate.}
-  \item{\code{theta.bootstrap}}{Resampled causal effect estimates in bootstrap.}
+  \item{\code{theta.bootstrap}}{Resampled causal effect estimates.}
   \item{\code{gamma}}{Estimate of horizontal pleiotropy.}
   \item{\code{Bic}}{A vector or matrix recording the Bayesian Information Criterion (BIC) values.}
   \item{\code{theta.ini}}{Initial value of \code{theta} used in the estimation procedure.}
   \item{\code{gamma.ini}}{Initial value of \code{gamma} used in the estimation procedure.}
   \item{\code{reliability.adjust}}{Estimated reliability-adjusted values.}
-  \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the subsampling procedure.}
-  \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the subsampling procedure.}
+  \item{\code{thetalist}}{List of \code{theta} estimates recorded during each iteration in the resampling procedure.}
+  \item{\code{gammalist}}{List of \code{gamma} estimates recorded during each iteration in the resampling procedure.}
 }
 }
 \description{
