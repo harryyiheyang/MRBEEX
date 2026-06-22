@@ -18,14 +18,14 @@ library(MRBEEX)
 library(devtools)
 library(MendelianRandomization)
 
-document()
+devtools::load_all()
 theta_eur=c(1,0,0.5,0,0.2,0,0.2,rep(0,3))/2
 theta_eas=c(1,0,0.5,0,0.2,0,0.2,rep(0,3))/2
 theta_eas=c(1,0,0.3,0,0.2,0,0,rep(0,3))/2
 n_eas=0.5e5
 n_eur=5e5
-m_eas=2000
-m_eur=2000
+m_eas=200
+m_eur=200
 h_eur=0.1
 h_eas=0.1
 SB_eur=kronecker(CScov(2,0.5),ARcov(5,0.5))
@@ -49,7 +49,7 @@ bXse_eas=A_eas$bXse
 byse_eas=A_eas$byse
 Rxy_eas=A_eas$Rxy
 
-fit_eur_mrbee=MRBEEX::MRBEEX(by=by_eur,bX=bX_eur,byse=byse_eur,bXse=bXse_eur,Rxy=Rxy_eur,LD="identity")
+fit_eur_mrbee=MRBEE_LDA(by=by_eur,bX=bX_eur,byse=byse_eur,bXse=bXse_eur,Rxy=Rxy_eur,LD="identity",sampling.time=2,sampling.iter=2)
 
 t1=Sys.time()
 fit_mrbee=MRBEE_IMRP(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas)
@@ -57,7 +57,7 @@ t2=Sys.time()
 imrp.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit_mrbee_susie=MRBEEX::MRBEEX(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas,LD="identity")
+fit_mrbee_susie=MRBEE_LDA(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas,LD="identity",sampling.time=2,sampling.iter=2)
 t2=Sys.time()
 mrbee.susie.time=difftime(t2, t1, units = "secs")
 
@@ -79,13 +79,13 @@ MVINPUT=mr_mvinput(by=by_eas,bx=bX_eas,byse=byse_eas,bxse=bXse_eas)
 # mvcML.time=difftime(t2, t1, units = "secs")
 
 t1=Sys.time()
-fit_tran_mrbee=MRBEE_TL(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas,theta.source=fit_eur_mrbee$theta,theta.source.cov=fit_eur_mrbee$theta.cov)
+fit_tran_mrbee=MRBEE_TL(by=by_eas,bX=bX_eas,byse=byse_eas,bXse=bXse_eas,Rxy=Rxy_eas,theta.source=fit_eur_mrbee$theta,theta.source.cov=fit_eur_mrbee$theta.cov,sampling.time=2,sampling.iter=2)
 t2=Sys.time()
 mrbee.tran.time=difftime(t2, t1, units = "secs")
 
-Estimate=cbind(fit_tran_mrbee$theta,fit_mrbee_susie$theta,fit_mrbee$theta,fit_median@Estimate,fit_lasso@Estimate)
-SE=cbind(fit_tran_mrbee$theta.se,fit_mrbee_susie$theta.se,fit_mrbee$theta.se,fit_median@StdError,fit_lasso@StdError)
-time=c(mrbee.tran.time,mrbee.susie.time,imrp.time,mvcML.time,median.time,lasso.time)
+Estimate=cbind(fit_tran_mrbee$theta,fit_mrbee_susie$theta,fit_mrbee$theta)
+SE=cbind(fit_tran_mrbee$theta.se,fit_mrbee_susie$theta.se,fit_mrbee$theta.se)
+time=c(mrbee.tran.time,mrbee.susie.time,imrp.time)
 print(apply(Estimate-theta_eas,2,norm,"2"))
 Estimate
 SE

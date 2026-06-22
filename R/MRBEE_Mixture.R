@@ -1,4 +1,4 @@
-MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,tau=5,step.size=0.5){
+MRBEE_Mixture=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,reliability.thres=0.8,sampling.time=100,ebic.theta=1,max.iter=30,max.eps=5e-4,sampling.iter=5,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,tau=5,step.size=0.5){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -144,49 +144,24 @@ pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 cluster.index <- as.integer(factor(cluster.index))
 j=1
 consec_error=0
-if(isLD==T){
-  cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
-                                           resampling.weight = resampling.weight,
-                                           group_size = group_size)
-  cluster_cache <- precompute_cluster_blocks_mixture(
-    bX = bX,
-    bXse = bXse,
-    by = by,
-    byse = byse,
-    TC = TC,
-    cluster.index = cluster.index
-  )
-}
 
 while(j<=sampling.time){
   indicator <- FALSE
   setTxtProgressBar(pb, j)
   tryCatch({
+    indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
+    bXj=bX[indj,,drop=FALSE]
+    bXsej=bXse[indj,,drop=FALSE]
+    byj=by[indj]
+    bysej=byse[indj]
+    LDj=LD[indj,indj]
     if(isLD==T){
-      cluster.sampling <- sample_cluster_blocks(cluster_sampler)
-      cluster.sampling=sort(cluster.sampling)
-      sampled_blocks <- cluster_cache[cluster.sampling]
-      indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-      LDj=LD[indj,indj]
-      TCj=TC[indj,indj]
-      tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
-      tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
-      bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
-      bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-      bXj <- bX[indj, , drop = FALSE]
-      byj <- by[indj]
+      TCj=chol(solve(LDj))
+      tilde.Xj=as.matrix(TCj%*%bXj)
+      tilde.yj=as.vector(TCj%*%byj)
     }else{
-      if (is_bootstrap_sampling(sampling.strategy)) {
-        indj <- sample(1:m, size = m, replace = TRUE)
-      } else {
-        indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
-      }
-      indj=sort(indj)
-      bXj=tilde.Xj=bX[indj,,drop=FALSE]
-      bXsej=bXse[indj,,drop=FALSE]
-      byj=tilde.yj=by[indj]
-      bysej=byse[indj]
-      LDj=LD[indj,indj]
+      tilde.Xj=bXj
+      tilde.yj=byj
     }
     Rxyallj <- biasterm(RxyList = RxyList, indj)
     theta1j=theta1*runif(p,0.95,1.05)*0.95

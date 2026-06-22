@@ -1,4 +1,4 @@
-MRBEE_Greedy_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,Kvec=seq(0,floor(0.5*length(by)),by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4){
+MRBEE_Greedy_UV=function(by,bX,byse,bXse,LD=LD,Rxy,cluster.index,Kvec=seq(0,floor(0.5*length(by)),by=2),max.iter=100,max.eps=0.001,ebic.gamma=1,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,reliability.thres=0.8,LDSC=NULL,Omega=NULL){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -89,30 +89,12 @@ var_error=sum(res*(Theta%*%res))/(length(indvalid)-1)
 if(sampling.time>0){
 ThetaList=c(1:sampling.time)
 cluster.index <- as.integer(factor(cluster.index))
-cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
-                                         resampling.weight = resampling.weight,
-                                         group_size = group_size)
-cluster_cache <- precompute_cluster_blocks_uv(
-bX = bX,
-bXse = bXse,
-by = by,
-byse = byse,
-LD = LD,
-Theta = Theta,
-Thetarho = Theta,
-cluster.index = cluster.index,
-rho = 0
-)
 for(j in 1:sampling.time){
-cluster.sampling <- sample_cluster_blocks(cluster_sampler)
-cluster.sampling=sort(cluster.sampling)
-sampled_blocks <- cluster_cache[cluster.sampling]
-indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
-Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
-Thetarhoj <- bdiag(lapply(sampled_blocks, function(b) b$Thetarho))
-Bt <- unlist(lapply(sampled_blocks, function(b) b$Bt))
-BtB <- sum(sapply(sampled_blocks, function(b) b$BtB))
+indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
+LDj <- LD[indj, indj, drop = FALSE]
+Thetaj <- solve(LDj)
+Bt <- as.vector(Thetaj%*%bX[indj])
+BtB <- sum(bX[indj] * Bt)
 gammaj=gamma[indj]*runif(1,0.95,1.05)
 errorj=1
 thetaj=theta*runif(1,0.95,1.05)

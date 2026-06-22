@@ -1,4 +1,4 @@
-MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4){
+MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,LDSC=NULL,Omega=NULL,sampling.strategy="bootstrap"){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -135,42 +135,24 @@ colnames(GammaList)=rownames(bX)
 cat("Resampling starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
-if(isLD) {
-cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
-                                         resampling.weight = resampling.weight,
-                                         group_size = group_size)
-cluster_cache <- precompute_cluster_blocks(
-bX = bX,
-bXse = bXse,
-by = by,
-byse = byse,
-LD = LD,
-Theta = Theta,
-Thetarho = Thetarho,
-cluster.index = cluster.index
-)
-}
 while(j<=sampling.time){
 indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
 if(isLD==T){
-cluster.sampling <- sample_cluster_blocks(cluster_sampler)
-  cluster.sampling=sort(cluster.sampling)
-sampled_blocks <- cluster_cache[cluster.sampling]
-indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
+indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
 mj <- length(indj)
-LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
-Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
-Thetarhoj <- bdiag(lapply(sampled_blocks, function(b) b$Thetarho))
-bXj <- do.call(rbind, lapply(sampled_blocks, function(b) b$bX))
-bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
-byj <- unlist(lapply(sampled_blocks, function(b) b$by))
-bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-BtBj <- Reduce('+', lapply(sampled_blocks, function(b) b$BtB))
+LDj <- LD[indj, indj, drop = FALSE]
+Thetaj <- solve(LDj)
+Thetarhoj <- solve(LDj + rho * diag(mj))
+bXj <- bX[indj,,drop=FALSE]
+bXsej <- bXse[indj,,drop=FALSE]
+byj <- by[indj]
+bysej <- byse[indj]
+Btj <- as.matrix(t(bXj)%*%Thetaj)
+BtBj <- matrixMultiply(Btj,bXj)
 BtBj <- (t(BtBj) + BtBj) / 2
 dBtBj <- diag(BtBj)
-Btj <- do.call(cbind, lapply(sampled_blocks, function(b) b$Bt))
 }else{
 if (is_bootstrap_sampling(sampling.strategy)) {
 indj <- sample(1:m, size = m, replace = TRUE)

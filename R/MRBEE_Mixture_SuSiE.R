@@ -1,4 +1,4 @@
-MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_method="MoM",sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,standardize=T,tau=5,step.size=0.5,theta.ini.1=NULL,theta.ini.2=NULL){
+MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),main.cluster.thres=0.45,min.cluster.size=5,Lvec=c(1:min(5,ncol(bX))),pip.thres=0.2,ebic.theta=1,reliability.thres=0.8,sampling.time=100,max.iter=30,max.eps=5e-4,sampling.iter=5,susie.iter=100,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,estimate_residual_variance=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_method="MoM",standardize=T,tau=5,step.size=0.5,theta.ini.1=NULL,theta.ini.2=NULL){
   t1=Sys.time()
   by=by/byse
   byseinv=1/byse
@@ -457,48 +457,23 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
   cluster.index <- as.integer(factor(cluster.index))
   j=1
   consec_error=0
-  if(isLD==T){
-    cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
-                                             resampling.weight = resampling.weight,
-                                             group_size = group_size)
-    cluster_cache <- precompute_cluster_blocks_mixture(
-      bX = bX,
-      bXse = bXse,
-      by = by,
-      byse = byse,
-      TC = TC,
-      cluster.index = cluster.index
-    )
-  }
   while(j<=sampling.time){
     indicator <- FALSE
     setTxtProgressBar(pb, j)
       tryCatch({
+      indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
+      bXj=bX[indj,,drop=FALSE]
+      bXsej=bXse[indj,,drop=FALSE]
+      byj=by[indj]
+      bysej=byse[indj]
+      LDj=LD[indj,indj]
       if(isLD==T){
-        cluster.sampling <- sample_cluster_blocks(cluster_sampler)
-        cluster.sampling=sort(cluster.sampling)
-        sampled_blocks <- cluster_cache[cluster.sampling]
-        indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
-        LDj=LD[indj,indj]
-        TCj=TC[indj,indj]
-        tilde.Xj <- do.call(rbind, lapply(sampled_blocks, function(b) b$tilde.X))
-        tilde.yj <- unlist(lapply(sampled_blocks, function(b) b$tilde.y))
-        bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
-        bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-        bXj <- bX[indj, , drop = FALSE]
-        byj <- by[indj]
+        TCj=chol(solve(LDj))
+        tilde.Xj=as.matrix(TCj%*%bXj)
+        tilde.yj=as.vector(TCj%*%byj)
       }else{
-        if (is_bootstrap_sampling(sampling.strategy)) {
-          indj <- sample(1:m, size = m, replace = TRUE)
-        } else {
-          indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
-        }
-        indj=sort(indj)
-        bXj=tilde.Xj=bX[indj,,drop=FALSE]
-        bXsej=bXse[indj,,drop=FALSE]
-        byj=tilde.yj=by[indj]
-        bysej=byse[indj]
-        LDj=LD[indj,indj]
+        tilde.Xj=bXj
+        tilde.yj=byj
       }
       Rxyallj <- biasterm(RxyList = RxyList, indj)
       theta1j=theta1*runif(p,0.95,1.05)*0.95
@@ -512,13 +487,8 @@ MRBEE_Mixture_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)
       errorj=1
       gammaj=gamma[indj]
       tauj=ifelse(consec_error>10, 1e4, tau)
-      if(is_bootstrap_sampling(sampling.strategy)){
-        fit.susie1j=fit.susie1
-        fit.susie2j=fit.susie2
-      }else{
-        fit.susie1j=NULL
-        fit.susie2j=NULL
-      }
+      fit.susie1j=NULL
+      fit.susie2j=NULL
       project_XtX1j <- new_FProjector(Veigen1)
       project_XtX2j <- new_FProjector(Veigen2)
 

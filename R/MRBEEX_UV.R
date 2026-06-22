@@ -18,9 +18,6 @@
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{0}.
-#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
-#' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
-#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
 #' @param sampling.time Number of resampling times. Default is \code{100}.
 #' @param sampling.iter Number of iterations per resampling. Default is \code{20}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
@@ -58,16 +55,16 @@ MRBEEX_UV=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
         Method="IPOD",
         tauvec=seq(4,8,by=2),admm.rho=2,ebic.gamma=0,
         Kvec=seq(1,length(bX)/2,by=2),
-        max.iter=100,max.eps=0.001,maxdiff=3,sampling.strategy="subsampling",resampling.weight="stratified",
-        group_size=4,sampling.time=1000,sampling.iter=20,
+        max.iter=100,max.eps=0.001,maxdiff=3,
+        sampling.time=1000,sampling.iter=20,
         theta.ini=F,gamma.ini=F,ldsc=NULL,gcov=NULL){
 ##########################################################################
 if(Method[1]=="IPOD"){
-A=MRBEE_IPOD_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,tauvec=tauvec,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,LDSC=ldsc,Omega=gcov,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size)
+A=MRBEE_IPOD_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,ebic.gamma=ebic.gamma,max.iter=max.iter,max.eps=max.eps,tauvec=tauvec,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,LDSC=ldsc,Omega=gcov)
 }
 ##########################################################################
 if(Method[1]=="Greedy"){
-A=MRBEE_Greedy_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Kvec=Kvec,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov,sampling.strategy=sampling.strategy,resampling.weight=resampling.weight,group_size=group_size)
+A=MRBEE_Greedy_UV(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Kvec=Kvec,reliability.thres=reliability.thres,sampling.time=sampling.time,max.iter=max.iter,max.eps=max.eps,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 }
 
 return(A)

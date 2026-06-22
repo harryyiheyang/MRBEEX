@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",sampling.strategy="subsampling",resampling.weight="stratified",group_size=4,standardize=T){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",standardize=T){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -242,16 +242,19 @@ colnames(GammaList)=rownames(bX)
 cat("Resampling starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
 j=1
+resampling.retries=0
 while(j<=sampling.time){
 indicator <- FALSE
+resampling.stage <- "start"
 setTxtProgressBar(pb, j)
 tryCatch({
-indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
+indj <- sort(sample.int(m, size = max(2L, floor(0.5 * m)), replace = FALSE))
 mj <- length(indj)
-LDj <- LD[indj, indj, drop = FALSE]
+LDj <- Matrix(LD[indj, indj, drop = FALSE], sparse = TRUE)
+resampling.stage <- "LD solve"
 Thetaj <- solve(LDj)
 Cinvj <- LDj
-A_gammaj <- LD[indj, , drop = FALSE]
+A_gammaj <- Matrix(LD[indj, , drop = FALSE], sparse = TRUE)
 bXj <- bX[indj,,drop=FALSE]
 bXsej <- bXse[indj,,drop=FALSE]
 byj <- by[indj]
@@ -271,6 +274,7 @@ project_XtXj <- new_FProjector(Veigen, eigen.floor=projection.eigen.floorj)
 
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
+resampling.stage <- "bias correction"
 indvalidj <- which(gamma1j[indj]==0)
 if(length(indvalidj)<(0.55*length(indj))){
 indvalidj=sample(seq_along(indj), max(1L, floor(0.6*length(indj))))
@@ -288,10 +292,11 @@ XtXj.raw=BtBj-Cmatj
 XtXj=project_XtXj(XtXj.raw, Diff_matrix/2, indvalidj)
 Xtyj=matrixVectorMultiply(Btj,res.thetaj)-Rxysumj[1:p,p+1]
 ytyj=sum(res.thetaj*(Thetaj%*%res.thetaj))
+resampling.stage <- "susie"
 fit.thetaj=tryCatch({
-susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",max_iter=ifelse(jiter==1,1000,30),model_init=fit.thetaj,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
+susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",max_iter=ifelse(jiter==1,susie.iter,min(susie.iter,30)),model_init=fit.thetaj,coverage = coverage.causal,estimate_residual_variance=estimate_residual_variance,residual_variance=max(0.9,vary),estimate_residual_method=estimate_residual_method,standardize=standardize)
 },error = function(e) {
-susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),max_iter=ifelse(jiter==1,1000,30),model_init=fit.thetaj,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
+susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),max_iter=ifelse(jiter==1,susie.iter,min(susie.iter,30)),model_init=fit.thetaj,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
 thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
 theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
@@ -304,12 +309,14 @@ if(length(pip.alivej)>0){
 indthetaj=which(thetaj!=0)
 Diffj=generate_block_matrix(summary(fit.thetaj)$vars,m/dBtBj,thetaj)
 if(length(indthetaj)==1){
+resampling.stage <- "single-effect refit"
 xtxj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2,eigen.floor=projection.eigen.floorj)
 xtxj=xtxj[1,1]
 xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=xtyj/xtxj
 }
 if(length(indthetaj)>1){
+resampling.stage <- "multi-effect refit"
 XtXj=project_select_xtx(XtXj.raw[indthetaj,indthetaj,drop=FALSE]+Diff_matrix[indthetaj,indthetaj,drop=FALSE]/2+ridge.diff*Diffj[indthetaj,indthetaj,drop=FALSE],eigen.floor=projection.eigen.floorj)
 Xtyj=Xtyj[indthetaj]
 thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
@@ -317,10 +324,12 @@ thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
+resampling.stage <- "gamma projection"
 gamma_centerj <- as.vector(gamma1j - deltaj/rho)
 gamma_residj <- as.vector(byj - matrixVectorMultiply(bXj,thetaj) - A_gammaj%*%gamma_centerj)
-gamma_middlej <- solve(rho*Cinvj + A_gammaj%*%t(A_gammaj), gamma_residj)
-gammaj=as.vector(gamma_centerj + t(A_gammaj)%*%gamma_middlej)
+gamma_hessianj <- Matrix::forceSymmetric(rho*Cinvj + tcrossprod(A_gammaj))
+gamma_middlej <- Matrix::solve(gamma_hessianj, gamma_residj)
+gammaj=as.vector(gamma_centerj + crossprod(A_gammaj,gamma_middlej))
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
 gammaj=gammaj*(gamma1j!=0)
@@ -328,12 +337,17 @@ if(jiter>4) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break
 }
 ThetaList[j, ] <- thetaj
+resampling.retries=0
 j=j+1
 }, error = function(e) {
-indicator <<- TRUE  # Set indicator to TRUE if an error occurs
+resampling.retries <<- resampling.retries+1
+if(resampling.retries>20){
+stop("MRBEE_IPOD_SuSiE resampling failed repeatedly at ", resampling.stage, ": ", conditionMessage(e))
+}
+indicator <<- TRUE
 })
 if (indicator) {
-next  # Retry the current iteration
+next
 }
 }
 close(pb)
