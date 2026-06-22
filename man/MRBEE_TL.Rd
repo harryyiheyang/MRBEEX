@@ -35,8 +35,6 @@ MRBEE_TL(
   ridge.diff = 100,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
-  resampling.weight = "stratified",
-  group_size = 4,
   projection.eigen.floor = 1,
   sampling.time = 300,
   sampling.iter = 25,
@@ -103,17 +101,13 @@ MRBEE_TL(
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
-
-\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
-
-\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
+\item{sampling.strategy}{Resampling scheme used only by the independent branch where \code{LD="identity"}.}
 
 \item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 
-\item{sampling.time}{Number of resampling repeats for standard-error estimation. Default is \code{100}.}
+\item{sampling.time}{Number of fixed half-SNP sampling repeats for standard-error estimation. Default is \code{300}.}
 
-\item{sampling.iter}{Number of estimation iterations per resampling repeat. Default is \code{10}.}
+\item{sampling.iter}{Number of estimation iterations per sampling repeat. Default is \code{25}.}
 
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
 

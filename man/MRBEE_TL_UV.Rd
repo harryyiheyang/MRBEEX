@@ -27,10 +27,7 @@ MRBEE_TL_UV(
   sampling.time = 100,
   sampling.iter = 10,
   ldsc = NULL,
-  gcov = NULL,
-  sampling.strategy = "subsampling",
-  resampling.weight = "stratified",
-  group_size = 4
+  gcov = NULL
 )
 }
 \arguments{
@@ -79,12 +76,6 @@ MRBEE_TL_UV(
 \item{ldsc}{A vector (n x 1) of the LDSCs of the IVs.}
 
 \item{gcov}{A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.}
-
-\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
-
-\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
-
-\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 }
 \value{
 A list containing the estimated causal effect, its covariance, and pleiotropy.

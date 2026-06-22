@@ -21,9 +21,6 @@ MRBEEX_UV(
   max.iter = 100,
   max.eps = 0.001,
   maxdiff = 3,
-  sampling.strategy = "subsampling",
-  resampling.weight = "stratified",
-  group_size = 4,
   sampling.time = 1000,
   sampling.iter = 20,
   theta.ini = F,
@@ -64,12 +61,6 @@ MRBEEX_UV(
 \item{max.eps}{Tolerance for stopping criteria. Defaults to \code{0.001}.}
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.}
-
-\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
-
-\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
-
-\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
 
 \item{sampling.time}{Number of resampling times. Default is \code{100}.}
 
