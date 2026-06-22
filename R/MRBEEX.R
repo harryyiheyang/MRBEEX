@@ -36,9 +36,9 @@
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
 #' @param ebic.theta EBIC factor on causal effect. Default is \code{0}.
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy. Default is \code{1}.
-#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
-#' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
-#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
+#' @param sampling.strategy Resampling scheme for methods that still use block resampling. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. IPOD+SuSiE inference uses fixed half-SNP LD resampling with \code{Thetaj=solve(LD[indj,indj])} and full-length \code{gammaj}.
+#' @param resampling.weight Block weighting rule for LD/block resampling in methods that still use block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler. This is ignored by IPOD+SuSiE.
+#' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"} and by IPOD+SuSiE.
 #' @param sampling.time Number of resampling repeats. Default is \code{100}.
 #' @param sampling.iter Number of estimation iterations per resampling repeat. Default is \code{10}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.

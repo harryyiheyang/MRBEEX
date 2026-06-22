@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",sampling.strategy="bootstrap",resampling.weight="stratified",group_size=4,standardize=T){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",sampling.strategy="subsampling",resampling.weight="stratified",group_size=4,standardize=T){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -241,90 +241,48 @@ GammaList=matrix(0,sampling.time,m)
 colnames(GammaList)=rownames(bX)
 cat("Resampling starts:\n")
 pb <- txtProgressBar(min = 0, max = sampling.time, style = 3)
-cluster.index <- as.integer(factor(cluster.index))
-if(isLD) {
-cluster_sampler <- cluster_sampling_plan(cluster.index, LD, sampling.strategy = sampling.strategy,
-                                         resampling.weight = resampling.weight,
-                                         group_size = group_size)
-cluster_cache <- precompute_cluster_blocks(
-bX = bX,
-bXse = bXse,
-by = by,
-byse = byse,
-LD = LD,
-Theta = Theta,
-Thetarho = Thetarho,
-cluster.index = cluster.index
-)
-}
 j=1
 while(j<=sampling.time){
 indicator <- FALSE
 setTxtProgressBar(pb, j)
 tryCatch({
-if(isLD==T){
-cluster.sampling <- sample_cluster_blocks(cluster_sampler)
-cluster.sampling=sort(cluster.sampling)
-sampled_blocks <- cluster_cache[cluster.sampling]
-indj <- unlist(lapply(sampled_blocks, function(b) b$idx))
+indj <- sort(sample.int(m, size = max(1L, floor(0.5 * m)), replace = FALSE))
 mj <- length(indj)
-LDj <- bdiag(lapply(sampled_blocks, function(b) b$LD))
-Thetaj <- bdiag(lapply(sampled_blocks, function(b) b$Theta))
-Thetarhoj <- bdiag(lapply(sampled_blocks, function(b) b$Thetarho))
-bXj <- do.call(rbind, lapply(sampled_blocks, function(b) b$bX))
-bXsej <- do.call(rbind, lapply(sampled_blocks, function(b) b$bXse))
-byj <- unlist(lapply(sampled_blocks, function(b) b$by))
-bysej <- unlist(lapply(sampled_blocks, function(b) b$byse))
-BtBj <- Reduce('+', lapply(sampled_blocks, function(b) b$BtB))
+LDj <- LD[indj, indj, drop = FALSE]
+Thetaj <- solve(LDj)
+Cinvj <- LDj
+A_gammaj <- LD[indj, , drop = FALSE]
+bXj <- bX[indj,,drop=FALSE]
+bXsej <- bXse[indj,,drop=FALSE]
+byj <- by[indj]
+bysej <- byse[indj]
+Btj <- as.matrix(t(bXj) %*% Thetaj)
+BtBj <- matrixMultiply(Btj,bXj)
 BtBj <- (t(BtBj) + BtBj) / 2
 dBtBj <- diag(BtBj)
-Btj <- do.call(cbind, lapply(sampled_blocks, function(b) b$Bt))
-}else{
-if (is_bootstrap_sampling(sampling.strategy)) {
-indj <- sample(1:m, size = m, replace = TRUE)
-} else {
-indj <- sample(1:m, size = 0.5 * m, replace = FALSE)
-}
-indj=sort(indj)
-LDj=Matrix(diag(length(indj)),sparse=T)
-bXj=bX[indj,,drop=FALSE]
-bXsej=bXse[indj,,drop=FALSE]
-byj=by[indj]
-bysej=byse[indj]
-Btj <- t(bXj)
-BtBj=matrixMultiply(Btj,bXj)
-BtBj=(t(BtBj)+BtBj)/2
-dBtBj=diag(BtBj)
-Thetaj=LDj
-mj=length(indj)
-}
 Rxyallj <- biasterm(RxyList = RxyList, indj)
 thetaj=theta*runif(p,0.95,1.05)
-gammaj=gamma1j=gamma[indj]*runif(1,0.975,1.025)
+gammaj=gamma1j=as.vector(gamma*runif(1,0.975,1.025))
 deltaj=gammaj*0
 errorj=1
-if(is_bootstrap_sampling(sampling.strategy)){
-fit.thetaj=fit.theta
-}else{
 fit.thetaj=NULL
-}
 projection.eigen.floorj <- projection.eigen.floor*mj/m
 project_XtXj <- new_FProjector(Veigen, eigen.floor=projection.eigen.floorj)
 
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
-indvalidj <- which(gamma1j==0)
+indvalidj <- which(gamma1j[indj]==0)
 if(length(indvalidj)<(0.55*length(indj))){
-indvalidj=sample(1:length(indj),0.6*length(indj))
-gamma1j[indvalidj]=gammaj[indvalidj]=0
+indvalidj=sample(seq_along(indj), max(1L, floor(0.6*length(indj))))
+gamma1j[indj[indvalidj]]=gammaj[indj[indvalidj]]=0
 }
-invalidj <- which(gamma1j!=0)
+invalidj <- which(gamma1j[indj]!=0)
 if(length(invalidj)<length(indvalidj)){
 Rxysumj <- Rxyallj-biasterm(RxyList = RxyList, indj[invalidj])
 }else{
 Rxysumj <- biasterm(RxyList = RxyList, indj[indvalidj])
 }
-res.thetaj=byj-as.vector(LDj%*%gammaj)
+res.thetaj=byj-as.vector(A_gammaj%*%gammaj)
 Cmatj=Rxysumj[1:p,1:p]
 XtXj.raw=BtBj-Cmatj
 XtXj=project_XtXj(XtXj.raw, Diff_matrix/2, indvalidj)
@@ -359,15 +317,12 @@ thetaj[indthetaj]=c(CppMatrix::matrixSolve(XtXj,Xtyj))
 if((norm(thetaj, "2") / norm(theta.ini1, "2")) > maxdiff) {
 thetaj <- thetaj / norm(thetaj, "2") * maxdiff * norm(theta.ini1, "2")
 }
-if(isLD){
-gammaj=as.vector(Thetarhoj%*%(byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))
+gamma_centerj <- as.vector(gamma1j - deltaj/rho)
+gamma_residj <- as.vector(byj - matrixVectorMultiply(bXj,thetaj) - A_gammaj%*%gamma_centerj)
+gamma_middlej <- solve(rho*Cinvj + A_gammaj%*%t(A_gammaj), gamma_residj)
+gammaj=as.vector(gamma_centerj + t(A_gammaj)%*%gamma_middlej)
 gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
 deltaj=deltaj+rho*(gammaj-gamma1j)
-}else{
-gammaj=as.vector((byj-matrixVectorMultiply(bXj,thetaj)-deltaj+rho*gamma1j))/(1+rho)
-gamma1j=mcp(gammaj+deltaj/rho,tauvec[jstar]/rho)
-deltaj=deltaj+rho*(gammaj-gamma1j)
-}
 gammaj=gammaj*(gamma1j!=0)
 if(jiter>4) errorj=norm(thetaj-theta_prevj,"2")
 if(errorj<max.eps) break

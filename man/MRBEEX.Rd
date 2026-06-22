@@ -117,11 +117,11 @@ MRBEEX(
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
+\item{sampling.strategy}{Resampling scheme for methods that still use block resampling. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. IPOD+SuSiE inference uses fixed half-SNP LD resampling with \code{Thetaj=solve(LD[indj,indj])} and full-length \code{gammaj}.}
 
-\item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
+\item{resampling.weight}{Block weighting rule for LD/block resampling in methods that still use block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler. This is ignored by IPOD+SuSiE.}
 
-\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.}
+\item{group_size}{Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"} and by IPOD+SuSiE.}
 
 \item{sampling.time}{Number of resampling repeats. Default is \code{100}.}
 
