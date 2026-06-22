@@ -182,7 +182,11 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-indj <- sort(sample.int(n, size = max(1L, floor(0.5 * n)), replace = FALSE))
+if (is_bootstrap_sampling(sampling.strategy)) {
+indj <- sample(1:n, size = n, replace = TRUE)
+} else {
+indj <- sample(1:n, size = 0.5 * n, replace = FALSE)
+}
 nj=length(indj)
 bXj=bX[indj,,drop=FALSE]
 byj=by[indj]
@@ -192,19 +196,23 @@ brj=br[indj]
 thetaj=theta*runif(length(theta),0.95,1.05)
 RxyListj=RxyList[indj,,]
 Rxyallj=biasterm(RxyList=RxyListj,c(1:nj))
-gammaj=as.vector(gamma)
-indvalidj=which(gammaj[indj]==0)
+gammaj=gamma[indj]
+indvalidj=which(gammaj==0)
 deltaj=theta.source-thetaj
 BtBj=matrixMultiply(bXj,bXj,transA=TRUE)
 gamma1j=uj=gammaj*0
 errorj=1
+if(is_bootstrap_sampling(sampling.strategy)){
+fit.susiej=fit.susie
+}else{
 fit.susiej=NULL
+}
 
 projection.eigen.floorj <- projection.eigen.floor*nj/n
 project_XtXj <- new_FProjector(Veigen, eigen.floor=projection.eigen.floorj)
 for(jiter in 1:sampling.iter){
 theta_prevj=thetaj
-indvalidj=which(gamma1j[indj]==0)
+indvalidj=which(gamma1j==0)
 if(length(indvalidj)==nj){
 Rxysumj=Rxyallj
 }else{
@@ -213,7 +221,7 @@ Rxysumj=Rxyallj-biasterm(RxyList=RxyListj,setdiff(1:nj,indvalidj))
 fit.clusterj=center.classifying(deltaj,-theta.source)
 delta.complementj=fit.clusterj$complement
 delta.clusterj=fit.clusterj$clusterj
-br.complementj=c(brj-bXj%*%delta.complementj-gammaj[indj])
+br.complementj=c(brj-bXj%*%delta.complementj-gammaj)
 addbiasj=matrixVectorMultiply(Rxysumj[1:p,1:p],theta.source+delta.complementj)
 Cmatj=Rxysumj[1:p,1:p]
 XtXj.raw=BtBj-Cmatj
@@ -249,10 +257,7 @@ delta.latentj[inddeltaj]=c(CppMatrix::matrixSolve(xtxj,xtyj))
 }
 deltaj=delta.latentj+delta.complementj
 thetaj=deltaj+theta.source
-gamma_centerj <- as.vector(gamma1j - uj/admm.rho)
-gamma_residj <- as.vector(byj - matrixVectorMultiply(bXj,thetaj) - gamma_centerj[indj])
-gammaj <- gamma_centerj
-gammaj[indj] <- gammaj[indj] + gamma_residj/(1+admm.rho)
+gammaj=(byj-matrixVectorMultiply(bXj,thetaj)-uj+admm.rho*gamma1j)/(1+admm.rho)
 gamma1j=mcp(gammaj+uj/admm.rho,tauvec[vstar]/admm.rho)
 uj=uj+admm.rho*(gammaj-gamma1j)
 gammaj=gammaj*(gamma1j!=0)
