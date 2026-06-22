@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,coverage.causal=0.95,xQTLfitList=NULL){
+Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,coverage.causal=0.95,xQTLfitList=NULL,standardize=F){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -63,7 +63,7 @@ res.theta=by-matrixVectorMultiply(LD,gamma)
 XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*matrixVectorMultiply(Theta,res.theta))
-fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=1,estimate_residual_variance=T,estimate_prior_method="EM",max_iter=susie.iter,standardize=F,model_init=fit.theta,coverage=coverage.causal)
+fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=1,estimate_residual_variance=T,estimate_prior_method="EM",max_iter=susie.iter,standardize=standardize,model_init=fit.theta,coverage=coverage.causal)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep
@@ -125,7 +125,7 @@ res.theta=by-matrixVectorMultiply(LD,gamma)
 XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
-fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=1,estimate_prior_method="EM",estimate_residual_variance=T,max_iter=susie.iter*10,standardize=F,model_init=fit.theta,coverage=coverage.causal)
+fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=1,estimate_prior_method="EM",estimate_residual_variance=T,max_iter=susie.iter*10,standardize=standardize,model_init=fit.theta,coverage=coverage.causal)
 theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
 theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
 pip.alive=theta.cs$ind.keep

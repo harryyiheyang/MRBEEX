@@ -49,7 +49,7 @@
 #'
 MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),
   group.penalize=F,group.index=NULL,group.diff=100,
-  theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=T,
+  theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=F,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
   max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,

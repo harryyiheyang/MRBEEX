@@ -19,7 +19,7 @@ MRBEE_TL(
   theta.source.cov,
   tauvec = seq(4, 8, 0.5),
   Lvec = c(1:6),
-  standardize = T,
+  standardize = F,
   admm.rho = 2,
   ebic.delta = 0,
   ebic.gamma = 1,

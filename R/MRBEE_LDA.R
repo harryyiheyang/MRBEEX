@@ -64,7 +64,7 @@
 #' @export
 
 MRBEE_LDA=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
-               use.susie=T,standardize=T,
+               use.susie=T,standardize=F,
                group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=100,
                tauvec=seq(4,8,by=0.5),admm.rho=2,
                Lvec=c(1:min(10,ncol(bX))),pip.thres=0.25,estimate_residual_variance=T,

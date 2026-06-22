@@ -13,7 +13,7 @@ MRBEE_LDA(
   Rxy,
   cluster.index = c(1:length(by)),
   use.susie = T,
-  standardize = T,
+  standardize = F,
   group.penalize = F,
   group.index = c(1:ncol(bX)[1]),
   group.diff = 100,

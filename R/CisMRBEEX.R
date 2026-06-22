@@ -41,6 +41,7 @@
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param xQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
+#' @param standardize If standardize = TRUE, standardize the columns of X to unit variance prior to fitting in SuSiE. Default is \code{F}.
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #'
 #' @importFrom MASS rlm ginv
@@ -81,12 +82,12 @@ CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
                     outlier.switch=T,Annotation=NULL,output.labels=NULL,
                     carma.iter=5,carma.inner.iter=5,xQTL.max.num=10,
                     carma.epsilon.threshold=1e-3,
-                    admm.rho=2,ridge.diff=1e3,
-                    max.iter=100,max.eps=0.001,susie.iter=500,
-                    coverage.xQTL=0.95,coverage.causal=0.95,
-                    ebic.theta=0,ebic.gamma=1,
-                    theta.ini=F,gamma.ini=F,xQTLfitList=NULL,
-                    verbose=T){
+                     admm.rho=2,ridge.diff=1e3,
+                     max.iter=100,max.eps=0.001,susie.iter=500,
+                     coverage.xQTL=0.95,coverage.causal=0.95,
+                     ebic.theta=0,ebic.gamma=1,
+                     theta.ini=F,gamma.ini=F,xQTLfitList=NULL,
+                     standardize=F,verbose=T){
 
 cat("Please standardize data such that BETA = Zscore/sqrt n and SE = 1/sqrt n\n")
 ######################### Estimate xQTL effect size ############################
@@ -275,7 +276,7 @@ pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
 t1=Sys.time()
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList,standardize=standardize)
 t2=Sys.time()
 causal_estimation_time=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){

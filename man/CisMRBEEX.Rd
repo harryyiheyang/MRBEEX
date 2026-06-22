@@ -44,6 +44,7 @@ CisMRBEEX(
   theta.ini = F,
   gamma.ini = F,
   xQTLfitList = NULL,
+  standardize = F,
   verbose = T
 )
 }
@@ -125,6 +126,8 @@ CisMRBEEX(
 \item{gamma.ini}{Initial value of gamma. Default is \code{FALSE}.}
 
 \item{xQTLfitList}{Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.}
+
+\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting in SuSiE. Default is \code{F}.}
 
 \item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 }
