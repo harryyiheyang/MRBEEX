@@ -103,7 +103,7 @@ MRBEE_TL(
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.}
+\item{sampling.strategy}{Resampling scheme for the LD-matrix branch. When \code{LD="identity"}, TL inference uses fixed half-IV resampling without replacement and keeps the resampled \code{gammaj} update on the full IV scale.}
 
 \item{resampling.weight}{Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.}
 

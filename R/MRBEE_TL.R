@@ -32,7 +32,7 @@
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
-#' @param sampling.strategy Resampling scheme. \code{"bootstrap"} samples blocks with replacement; \code{"subsampling"} samples one half of blocks without replacement. When \code{LD="identity"}, resampling is performed at the IV level.
+#' @param sampling.strategy Resampling scheme for the LD-matrix branch. When \code{LD="identity"}, TL inference uses fixed half-IV resampling without replacement and keeps the resampled \code{gammaj} update on the full IV scale.
 #' @param resampling.weight Block weighting rule for LD/block resampling. \code{"stratified"} (default) sorts blocks by effective sample size, forms strata containing \code{group_size} blocks each, and samples within each stratum with effective-size weights. \code{"weighted"} uses one global effective-size weighted sampler.
 #' @param group_size Number of LD blocks per effective-size stratum when \code{resampling.weight="stratified"}. Odd values are rounded up to the next even integer. This is ignored when \code{LD="identity"}.
 #' @param sampling.time Number of resampling repeats for standard-error estimation. Default is \code{100}.
