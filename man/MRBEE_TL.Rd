@@ -31,7 +31,7 @@ MRBEE_TL(
   max.iter = 50,
   coverage.causal = 0.95,
   max.eps = 1e-06,
-  reliability.thres = 0.5,
+  reliability.thres = 0.6,
   ridge.diff = 100,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
@@ -61,7 +61,7 @@ MRBEE_TL(
 
 \item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
 
-\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
+\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.}
 
 \item{theta.source}{A vector (p x 1) of the causal effect estimate learning from the source data.}
 
@@ -93,11 +93,11 @@ MRBEE_TL(
 
 \item{coverage.causal}{The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.}
 
-\item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-4}.}
+\item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-6}.}
 
 \item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
 
-\item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
+\item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.}
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 

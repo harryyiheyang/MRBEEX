@@ -51,7 +51,7 @@ MRBEE_IMRP(
 
 \item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
 
-\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.}
+\item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{1000}.}
 }
 \value{
 A list containing the estimated causal effect, its covariance, and pleiotropy

@@ -9,16 +9,16 @@
 #' @param LD The linkage disequilibrium (LD) matrix. Default is the identity matrix, assuming independent instrumental variables (IVs).
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last element corresponds to the outcome.
 #' @param cluster.index A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param Method Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Greedy"}.
-#' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
+#' @param tauvec When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=2)}.
 #' @param Kvec When choosing \code{"Greedy"}, the candidate vector of number of pleiotropy in the greedy search algorithm. Default is \code{seq(1, length(bX)/2, by=2)}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
-#' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.
-#' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{0}.
-#' @param sampling.time Number of resampling times. Default is \code{100}.
+#' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.
+#' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{1}.
+#' @param sampling.time Number of resampling times. Default is \code{1000}.
 #' @param sampling.iter Number of iterations per resampling. Default is \code{20}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
@@ -51,9 +51,9 @@
 #' @export
 
 MRBEEX_UV=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),
-        reliability.thres=0.8,
+        reliability.thres=0.6,
         Method="IPOD",
-        tauvec=seq(4,8,by=2),admm.rho=2,ebic.gamma=0,
+        tauvec=seq(4,8,by=2),admm.rho=2,ebic.gamma=1,
         Kvec=seq(1,length(bX)/2,by=2),
         max.iter=100,max.eps=0.001,maxdiff=3,
         sampling.time=1000,sampling.iter=20,

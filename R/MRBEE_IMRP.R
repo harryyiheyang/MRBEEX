@@ -16,7 +16,7 @@
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to 1.5.
 #' @param group.penalize An indicator of whether using SuSiE to penalize highly correlated exposures. Defaults to \code{F}.
 #' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
-#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
+#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{1000}.
 
 #' @return A list containing the estimated causal effect, its covariance, and pleiotropy
 #' @importFrom MASS rlm

@@ -17,10 +17,10 @@
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres A scale of PIP theshold for calibyating causality used in SuSiE. Default is \code{0.3}.
 #' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.
-#' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.
+#' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
-#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.
+#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param sampling.time Number of resampling repeats for standard-error estimation. Default is \code{100}.
 #' @param sampling.iter Number of estimation iterations per resampling repeat. Default is \code{10}.
 #' @param gcov A matrix (2 x 2) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
@@ -34,9 +34,9 @@
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 #'
-MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.8,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL){
+MRBEE_TL_UV=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)),theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=2,ebic.delta=1,ebic.gamma=1,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.6,sampling.time=100,sampling.iter=10,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
-A=MRBEE_TL_UV_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,theta.source=theta.source,theta.source.cov=theta.source.cov,tauvec=tauvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,max.iter=max.iter,max.eps=max.eps,reliability.thres=reliability.thres,sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
+A=MRBEE_TL_UV_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,theta.source=theta.source,theta.source.cov=theta.source.cov,tauvec=tauvec,admm.rho=admm.rho,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,max.iter=max.iter,max.eps=max.eps,reliability.thres=reliability.thres,sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
 }else{
 ######### Basic Processing  ##############

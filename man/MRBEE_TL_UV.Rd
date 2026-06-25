@@ -15,15 +15,15 @@ MRBEE_TL_UV(
   theta.source,
   theta.source.cov,
   tauvec = seq(3, 30, 3),
-  admm.rho = 3,
+  admm.rho = 2,
   ebic.delta = 1,
-  ebic.gamma = 2,
+  ebic.gamma = 1,
   transfer.coef = 1,
   susie.iter = 200,
   pip.thres = 0.3,
   max.iter = 50,
   max.eps = 1e-04,
-  reliability.thres = 0.8,
+  reliability.thres = 0.6,
   sampling.time = 100,
   sampling.iter = 10,
   ldsc = NULL,
@@ -55,7 +55,7 @@ MRBEE_TL_UV(
 
 \item{ebic.delta}{A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{1}.}
 
-\item{ebic.gamma}{A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{2}.}
+\item{ebic.gamma}{A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.}
 
 \item{transfer.coef}{A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.}
 
@@ -67,7 +67,7 @@ MRBEE_TL_UV(
 
 \item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-4}.}
 
-\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.8}.}
+\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
 
 \item{sampling.time}{Number of resampling repeats for standard-error estimation. Default is \code{100}.}
 

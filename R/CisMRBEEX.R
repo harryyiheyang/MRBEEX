@@ -8,7 +8,7 @@
 #' @param bXse A matrix of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The linkage disequilibrium (LD) matrix.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param xQTL.method The method used in purifying the xQTLs. SuSiE or CARMA can be used here, where the latter can be more accurate but much most computationally costly. Defaults is SuSiE.
 #' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
 #' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
@@ -28,16 +28,16 @@
 #' @param xQTL.max.num When choosing \code{"CARMA"}, the maximum number of causal variants assumed per locus, which is similar to the number of single effects in SuSiE. Defaults to 10.
 #' @param carma.epsilon.threshold When choosing \code{"CARMA"}, the convergence threshold measured by average of Bayes factors. Defaults to \code{1e-3}.
 #' @param model.infinitesimal An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.
-#' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
+#' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
 #' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(3, 30, by=3)}.
 #' @param admm.rho The tuning parameter in the nested ADMM algorithm. Default is \code{2}.
-#' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
+#' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:5)}.
 #' @param causal.pip.thres A threshold of minimum posterior inclusion probability. Default is \code{0.2}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
 #' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
 #' @param susie.iter Number of iterations in SuSiE per iteration. Default is \code{500}.
-#' @param ebic.theta EBIC factor on causal effect. Default is \code{1}.
-#' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{2}.
+#' @param ebic.theta EBIC factor on causal effect. Default is \code{0}.
+#' @param ebic.gamma EBIC factor on horizontal pleiotropy Default is \code{1}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param xQTLfitList Initial fits of xQTLs for exposures. This should be a list. Each component corresponds to the susie.fit of each exposure when xQTL.method = "SuSiE". When xQTL.method = "CARMA", this should be the list of results from a CARMA analysis. Users can customize additional SuSiE or CARMA parameters to improve performance. Default is \code{NULL}.
@@ -74,7 +74,7 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-                    reliability.thres=0.75,Lvec=c(1:5),causal.pip.thres=0.2,
+                    reliability.thres=0.6,Lvec=c(1:5),causal.pip.thres=0.2,
                     xQTL.method="SuSiE",xQTL.selection.rule="top_K",
                     top_K=1,xQTL.pip.min=0.2,
                     xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,

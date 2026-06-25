@@ -13,20 +13,20 @@
 #' @param use.susie An indicator of whether using SuSiE to select causal exposures. Defaults to \code{T}.
 #' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.
 #' @param group.penalize An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.
-#' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
+#' @param group.index A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.
-#' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{5}.
+#' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
 #' @param admm.rho The tuning parameter in the nested ADMM algorithm. Default is \code{2}.
-#' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.
-#' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.
+#' @param Lvec When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, ncol(bX)))}.
+#' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
 #' @param estimate_residual_variance When SuSiE is used, an indicator of whether estimating the variance of residuals. If setting F, the variance of residual will be fixed as \code{Rxy[p+1,p+1]}. Default is \code{T}.
 #' @param cred.pip.thres The threshold of PIP of each credible set. Defaults to \code{0.95}.
 #' @param coverage.causal The coverage of defining a credible set when \code{use.susie = T}. Defaults to \code{0.95}.
 #' @param standardize If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.
 #' @param projection.eigen.floor The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.
-#' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{100}.
-#' @param max.eps Tolerance for stopping criteria. Defaults to \code{0.001}.
+#' @param max.iter Maximum number of iterations for causal effect estimation. Defaults to \code{50}.
+#' @param max.eps Tolerance for stopping criteria. Defaults to \code{1e-5}.
 #' @param susie.iter Number of iterations in SuSiE per iteration. Default is \code{100}.
 #' @param maxdiff The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.
 #' @param ridge.diff A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.
@@ -69,7 +69,7 @@ MRBEE_LDA=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
                tauvec=seq(4,8,by=0.5),admm.rho=2,
                Lvec=c(1:min(10,ncol(bX))),pip.thres=0.25,estimate_residual_variance=T,
                pip.min=0.1,cred.pip.thres=0.95,
-               max.iter=50,max.eps=1e-6,susie.iter=100,
+               max.iter=50,max.eps=1e-5,susie.iter=100,
                ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
                estimate_residual_method="MoM",sampling.time=300,sampling.iter=25,
                maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,

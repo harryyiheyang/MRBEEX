@@ -25,7 +25,7 @@ MRBEE_LDA(
   pip.min = 0.1,
   cred.pip.thres = 0.95,
   max.iter = 50,
-  max.eps = 1e-06,
+  max.eps = 1e-05,
   susie.iter = 100,
   ebic.theta = 0,
   ebic.gamma = 1,
@@ -65,17 +65,17 @@ MRBEE_LDA(
 
 \item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
-\item{group.index}{A vector of the group index of exposure. Defaults to \code{NULL}.}
+\item{group.index}{A vector of the group index of exposure. Defaults to \code{c(1:ncol(bX))}.}
 
 \item{group.diff}{The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.}
 
-\item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{5}.}
+\item{tauvec}{The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
 
 \item{admm.rho}{The tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
+\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, ncol(bX)))}.}
 
-\item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.5}.}
+\item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.}
 
 \item{estimate_residual_variance}{When SuSiE is used, an indicator of whether estimating the variance of residuals. If setting F, the variance of residual will be fixed as \code{Rxy[p+1,p+1]}. Default is \code{T}.}
 
@@ -83,9 +83,9 @@ MRBEE_LDA(
 
 \item{cred.pip.thres}{The threshold of PIP of each credible set. Defaults to \code{0.95}.}
 
-\item{max.iter}{Maximum number of iterations for causal effect estimation. Defaults to \code{100}.}
+\item{max.iter}{Maximum number of iterations for causal effect estimation. Defaults to \code{50}.}
 
-\item{max.eps}{Tolerance for stopping criteria. Defaults to \code{0.001}.}
+\item{max.eps}{Tolerance for stopping criteria. Defaults to \code{1e-5}.}
 
 \item{susie.iter}{Number of iterations in SuSiE per iteration. Default is \code{100}.}
 

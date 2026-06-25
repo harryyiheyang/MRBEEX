@@ -4,7 +4,7 @@ Title: Mendelian Randomization using Bias-Correction Estimating Equations with E
 Version: 0.1.0
 Author: Yihe Yang
 Maintainer: Yihe Yang <yxy1234@case.edu>
-Description: MRBEEX provides the MRBEE framework and several follow-up methods for Mendelian Randomization (MR) analysis. The package currently includes three major components: cisMRBEE for multivariable cis-Mendelian randomization, MRBEE_LDA for LD-aware multivariable MR using bias-corrected estimating equations with optional SuSiE exposure selection, and MRBEE_TL for transfer learning across populations. These methods are designed to reduce weak instrument bias, accommodate correlated instrumental variables through LD information, and improve causal effect estimation in settings with horizontal pleiotropy or population heterogeneity.
+Description: MRBEEX provides the MRBEE framework and several follow-up methods for Mendelian Randomization (MR) analysis. The package currently includes several methods, including CisMRBEEX, MRBEE_LDA, and MRBEE_TL: CisMRBEEX supports multivariable cis-Mendelian randomization, MRBEE_LDA supports LD-aware multivariable MR using bias-corrected estimating equations with optional SuSiE exposure selection, and MRBEE_TL supports transfer learning across populations. These methods are designed to reduce weak instrument bias, accommodate correlated instrumental variables through LD information, and improve causal effect estimation in settings with horizontal pleiotropy or population heterogeneity.
 License: MIT LICENSE
 Encoding: UTF-8
 LazyData: true

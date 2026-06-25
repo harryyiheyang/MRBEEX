@@ -12,7 +12,7 @@ CisMRBEEX(
   LD,
   Rxy,
   model.infinitesimal = F,
-  reliability.thres = 0.75,
+  reliability.thres = 0.6,
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
   xQTL.method = "SuSiE",
@@ -63,9 +63,9 @@ CisMRBEEX(
 
 \item{model.infinitesimal}{An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
 
-\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:min(10, nrow(bX)))}.}
+\item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:5)}.}
 
 \item{causal.pip.thres}{A threshold of minimum posterior inclusion probability. Default is \code{0.2}.}
 
@@ -105,7 +105,7 @@ CisMRBEEX(
 
 \item{admm.rho}{The tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{ridge.diff}{A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.}
+\item{ridge.diff}{A ridge.parameter on the differences of causal effect estimate in one credible set. Defaults to \code{1e3}.}
 
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Defaults to \code{100}.}
 
@@ -117,9 +117,9 @@ CisMRBEEX(
 
 \item{coverage.causal}{The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.}
 
-\item{ebic.theta}{EBIC factor on causal effect. Default is \code{1}.}
+\item{ebic.theta}{EBIC factor on causal effect. Default is \code{0}.}
 
-\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{2}.}
+\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{1}.}
 
 \item{theta.ini}{Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.}
 

@@ -12,11 +12,11 @@ MRBEEX_UV(
   LD = "identity",
   Rxy,
   cluster.index = c(1:length(by)),
-  reliability.thres = 0.8,
+  reliability.thres = 0.6,
   Method = "IPOD",
   tauvec = seq(4, 8, by = 2),
   admm.rho = 2,
-  ebic.gamma = 0,
+  ebic.gamma = 1,
   Kvec = seq(1, length(bX)/2, by = 2),
   max.iter = 100,
   max.eps = 0.001,
@@ -44,15 +44,15 @@ MRBEEX_UV(
 
 \item{cluster.index}{A vector indicating the LD block indices each IV belongs to. The length is equal to the number of IVs, and values are the LD block indices.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
 
 \item{Method}{Method for handling horizontal pleiotropy. Options are \code{"IPOD"} and \code{"Greedy"}.}
 
-\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.}
+\item{tauvec}{When choosing \code{"IPOD"}, the candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=2)}.}
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
-\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{0}.}
+\item{ebic.gamma}{EBIC factor on horizontal pleiotropy Default is \code{1}.}
 
 \item{Kvec}{When choosing \code{"Greedy"}, the candidate vector of number of pleiotropy in the greedy search algorithm. Default is \code{seq(1, length(bX)/2, by=2)}.}
 
@@ -60,9 +60,9 @@ MRBEEX_UV(
 
 \item{max.eps}{Tolerance for stopping criteria. Defaults to \code{0.001}.}
 
-\item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{1.5}.}
+\item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 
-\item{sampling.time}{Number of resampling times. Default is \code{100}.}
+\item{sampling.time}{Number of resampling times. Default is \code{1000}.}
 
 \item{sampling.iter}{Number of iterations per resampling. Default is \code{20}.}
 

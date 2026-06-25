@@ -18,14 +18,14 @@ CisMRBEE_UV(
   xQTL.max.L = 10,
   xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  reliability.thres = 0.75,
+  reliability.thres = 0.6,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
   coverage.xQTL = 0.95,
   coverage.causal = 0.95,
   max.iter = 100,
   max.eps = 0.001,
-  ebic.gamma = 2,
+  ebic.gamma = 1,
   xQTLfit = NULL
 )
 }
@@ -56,9 +56,9 @@ CisMRBEE_UV(
 
 \item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
 
-\item{tauvec}{A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.}
+\item{tauvec}{A vector of tuning parameters used in penalizing the direct causal effect. Default is \code{seq(3, 30, by=1.5)}.}
 
 \item{admm.rho}{A parameter set in the ADMM algorithm. Default is \code{2}.}
 
@@ -66,11 +66,11 @@ CisMRBEE_UV(
 
 \item{coverage.causal}{The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.}
 
-\item{max.iter}{The maximum number of iterations for the ADMM algorithm. Default is \code{15}.}
+\item{max.iter}{The maximum number of iterations for the ADMM algorithm. Default is \code{100}.}
 
-\item{max.eps}{The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.}
+\item{max.eps}{The convergence tolerance for the ADMM algorithm. Default is \code{0.001}.}
 
-\item{ebic.gamma}{The extended BIC factor for model selection. Default is \code{2}.}
+\item{ebic.gamma}{The extended BIC factor for model selection. Default is \code{1}.}
 
 \item{xQTLfit}{Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.}
 }

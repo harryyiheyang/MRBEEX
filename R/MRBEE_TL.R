@@ -18,7 +18,7 @@
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param group.penalize An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.
 #' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
-#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{10}.
+#' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.
 #' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
@@ -29,9 +29,9 @@
 #' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.
 #' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
-#' @param max.eps Tolerance for stopping criteria. Default is \code{1e-4}.
+#' @param max.eps Tolerance for stopping criteria. Default is \code{1e-6}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
-#' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{10}.
+#' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.
 #' @param sampling.strategy Resampling scheme used only by the independent branch where \code{LD="identity"}.
 #' @param sampling.time Number of fixed half-SNP sampling repeats for standard-error estimation. Default is \code{300}.
 #' @param sampling.iter Number of estimation iterations per sampling repeat. Default is \code{25}.
@@ -52,14 +52,14 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=F,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-  max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,
+  max.eps=1e-6,reliability.thres=0.6,ridge.diff=100,
   estimate_residual_method="MoM",sampling.strategy="bootstrap",
   projection.eigen.floor=1,sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        theta.source=theta.source,theta.source.cov=theta.source.cov,
        group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
-       tauvec=tauvec,Lvec=Lvec,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,standardize=standardize,
+       tauvec=tauvec,Lvec=Lvec,admm.rho=admm.rho,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,standardize=standardize,
        transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
        pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
        estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,

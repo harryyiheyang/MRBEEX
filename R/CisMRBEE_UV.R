@@ -8,7 +8,7 @@
 #' @param bXse A vector of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The LD matrix of variants.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
 #' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
 #' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
@@ -16,11 +16,11 @@
 #' @param xQTL.N The sample sizes of exposure.
 #' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
 #' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
-#' @param tauvec A vector of tuning parameters used in penalizing the direct causal effect. Default is `seq(3,10,by=1)`.
+#' @param tauvec A vector of tuning parameters used in penalizing the direct causal effect. Default is \code{seq(3, 30, by=1.5)}.
 #' @param admm.rho A parameter set in the ADMM algorithm. Default is \code{2}.
-#' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is \code{15}.
-#' @param max.eps The convergence tolerance for the ADMM algorithm. Default is \code{0.005}.
-#' @param ebic.gamma The extended BIC factor for model selection. Default is \code{2}.
+#' @param max.iter The maximum number of iterations for the ADMM algorithm. Default is \code{100}.
+#' @param max.eps The convergence tolerance for the ADMM algorithm. Default is \code{0.001}.
+#' @param ebic.gamma The extended BIC factor for model selection. Default is \code{1}.
 #' @param coverage.xQTL The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.
 #' @param coverage.causal The coverage of defining a credible set in cis-MRBEE. Defaults to \code{0.95}.
 #' @param xQTLfit  Initial fits of xQTLs for exposures. This should only be yielded by SuSiE, as CARMA is not allowed for cis-UVMR analysis currently. Default is \code{NULL}.
@@ -45,10 +45,10 @@
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
      top_K=1,xQTL.pip.min=0.2,
      xQTL.max.L=10,xQTL.cred.thres=0.95,
-     xQTL.pip.thres=0.5,reliability.thres=0.75,
+     xQTL.pip.thres=0.5,reliability.thres=0.6,
      tauvec=seq(3,30,by=1.5),admm.rho=2,
      coverage.xQTL=0.95,coverage.causal=0.95,
-     max.iter=100,max.eps=0.001,ebic.gamma=2,
+     max.iter=100,max.eps=0.001,ebic.gamma=1,
      xQTLfit=NULL){
 m=length(by)
 Theta=solve(LD)
