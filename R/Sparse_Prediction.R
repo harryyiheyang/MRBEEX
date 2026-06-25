@@ -51,7 +51,11 @@ xQTL.weight=rep(1,m)
 }
 for(i in 1:p){
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
+if(length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)==xQTL.max.L){
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L+5,max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
+}else{
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=max(1,length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)),max_iter=1000,prior_weights=xQTL.weight,estimate_residual_method=estimate_residual_method,unmappable_effects=unmappable_effects,convergence_method=ifelse(unmappable_effects=="none","elbo","pip"))
+}
 xQTLfitList[[i]]=fit
 }
 }
