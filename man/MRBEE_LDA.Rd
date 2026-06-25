@@ -33,6 +33,7 @@ MRBEE_LDA(
   estimate_residual_method = "MoM",
   sampling.time = 300,
   sampling.iter = 25,
+  group.size = 4,
   maxdiff = 3,
   reliability.thres = 0.6,
   coverage.causal = 0.95,
@@ -100,6 +101,8 @@ MRBEE_LDA(
 \item{sampling.time}{Number of fixed half-SNP sampling repeats when \code{use.susie = TRUE}. This is not used when \code{use.susie = FALSE}. Default is \code{300}.}
 
 \item{sampling.iter}{Number of estimation iterations per sampling repeat when \code{use.susie = TRUE}. This is not used when \code{use.susie = FALSE}. Default is \code{25}.}
+
+\item{group.size}{Number of adjacent LD-ordered IVs per subsampling group when \code{use.susie = TRUE}. \code{group.size=1} gives the original IV-level subsampling. Default is \code{4}.}
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 

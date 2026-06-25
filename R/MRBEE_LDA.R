@@ -34,6 +34,7 @@
 #' @param ebic.gamma EBIC factor on horizontal pleiotropy. Default is \code{1}.
 #' @param sampling.time Number of fixed half-SNP sampling repeats when \code{use.susie = TRUE}. This is not used when \code{use.susie = FALSE}. Default is \code{300}.
 #' @param sampling.iter Number of estimation iterations per sampling repeat when \code{use.susie = TRUE}. This is not used when \code{use.susie = FALSE}. Default is \code{25}.
+#' @param group.size Number of adjacent LD-ordered IVs per subsampling group when \code{use.susie = TRUE}. \code{group.size=1} gives the original IV-level subsampling. Default is \code{4}.
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
@@ -71,7 +72,7 @@ MRBEE_LDA=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
                pip.min=0.1,cred.pip.thres=0.95,
                max.iter=50,max.eps=1e-5,susie.iter=100,
                ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
-               estimate_residual_method="MoM",sampling.time=300,sampling.iter=25,
+               estimate_residual_method="MoM",sampling.time=300,sampling.iter=25,group.size=4,
                maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,
                theta.ini=F,gamma.ini=F,verbose=T,gcov=NULL,ldsc=NULL,
                projection.eigen.floor=1){
@@ -79,7 +80,7 @@ MRBEE_LDA=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by
 ##########################################################################
 cluster.index <- as.integer(factor(cluster.index))
 if(use.susie){
-A=MRBEE_IPOD_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,estimate_residual_method=estimate_residual_method,standardize=standardize)
+A=MRBEE_IPOD_SuSiE(by=by,bX=bX,byse=byse,bXse=bXse,LD=LD,Rxy=Rxy,cluster.index=cluster.index,Lvec=Lvec,pip.thres=pip.thres,pip.min=pip.min,cred.pip.thres=cred.pip.thres,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,maxdiff=maxdiff,sampling.time=sampling.time,sampling.iter=sampling.iter,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge.diff=ridge.diff,projection.eigen.floor=projection.eigen.floor,verbose=verbose,group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,coverage.causal=coverage.causal,LDSC=ldsc,Omega=gcov,estimate_residual_variance=estimate_residual_variance,estimate_residual_method=estimate_residual_method,standardize=standardize,group.size=group.size)
 }
 ##########################################################################
 if(!use.susie){

@@ -35,6 +35,7 @@ MRBEE_TL(
   ridge.diff = 100,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
+  group.size = 4,
   projection.eigen.floor = 1,
   sampling.time = 300,
   sampling.iter = 25,
@@ -101,7 +102,9 @@ MRBEE_TL(
 
 \item{estimate_residual_method}{The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.}
 
-\item{sampling.strategy}{Resampling scheme used only by the independent branch where \code{LD="identity"}.}
+\item{sampling.strategy}{Resampling scheme used by the independent branch where \code{LD="identity"}. For LD-aware analyses, only \code{"subsampling"} is allowed.}
+
+\item{group.size}{Number of adjacent LD-ordered IVs per subsampling group in the LD-aware branch. \code{group.size=1} gives the original IV-level subsampling. Default is \code{4}.}
 
 \item{projection.eigen.floor}{The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.}
 

@@ -32,7 +32,8 @@
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-6}.
 #' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.
-#' @param sampling.strategy Resampling scheme used only by the independent branch where \code{LD="identity"}.
+#' @param sampling.strategy Resampling scheme used by the independent branch where \code{LD="identity"}. For LD-aware analyses, only \code{"subsampling"} is allowed.
+#' @param group.size Number of adjacent LD-ordered IVs per subsampling group in the LD-aware branch. \code{group.size=1} gives the original IV-level subsampling. Default is \code{4}.
 #' @param sampling.time Number of fixed half-SNP sampling repeats for standard-error estimation. Default is \code{300}.
 #' @param sampling.iter Number of estimation iterations per sampling repeat. Default is \code{25}.
 #' @param gcov A matrix (p+1 x p+1) of the per-snp genetic covariance matrix of the p exposures and outcome. The last one should be the outcome.
@@ -53,8 +54,9 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
   pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
   max.eps=1e-6,reliability.thres=0.6,ridge.diff=100,
-  estimate_residual_method="MoM",sampling.strategy="bootstrap",
+  estimate_residual_method="MoM",sampling.strategy="bootstrap",group.size=4,
   projection.eigen.floor=1,sampling.time=300,sampling.iter=25,ldsc=NULL,gcov=NULL){
+sampling.strategy <- normalize_sampling_strategy(sampling.strategy)
 if(LD[1]=="identity"){
 A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        theta.source=theta.source,theta.source.cov=theta.source.cov,
@@ -68,6 +70,9 @@ A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        sampling.time=sampling.time,sampling.iter=sampling.iter,LDSC=ldsc,Omega=gcov)
 return(A)
 }else{
+if(is_bootstrap_sampling(sampling.strategy)){
+stop("When LD clusters are present, only subsampling is allowed.")
+}
 ######### Basic Processing  ##############
 fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
@@ -263,7 +268,7 @@ while(j<=sampling.time) {
 setTxtProgressBar(pb, j)
 indicator <- FALSE
 tryCatch({
-indj <- sort(sample.int(n, size = max(2L, floor(0.5 * n)), replace = FALSE))
+indj <- group_subsampling_indices(cluster.index, group.size = group.size, min.size = 2L)
 nj <- length(indj)
 LDj <- Matrix(LD[indj, indj, drop = FALSE], sparse = TRUE)
 Thetaj <- solve(LDj)

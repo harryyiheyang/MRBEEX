@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",standardize=F){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.8,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,LDSC=NULL,Omega=NULL,estimate_residual_variance=T,estimate_residual_method="MoM",standardize=F,group.size=4){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -248,7 +248,7 @@ indicator <- FALSE
 resampling.stage <- "start"
 setTxtProgressBar(pb, j)
 tryCatch({
-indj <- sort(sample.int(m, size = max(2L, floor(0.5 * m)), replace = FALSE))
+indj <- group_subsampling_indices(cluster.index, group.size = group.size, min.size = 2L)
 mj <- length(indj)
 LDj <- Matrix(LD[indj, indj, drop = FALSE], sparse = TRUE)
 resampling.stage <- "LD solve"

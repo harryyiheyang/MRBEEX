@@ -878,6 +878,47 @@ is_bootstrap_sampling <- function(sampling.strategy) {
 normalize_sampling_strategy(sampling.strategy) == "bootstrap"
 }
 
+group_subsampling_indices <- function(cluster.index, group.size = 1, min.size = 1L) {
+n <- length(cluster.index)
+if(n < 1L) return(integer(0))
+if(any(is.na(cluster.index))){
+stop("cluster.index cannot contain NA when group subsampling is used.")
+}
+group.size <- as.integer(group.size[1])
+if(is.na(group.size) || !is.finite(group.size) || group.size < 1L){
+stop("group.size must be a positive integer.")
+}
+if(group.size == 1L){
+size <- max(as.integer(min.size[1]), floor(0.5 * n))
+size <- min(size, n)
+return(sort(sample.int(n, size = size, replace = FALSE)))
+}
+ld.order <- order(cluster.index, seq_len(n))
+nblocks <- floor(n / group.size)
+if(nblocks < 1L){
+size <- max(as.integer(min.size[1]), floor(0.5 * n))
+size <- min(size, n)
+return(sort(sample.int(n, size = size, replace = FALSE)))
+}
+drift <- n - nblocks * group.size
+drift.offset <- if(drift > 0L) sample.int(drift + 1L, 1L) - 1L else 0L
+n.selected.blocks <- max(1L, floor(0.5 * nblocks))
+n.selected.blocks <- min(n.selected.blocks, nblocks)
+selected.blocks <- sort(sample.int(nblocks, size = n.selected.blocks, replace = FALSE))
+block.positions <- unlist(lapply(selected.blocks, function(block.id) {
+start <- (block.id - 1L) * group.size + 1L + drift.offset
+seq.int(start, start + group.size - 1L)
+}), use.names = FALSE)
+block.positions <- block.positions[block.positions >= 1L & block.positions <= n]
+selected <- sort(unique(ld.order[block.positions]))
+target.min <- min(as.integer(min.size[1]), n)
+if(length(selected) < target.min){
+extra <- sample(setdiff(seq_len(n), selected), size = target.min - length(selected), replace = FALSE)
+selected <- sort(c(selected, extra))
+}
+return(selected)
+}
+
 xtx_positive <- function(XtX, Xty, eps = 1e-10) {
 d <- diag(XtX)
 ind <- which(d <= eps | is.na(d) | !is.finite(d))
