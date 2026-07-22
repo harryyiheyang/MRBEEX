@@ -299,7 +299,7 @@ min_indices <- min_indices[order(min_indices[,1], min_indices[,2]), ]
 return(min_indices[1, , drop = FALSE])
 }
 
-reliability.adj.uv=function(bx,bxse,Theta="identity",thres=0.6){
+reliability.adj.uv=function(bx,bxse,Theta="identity",thres=0.5){
 if(Theta[1]=="identity"){
 total.var=mean(bx^2)
 error.var=mean(bxse^2)
@@ -322,7 +322,7 @@ r=sqrt(r)
 return(r)
 }
 
-reliability.adj=function(bX,bXse,Theta="identity",thres=0.6){
+reliability.adj=function(bX,bXse,Theta="identity",thres=0.5){
 if(Theta[1]=="identity"){
 p=ncol(bX)
 r=rep(1,p)

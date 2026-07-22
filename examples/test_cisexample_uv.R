@@ -48,7 +48,7 @@ by=A$by
 bXse=A$bXse
 byse=A$byse
 estimate_residual_variance=T;residual_variance=1;
-reliability.thres=0.6;Lvec=c(1:5);pip.thres=0.2;
+reliability.thres=0.5;Lvec=c(1:5);pip.thres=0.2;
 xQTL.max.L=10;xQTL.sampling=1000;
 xQTL.pip.thres=0.5;xQTL.Nvec=rep(n1,p);
 block.rho=0;robust.sandwith=T;
@@ -58,12 +58,11 @@ ebic.theta=1;ebic.gamma=2;maxdiff=3;
 theta.ini=F;gamma.ini=F
 Rxy=A$Rxy
 xQTLfitList=NULL
-xQTL.cred.thres=0.95
 xQTL.pip.min=0.2
-reliability.thres=0.6;Lvec=c(1:5);causal.pip.thres=0.2;
+reliability.thres=0.5;Lvec=c(1:5);causal.pip.thres=0.2;
 xQTL.selection.rule="top_K";
 top_K=1;xQTL.pip.min=0.2;
-xQTL.max.L=10;xQTL.cred.thres=0.95;xQTL.pip.thres=0.5;
+xQTL.max.L=10;xQTL.pip.thres=0.5;
 xQTL.Nvec=Nvec=rep(n1,p);tauvec=seq(3,30,by=3);xQTL.weight=NULL;
 admm.rho=2;ridge.diff=1e3;
 max.iter=100;max.eps=0.001;susie.iter=500;

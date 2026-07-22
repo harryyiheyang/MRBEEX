@@ -1,4 +1,4 @@
-MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.6,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,pip.min=0.1,cred.pip.thres=0.95,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,estimate_residual_variance=T,estimate_residual_method="MoM",standardize=F,group.size=4){
+MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(by)),Lvec=c(1:min(10,nrow(bX))),pip.thres=0.5,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.5,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=10,theta.ini=F,gamma.ini=F,ridge.diff=1e5,projection.eigen.floor=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,estimate_residual_variance=T,estimate_residual_method="MoM",standardize=F,group.size=4){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse
@@ -46,7 +46,7 @@ Veigen=FProject_basis(BtB+Diff_matrix)
 theta.ini.missing=length(theta.ini)==1&&((is.logical(theta.ini)&&!theta.ini)||
                   (is.numeric(theta.ini)&&is.finite(theta.ini)&&theta.ini==0))
 if(theta.ini.missing){
-fit0=susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by,transA=TRUE)),yty=sum(by*(Theta%*%by)),L=10,n=m,coverage = coverage.causal,standardize=standardize)
+fit0=susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by,transA=TRUE)),yty=sum(by*(Theta%*%by)),L=10,n=m,standardize=standardize)
 theta.ini=coef(fit0)[-1]*(fit0$pip>0.5)
 if(!any(theta.ini!=0)){
 XtX.ini.raw=BtB-Rxyall[1:p,1:p]
@@ -114,9 +114,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],estimate_prior_method=ifelse(is.n
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],estimate_prior_method=ifelse(is.null(fit.theta),"optim","EM"),estimate_residual_variance=F,residual_variance=max(0.9,vary),max_iter=susie.iter,model_init=fit.theta,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=theta.cs$ind.keep
+theta=coef.susie(fit.theta)[-1]
+theta.summary=summary(fit.theta)$vars
+pip.alive=theta.summary$variable[theta.summary$cs>0&theta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 theta[-pip.alive]=0
 }else{
@@ -202,9 +202,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],estimate_prior_method=ifelse(
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],estimate_prior_method=ifelse(is.null(fit.theta),"optim","EM"),estimate_residual_variance=F,residual_variance=max(0.9,vary),max_iter=susie.iter,model_init=fit.theta,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=theta.cs$ind.keep
+theta=coef.susie(fit.theta)[-1]
+theta.summary=summary(fit.theta)$vars
+pip.alive=theta.summary$variable[theta.summary$cs>0&theta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 theta[-pip.alive]=0
 }else{
@@ -325,9 +325,10 @@ susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM
 },error = function(e) {
 susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,n=mj,L=Lvec[vstar],estimate_prior_method="EM",estimate_residual_variance=F,residual_variance=max(0.9,vary),max_iter=ifelse(jiter==1,susie.iter,min(susie.iter,30)),model_init=fit.thetaj,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-thetaj=coef.susie(fit.thetaj)[-1]*(fit.thetaj$pip>max(pip.min/sqrt(2),0.1))
-theta.csj=group.pip.filter(pip.summary=summary(fit.thetaj)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=max(pip.thres/sqrt(2),0.1))
-pip.alivej=theta.csj$ind.keep
+thetaj=coef.susie(fit.thetaj)[-1]
+theta.summaryj=summary(fit.thetaj)$vars
+pip.thresj=max(pip.thres/sqrt(2),0.1)
+pip.alivej=theta.summaryj$variable[theta.summaryj$cs>0&theta.summaryj$variable_prob>=pip.thresj]
 if(length(pip.alivej)>0){
   thetaj[-pip.alivej]=0
 }else{

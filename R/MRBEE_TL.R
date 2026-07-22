@@ -14,23 +14,21 @@
 #' @param transfer.coef A scale of transfer.coef of theta.source to theta.target. Default is \code{1}.
 #' @param tauvec The candidate vector of tuning parameters for the MCP penalty function. Default is \code{seq(4, 8, by=0.5)}.
 #' @param Lvec A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.
-#' @param standardize If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.
+#' @param standardize Whether SuSiE should standardize its sufficient statistics again. MRBEE_TL constructs unit-variance exposure and outcome inputs before fitting, so the default is \code{FALSE}.
 #' @param admm.rho When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.
 #' @param group.penalize An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.
 #' @param group.index A vector of the group index of exposure. Defaults to \code{NULL}.
 #' @param group.diff The tuning penalizing difference of highly correlated exposure prediction. Defaults to \code{100}.
 #' @param susie.iter A scale of the maximum number of iterations used in SuSiE. Default is \code{200}.
 #' @param pip.thres Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.
-#' @param pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.
 #' @param coverage.causal The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.
 #' @param estimate_residual_method The method used for estimating residual variance. For the original SuSiE model, "MLE" and "MoM" estimation is equivalent, but for the infinitesimal model, "MoM" is more stable.
-#' @param cred.pip.thres The threshold of PIP of each credible set. Defaults to \code{0.95}.
 #' @param projection.eigen.floor The minimum eigenvalue used when projecting SuSiE and selected refit cross-product matrices. The full-data floor is this value; resampled matrices are scaled by their current row count divided by the full row count. Defaults to \code{1}.
 #' @param ebic.delta A scale of tuning parameter of causal effect estimate in extended BIC. Default is \code{0}.
 #' @param ebic.gamma A scale of tuning parameter of horizontal pleiotropy in extended BIC. Default is \code{1}.
 #' @param max.iter Maximum number of iterations for causal effect estimation. Default is \code{50}.
 #' @param max.eps Tolerance for stopping criteria. Default is \code{1e-6}.
-#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
+#' @param reliability.thres A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.
 #' @param ridge.diff A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.
 #' @param sampling.strategy Resampling scheme used by the independent branch where \code{LD="identity"}. For LD-aware analyses, only \code{"subsampling"} is allowed.
 #' @param group.size Number of adjacent LD-ordered IVs per subsampling group in the LD-aware branch. \code{group.size=1} gives the original IV-level subsampling. Default is \code{4}.
@@ -50,8 +48,8 @@ MRBEE_TL=function(by,bX,byse,bXse,Rxy,LD="identity",cluster.index=c(1:length(by)
   group.penalize=F,group.index=NULL,group.diff=100,
   theta.source,theta.source.cov,tauvec=seq(4,8,0.5),Lvec=c(1:6),standardize=F,
   admm.rho=2,ebic.delta=0,ebic.gamma=1,transfer.coef=1,susie.iter=200,
-  pip.thres=0.25,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,coverage.causal=0.95,
-  max.eps=1e-6,reliability.thres=0.6,ridge.diff=100,
+  pip.thres=0.25,max.iter=50,coverage.causal=0.95,
+  max.eps=1e-6,reliability.thres=0.5,ridge.diff=100,
   estimate_residual_method="MoM",sampling.strategy="bootstrap",group.size=4,
   projection.eigen.floor=1,sampling.time=300,sampling.iter=25){
 sampling.strategy <- normalize_sampling_strategy(sampling.strategy)
@@ -61,7 +59,7 @@ A=MRBEE_TL_Independent(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy,
        group.penalize=group.penalize,group.index=group.index,group.diff=group.diff,
        tauvec=tauvec,Lvec=Lvec,admm.rho=admm.rho,ebic.delta=ebic.delta,ebic.gamma=ebic.gamma,standardize=standardize,
        transfer.coef=transfer.coef,susie.iter=susie.iter,pip.thres=pip.thres,
-       pip.min=pip.min,cred.pip.thres=cred.pip.thres,max.iter=max.iter,max.eps=max.eps,
+       max.iter=max.iter,max.eps=max.eps,
        estimate_residual_method=estimate_residual_method,sampling.strategy=sampling.strategy,
        reliability.thres=reliability.thres,ridge.diff=ridge.diff,coverage.causal=coverage.causal,
        projection.eigen.floor=projection.eigen.floor,
@@ -144,9 +142,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_met
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method=ifelse(is.null(fit.susie),"optim","EM"),residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
-delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=delta.latent.cs$ind.keep
+delta.latent=coef.susie(fit.susie)[-1]
+delta.summary=summary(fit.susie)$vars
+pip.alive=delta.summary$variable[delta.summary$cs>0&delta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
 }else{
@@ -218,9 +216,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method=ifelse(is.null(fit.susie),"optim","EM"),residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
-delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=delta.latent.cs$ind.keep
+delta.latent=coef.susie(fit.susie)[-1]
+delta.summary=summary(fit.susie)$vars
+pip.alive=delta.summary$variable[delta.summary$cs>0&delta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
 }else{
@@ -318,9 +316,9 @@ susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_p
 },error = function(e) {
 susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,susie.iter,min(susie.iter,30)),estimate_residual_variance=F,coverage=coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
-delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alivej=delta.latent.csj$ind.keep
+delta.latentj=coef.susie(fit.susiej)[-1]
+delta.summaryj=summary(fit.susiej)$vars
+pip.alivej=delta.summaryj$variable[delta.summaryj$cs>0&delta.summaryj$variable_prob>=pip.thres]
 if(length(pip.alivej)>0){
   delta.latentj[-pip.alivej]=0
 }else{

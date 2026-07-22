@@ -1,4 +1,4 @@
-MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.5,pip.min=0.1,cred.pip.thres=0.95,max.iter=50,max.eps=1e-4,reliability.thres=0.6,ridge.diff=100,projection.eigen.floor=1,sampling.time=100,sampling.iter=10,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=F){
+MRBEE_TL_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,Lvec=c(1:6),ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.5,max.iter=50,max.eps=1e-4,reliability.thres=0.5,ridge.diff=100,projection.eigen.floor=1,sampling.time=100,sampling.iter=10,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,coverage.causal=0.95,estimate_residual_method="MoM",sampling.strategy="bootstrap",standardize=F){
 ######### Basic Processing  ##############
 fit.no.tran=MRBEE_IMRP(by=by,bX=bX,byse=byse,bXse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source
@@ -61,9 +61,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_met
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[i],n=length(indvalid),estimate_prior_method=ifelse(is.null(fit.susie),"optim","EM"),residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
-delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=delta.latent.cs$ind.keep
+delta.latent=coef.susie(fit.susie)[-1]
+delta.summary=summary(fit.susie)$vars
+pip.alive=delta.summary$variable[delta.summary$cs>0&delta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
 }else{
@@ -135,9 +135,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior
 },error = function(e) {
 susie_ss(XtX=XtX,Xty=Xty,yty=yty,L=Lvec[istar],n=length(indvalid),estimate_prior_method=ifelse(is.null(fit.susie),"optim","EM"),residual_variance=1,model_init=fit.susie,max_iter=susie.iter,estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latent=coef.susie(fit.susie)[-1]*(fit.susie$pip>pip.min)
-delta.latent.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=delta.latent.cs$ind.keep
+delta.latent=coef.susie(fit.susie)[-1]
+delta.summary=summary(fit.susie)$vars
+pip.alive=delta.summary$variable[delta.summary$cs>0&delta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 delta.latent[-pip.alive]=0
 }else{
@@ -233,9 +233,9 @@ susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_p
 },error = function(e) {
 susie_ss(XtX=XtXj,Xty=Xtyj,yty=ytyj,L=Lvec[istar],n=length(indvalidj),estimate_prior_method="EM",residual_variance=1,model_init=fit.susiej,max_iter=ifelse(jiter==1,1000,30),estimate_residual_variance=F,coverage = coverage.causal,estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-delta.latentj=coef.susie(fit.susiej)[-1]*(fit.susiej$pip>pip.min)
-delta.latent.csj=group.pip.filter(pip.summary=summary(fit.susiej)$var,xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alivej=delta.latent.csj$ind.keep
+delta.latentj=coef.susie(fit.susiej)[-1]
+delta.summaryj=summary(fit.susiej)$vars
+pip.alivej=delta.summaryj$variable[delta.summaryj$cs>0&delta.summaryj$variable_prob>=pip.thres]
 if(length(pip.alivej)>0){
 delta.latentj[-pip.alivej]=0
 }else{

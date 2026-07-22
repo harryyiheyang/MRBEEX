@@ -13,7 +13,7 @@
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
 #' @param cluster.index A vector indicating the LD block indices each IV belongs to.
 #' @param epsilon The thinning fraction allocated to fold 1 (selection). Must be between \code{0.1} and \code{0.9}, inclusive. Default is \code{0.5}.
-#' @param reliability.thres Minimum reliability ratio threshold. Default is \code{0.6}.
+#' @param reliability.thres Minimum reliability ratio threshold. Default is \code{0.5}.
 #' @param estimate_residual_method Method for estimating residual variance in SuSiE. Default is \code{"MoM"}.
 #' @param group.penalize Whether to penalize differences of correlated exposures. Default is \code{FALSE}.
 #' @param group.index Group index of exposures. Default is \code{c(1:ncol(bX))}.
@@ -22,9 +22,7 @@
 #' @param admm.rho ADMM tuning parameter. Default is \code{2}.
 #' @param Lvec Candidate number of single effects in SuSiE. Default is \code{c(1:min(10, ncol(bX)))}.
 #' @param pip.thres PIP threshold. Default is \code{0.25}.
-#' @param pip.min Minimum PIP for credible set purification. Default is \code{0.1}.
 #' @param estimate_residual_variance Whether to estimate residual variance in SuSiE. Default is \code{TRUE}.
-#' @param cred.pip.thres Credible set PIP threshold. Default is \code{0.95}.
 #' @param coverage.causal Coverage for credible sets. Default is \code{0.95}.
 #' @param standardize Whether to standardize in SuSiE. Default is \code{FALSE}.
 #' @param projection.eigen.floor Minimum eigenvalue for projections. Default is \code{1}.
@@ -64,10 +62,9 @@ MRBEE_LDA_Datafission=function(by,bX,byse,bXse,LD,Rxy,cluster.index=c(1:length(b
                             tauvec=seq(4,8,by=0.5),admm.rho=2,
                             Lvec=c(1:min(10,ncol(bX))),pip.thres=0.25,
                             estimate_residual_variance=T,estimate_residual_method="MoM",
-                            pip.min=0.1,cred.pip.thres=0.95,
                             max.iter=50,max.eps=1e-5,susie.iter=100,
                             ebic.theta=0,ebic.gamma=1,ridge.diff=1e3,
-                            maxdiff=3,reliability.thres=0.6,coverage.causal=0.95,
+                            maxdiff=3,reliability.thres=0.5,coverage.causal=0.95,
                             theta.ini=F,gamma.ini=F,verbose=T,
                             projection.eigen.floor=1){
 
@@ -177,10 +174,10 @@ theta.ini.missing=length(theta.ini)==1&&((is.logical(theta.ini)&&!theta.ini)||
 if(theta.ini.missing){
 fit0=tryCatch({
 susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by_s,transA=TRUE)),
-         yty=sum(by_s*(Theta%*%by_s)),L=10,n=m,coverage=coverage.causal,standardize=standardize)
+         yty=sum(by_s*(Theta%*%by_s)),L=10,n=m,standardize=standardize)
 },error=function(e){
 susie_ss(XtX=BtB+Diff_matrix,Xty=c(matrixMultiply(bXinv,by_s,transA=TRUE)),
-         yty=sum(by_s*(Theta%*%by_s)),L=10,n=m,coverage=coverage.causal,
+         yty=sum(by_s*(Theta%*%by_s)),L=10,n=m,
          standardize=standardize,estimate_residual_variance=F)
 })
 theta.ini=coef.susie(fit0)[-1]*(fit0$pip>0.5)
@@ -251,10 +248,9 @@ susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],
          max_iter=susie.iter,model_init=fit.theta,coverage=coverage.causal,
          estimate_residual_method=estimate_residual_method,standardize=standardize)
 })
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.min)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,
-         xQTL.cred.thres=cred.pip.thres,xQTL.pip.thres=pip.thres)
-pip.alive=theta.cs$ind.keep
+theta=coef.susie(fit.theta)[-1]
+theta.summary=summary(fit.theta)$vars
+pip.alive=theta.summary$variable[theta.summary$cs>0&theta.summary$variable_prob>=pip.thres]
 if(length(pip.alive)>0){
 theta[-pip.alive]=0
 }else{

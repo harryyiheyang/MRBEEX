@@ -1,4 +1,4 @@
-MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.6,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,sampling.strategy="bootstrap"){
+MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,cluster.index=c(1:length(by)),tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.5,rho=2,maxdiff=1.5,sampling.time=100,sampling.iter=5,theta.ini=F,gamma.ini=F,ebic.theta=1,verbose=T,group.penalize=F,group.index=c(1:ncol(bX)[1]),group.diff=10,sampling.strategy="bootstrap"){
 ########################### Basic information #######################
 t1=Sys.time()
 by=by/byse

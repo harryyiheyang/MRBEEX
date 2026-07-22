@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.6,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,coverage.causal=0.95,xQTLfitList=NULL,standardize=F){
+Cis_MRBEE_IPOD_SuSiE=function(by,bX,byse,bXse,LD,Rxy,Lvec=c(1:min(10,nrow(bX))),pip.thres=0.2,tauvec=seq(3,50,by=2),max.iter=100,max.eps=0.001,susie.iter=100,ebic.theta=1,ebic.gamma=2,reliability.thres=0.5,rho=2,theta.ini=F,gamma.ini=F,ridge=ridge,pleiotropy.rm=NULL,coverage.causal=0.95,standardize=F){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse
@@ -28,7 +28,7 @@ RxyList=IVweight(byse,bXse,Rxy)
 Rxyall=biasterm(RxyList=RxyList,c(1:m))
 ############################ Initial Estimate #######################
 if(theta.ini[1]==F){
-fit0=susie_ss(XtX=BtB,Xty=c(t(bXinv)%*%by),yty=sum(by*(Theta%*%by)),n=m,estimate_prior_method="optim",coverage=coverage.causal)
+fit0=susie_ss(XtX=BtB,Xty=c(t(bXinv)%*%by),yty=sum(by*(Theta%*%by)),n=m,estimate_prior_method="optim")
 theta.ini=coef.susie(fit0)[-1]
 gamma.ini=gamma.ini1=by*0
 theta.ini1=theta.ini
@@ -64,10 +64,14 @@ XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*matrixVectorMultiply(Theta,res.theta))
 fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[v],residual_variance=1,estimate_residual_variance=T,estimate_prior_method=ifelse(is.null(fit.theta),"optim","EM"),max_iter=susie.iter,standardize=standardize,model_init=fit.theta,coverage=coverage.causal)
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
-pip.alive=theta.cs$ind.keep
+theta=coef.susie(fit.theta)[-1]
+theta.summary=summary(fit.theta)$vars
+pip.alive=theta.summary$variable[theta.summary$cs>0&theta.summary$variable_prob>pip.thres]
+if(length(pip.alive)>0){
 theta[-pip.alive]=0
+}else{
+theta[fit.theta$pip<=pip.thres]=0
+}
 Diff=generate_block_matrix(summary(fit.theta)$vars,1/dBtB,theta)
 indtheta=which(theta!=0)
 if(length(indtheta)==1){
@@ -126,10 +130,14 @@ XtX=BtB
 Xty=matrixVectorMultiply(Bt,res.theta)
 yty=sum(res.theta*(Theta%*%res.theta))
 fit.theta=susie_ss(XtX=XtX,Xty=Xty,yty=yty,n=m,L=Lvec[vstar],residual_variance=1,estimate_prior_method=ifelse(is.null(fit.theta),"optim","EM"),estimate_residual_variance=T,max_iter=susie.iter*10,standardize=standardize,model_init=fit.theta,coverage=coverage.causal)
-theta=coef.susie(fit.theta)[-1]*(fit.theta$pip>pip.thres)
-theta.cs=group.pip.filter(pip.summary=summary(fit.theta)$var,xQTL.cred.thres=0.95,xQTL.pip.thres=pip.thres)
-pip.alive=theta.cs$ind.keep
+theta=coef.susie(fit.theta)[-1]
+theta.summary=summary(fit.theta)$vars
+pip.alive=theta.summary$variable[theta.summary$cs>0&theta.summary$variable_prob>pip.thres]
+if(length(pip.alive)>0){
 theta[-pip.alive]=0
+}else{
+theta[fit.theta$pip<=pip.thres]=0
+}
 Diff=generate_block_matrix(summary(fit.theta)$vars,1/dBtB,theta)
 indtheta=which(theta!=0)
 if(length(indtheta)==1){

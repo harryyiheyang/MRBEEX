@@ -23,7 +23,7 @@ MRBEE_TL_UV(
   pip.thres = 0.3,
   max.iter = 50,
   max.eps = 1e-04,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   sampling.time = 100,
   sampling.iter = 10
 )
@@ -65,7 +65,7 @@ MRBEE_TL_UV(
 
 \item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-4}.}
 
-\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
+\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.}
 
 \item{sampling.time}{Number of resampling repeats for standard-error estimation. Default is \code{100}.}
 

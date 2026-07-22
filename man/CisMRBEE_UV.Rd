@@ -16,9 +16,8 @@ CisMRBEE_UV(
   top_K = 1,
   xQTL.pip.min = 0.2,
   xQTL.max.L = 10,
-  xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   tauvec = seq(3, 30, by = 1.5),
   admm.rho = 2,
   coverage.xQTL = 0.95,
@@ -52,11 +51,9 @@ CisMRBEE_UV(
 
 \item{xQTL.max.L}{The maximum number of L in estimating the xQTL effects. Defaults to 10.}
 
-\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
-
 \item{xQTL.pip.thres}{If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.}
 
 \item{tauvec}{A vector of tuning parameters used in penalizing the direct causal effect. Default is \code{seq(3, 30, by=1.5)}.}
 

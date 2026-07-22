@@ -1,4 +1,4 @@
-Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.6,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,pleiotropy.rm=NULL){
+Cis_MRBEE_IPOD=function(by,bX,byse,bXse,LD="identity",Rxy,tauvec=seq(3,50,by=5),max.iter=100,max.eps=0.001,ebic.gamma=1,reliability.thres=0.5,rho=2,maxdiff=1.5,theta.ini=F,gamma.ini=F,ebic.theta=1,pleiotropy.rm=NULL){
 ########################### Basic information #######################
 by=by/byse
 byseinv=1/byse

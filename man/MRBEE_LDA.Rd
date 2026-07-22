@@ -24,8 +24,6 @@ MRBEE_LDA(
   Lvec = c(1:min(10, ncol(bX))),
   pip.thres = 0.25,
   estimate_residual_variance = T,
-  pip.min = 0.1,
-  cred.pip.thres = 0.95,
   max.iter = 50,
   max.eps = 1e-05,
   susie.iter = 100,
@@ -37,7 +35,7 @@ MRBEE_LDA(
   sampling.iter = 25,
   group.size = 4,
   maxdiff = 3,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   coverage.causal = 0.95,
   theta.ini = F,
   gamma.ini = F,
@@ -66,7 +64,7 @@ MRBEE_LDA(
 
 \item{epsilon}{Information fraction allocated to the data-fission selection view. Must be between \code{0.1} and \code{0.9}, inclusive. Default is \code{0.5}.}
 
-\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.}
+\item{standardize}{Whether SuSiE should standardize its sufficient statistics again. MRBEE_LDA constructs unit-variance exposure and outcome inputs before fitting, so the default is \code{FALSE}.}
 
 \item{group.penalize}{An indicator of whether using difference penalty to penalize highly correlated exposures. Defaults to \code{F}.}
 
@@ -83,10 +81,6 @@ MRBEE_LDA(
 \item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.}
 
 \item{estimate_residual_variance}{When SuSiE is used, an indicator of whether estimating the variance of residuals. If setting F, the variance of residual will be fixed as \code{Rxy[p+1,p+1]}. Default is \code{T}.}
-
-\item{pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.}
-
-\item{cred.pip.thres}{The threshold of PIP of each credible set. Defaults to \code{0.95}.}
 
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Defaults to \code{50}.}
 
@@ -110,7 +104,7 @@ MRBEE_LDA(
 
 \item{maxdiff}{The maximum difference between the MRBEE causal estimate and the initial estimator. Defaults to \code{3}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is 0.6.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is 0.5.}
 
 \item{coverage.causal}{The coverage of defining a credible set when \code{use.susie = T}. Defaults to \code{0.95}.}
 

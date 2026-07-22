@@ -26,12 +26,10 @@ MRBEE_TL(
   transfer.coef = 1,
   susie.iter = 200,
   pip.thres = 0.25,
-  pip.min = 0.1,
-  cred.pip.thres = 0.95,
   max.iter = 50,
   coverage.causal = 0.95,
   max.eps = 1e-06,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   ridge.diff = 100,
   estimate_residual_method = "MoM",
   sampling.strategy = "bootstrap",
@@ -70,7 +68,7 @@ MRBEE_TL(
 
 \item{Lvec}{A vector of the number of single effects used in SuSiE. Default is \code{c(1:6)}.}
 
-\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting (or equivalently standardize XtX and Xty to have the same effect) in SuSiE. Note that scaled_prior_variance specifies the prior on the coefficients of X after standardization (if it is performed). If you do not standardize, you may need to think more carefully about specifying scaled_prior_variance. Whatever your choice, the coefficients returned by coef are given for X on the original input scale. Any column of X that has zero variance is not standardized.}
+\item{standardize}{Whether SuSiE should standardize its sufficient statistics again. MRBEE_TL constructs unit-variance exposure and outcome inputs before fitting, so the default is \code{FALSE}.}
 
 \item{admm.rho}{When choosing \code{"IPOD"}, the tuning parameter in the nested ADMM algorithm. Default is \code{2}.}
 
@@ -84,17 +82,13 @@ MRBEE_TL(
 
 \item{pip.thres}{Posterior inclusion probability (PIP) threshold. Individual PIPs less than this value will be shrunk to zero. Default is \code{0.25}.}
 
-\item{pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.1}.}
-
-\item{cred.pip.thres}{The threshold of PIP of each credible set. Defaults to \code{0.95}.}
-
 \item{max.iter}{Maximum number of iterations for causal effect estimation. Default is \code{50}.}
 
 \item{coverage.causal}{The coverage of defining a credible set in MRBEEX when \code{use.susie = T}. Defaults to \code{0.95}.}
 
 \item{max.eps}{Tolerance for stopping criteria. Default is \code{1e-6}.}
 
-\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
+\item{reliability.thres}{A scale of threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.}
 
 \item{ridge.diff}{A scale of parameter on the differences of causal effect estimate in one credible set. Defaults to \code{100}.}
 

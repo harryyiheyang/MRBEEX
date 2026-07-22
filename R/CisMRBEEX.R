@@ -8,13 +8,12 @@
 #' @param bXse A matrix of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The linkage disequilibrium (LD) matrix.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.
 #' @param xQTL.selection.rule The method for purifying informative xQTLs within each credible set. Options include "minimum_pip", which selects all variables with PIPs exceeding a specified threshold, and "top_K", which ensures at least K variables are selected based on their PIP ranking. Defaults to "top_K".
 #' @param top_K The maximum number of variables selected in each credible sets. Defaults to 1.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
 #' @param xQTL.pip.thres The threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
 #' @param xQTL.max.L The maximum number of single effects used to estimate the xQTL effects. Defaults to 10.
-#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
 #' @param xQTL.Nvec The vector of sample sizes of exposures.
 #' @param xQTL.weight The vector of weights used in specifying the prior weights of SuSiE. Defaults to \code{NULL}.
 #' @param coverage.xQTL The coverage of defining a credible set in xQTL selection. Defaults to \code{0.95}.
@@ -33,7 +32,7 @@
 #' @param theta.ini Initial value of theta. If \code{FALSE}, the default method is used to estimate. Default is \code{FALSE}.
 #' @param gamma.ini Initial value of gamma. Default is \code{FALSE}.
 #' @param xQTLfitList Initial SuSiE fits of xQTLs for exposures. This should be a list with one \code{susie.fit} object per exposure. Users can customize additional SuSiE parameters to improve performance. Default is \code{NULL}.
-#' @param standardize If standardize = TRUE, standardize the columns of X to unit variance prior to fitting in SuSiE. Default is \code{F}.
+#' @param standardize Whether SuSiE should standardize its sufficient statistics again. CisMRBEEX uses unit-variance exposure and outcome inputs, so the default is \code{FALSE}.
 #' @param verbose A logical indicator of whether to display the execution time of the method. Default is \code{T}.
 #'
 #' @importFrom MASS rlm ginv
@@ -66,10 +65,10 @@
 #' @export
 
 CisMRBEEX=function(by,bX,byse,bXse,LD,Rxy,model.infinitesimal=F,
-                    reliability.thres=0.6,Lvec=c(1:5),causal.pip.thres=0.2,
+                    reliability.thres=0.5,Lvec=c(1:5),causal.pip.thres=0.2,
                     xQTL.selection.rule="top_K",
                     top_K=1,xQTL.pip.min=0.2,
-                    xQTL.max.L=10,xQTL.cred.thres=0.95,xQTL.pip.thres=0.5,
+                    xQTL.max.L=10,xQTL.pip.thres=0.5,
                     xQTL.Nvec,tauvec=seq(3,30,by=3),xQTL.weight=NULL,
                      admm.rho=2,ridge.diff=1e3,
                      max.iter=100,max.eps=0.001,susie.iter=500,
@@ -96,13 +95,14 @@ xQTL.weight=rep(1,m)
 }
 for(i in 1:p){
 fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=xQTL.max.L,max_iter=1000,prior_weights=xQTL.weight,coverage=coverage.xQTL)
-fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(susie_get_cs(fit,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,prior_weights=xQTL.weight,coverage=coverage.xQTL)
+fit=susie_rss(z=bX[,i]/bXse[,i],R=LD,n=xQTL.Nvec[i],L=length(fit$sets$cs)+1,max_iter=1000,prior_weights=xQTL.weight,coverage=coverage.xQTL)
 xQTLfitList[[i]]=fit
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
-causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
-indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
+fit.summary=summary(fit)$vars
+ind.cs=fit.summary$variable[fit.summary$cs>0&fit.summary$variable_prob>=xQTL.pip.min]
+indj=union(ind.cs,which(fit$pip>xQTL.pip.thres))
 }
 if(length(indj)>0){
 betaj=coef.susie(fit)[-1]
@@ -131,8 +131,9 @@ fit=xQTLfitList[[i]]
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
-causal.cs=group.pip.filter(pip.summary=summary(fit)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
-indj=union(causal.cs$ind.keep,which(fit$pip>xQTL.pip.thres))
+fit.summary=summary(fit)$vars
+ind.cs=fit.summary$variable[fit.summary$cs>0&fit.summary$variable_prob>=xQTL.pip.min]
+indj=union(ind.cs,which(fit$pip>xQTL.pip.thres))
 }
 if(length(indj)>0){
 betaj=coef.susie(fit)[-1]
@@ -165,7 +166,7 @@ pleiotropy.rm=findUniqueNonZeroRows(bXest0)
 ##########################################################################
 if(model.infinitesimal==F){
 t1=Sys.time()
-A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,coverage.causal=coverage.causal,xQTLfitList=xQTLfitList,standardize=standardize)
+A=Cis_MRBEE_IPOD_SuSiE(by=by,bX=bXest,byse=byse,bXse=bXestse,LD=LD,Rxy=Rxy,pip.thres=causal.pip.thres,Lvec=Lvec,tauvec=tauvec,max.iter=max.iter,max.eps=max.eps,susie.iter=susie.iter,ebic.theta=ebic.theta,ebic.gamma=ebic.gamma,reliability.thres=reliability.thres,rho=admm.rho,theta.ini=theta.ini,gamma.ini=gamma.ini,ridge=ridge.diff,pleiotropy.rm=pleiotropy.rm,coverage.causal=coverage.causal,standardize=standardize)
 t2=Sys.time()
 causal_estimation_time=round(difftime(t2, t1, units = "secs"),3)
 if(verbose==T){

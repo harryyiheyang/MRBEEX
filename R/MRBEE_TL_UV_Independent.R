@@ -1,4 +1,4 @@
-MRBEE_TL_UV_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.6,ridge.diff=100,sampling.time=100,sampling.iter=10){
+MRBEE_TL_UV_Independent=function(by,bX,byse,bXse,Rxy,theta.source,theta.source.cov,tauvec=seq(3,30,3),admm.rho=3,ebic.delta=1,ebic.gamma=2,transfer.coef=1,susie.iter=200,pip.thres=0.3,max.iter=50,max.eps=1e-4,reliability.thres=0.5,ridge.diff=100,sampling.time=100,sampling.iter=10){
 ######### Basic Processing  ##############
 fit.no.tran=MRBEE.IMRP.UV(by=by,bx=bX,byse=byse,bxse=bXse,Rxy=Rxy)
 theta.source=transfer.coef*theta.source

@@ -12,14 +12,13 @@ CisMRBEEX(
   LD,
   Rxy,
   model.infinitesimal = F,
-  reliability.thres = 0.6,
+  reliability.thres = 0.5,
   Lvec = c(1:5),
   causal.pip.thres = 0.2,
   xQTL.selection.rule = "top_K",
   top_K = 1,
   xQTL.pip.min = 0.2,
   xQTL.max.L = 10,
-  xQTL.cred.thres = 0.95,
   xQTL.pip.thres = 0.5,
   xQTL.Nvec,
   tauvec = seq(3, 30, by = 3),
@@ -55,7 +54,7 @@ CisMRBEEX(
 
 \item{model.infinitesimal}{An indicator of whether using REML to model infinitesimal effects. Defaults to \code{F}.}
 
-\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.}
+\item{reliability.thres}{A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.}
 
 \item{Lvec}{When SuSiE is used, the candidate vector for the number of single effects. Default is \code{c(1:5)}.}
 
@@ -68,8 +67,6 @@ CisMRBEEX(
 \item{xQTL.pip.min}{The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.}
 
 \item{xQTL.max.L}{The maximum number of single effects used to estimate the xQTL effects. Defaults to 10.}
-
-\item{xQTL.cred.thres}{The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.}
 
 \item{xQTL.pip.thres}{The threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.}
 
@@ -103,7 +100,7 @@ CisMRBEEX(
 
 \item{xQTLfitList}{Initial SuSiE fits of xQTLs for exposures. This should be a list with one \code{susie.fit} object per exposure. Users can customize additional SuSiE parameters to improve performance. Default is \code{NULL}.}
 
-\item{standardize}{If standardize = TRUE, standardize the columns of X to unit variance prior to fitting in SuSiE. Default is \code{F}.}
+\item{standardize}{Whether SuSiE should standardize its sufficient statistics again. CisMRBEEX uses unit-variance exposure and outcome inputs, so the default is \code{FALSE}.}
 
 \item{verbose}{A logical indicator of whether to display the execution time of the method. Default is \code{T}.}
 }

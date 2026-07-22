@@ -8,9 +8,8 @@
 #' @param bXse A vector of standard errors of effect estimates from the exposure GWAS.
 #' @param LD The LD matrix of variants.
 #' @param Rxy The correlation matrix of estimation errors of exposures and outcome GWAS. The last column corresponds to the outcome.
-#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.6}.
+#' @param reliability.thres A threshold for the minimum value of the reliability ratio. If the original reliability ratio is less than this threshold, only part of the estimation error is removed so that the working reliability ratio equals this threshold. Default is \code{0.5}.
 #' @param xQTL.max.L The maximum number of L in estimating the xQTL effects. Defaults to 10.
-#' @param xQTL.cred.thres The minimum empirical posterior inclusion probability (PIP) used in getting credible sets of xQTL selection. Defaults to \code{0.95}.
 #' @param xQTL.pip.thres If SuSiE fails to find any credible set, the threshold of individual PIP when selecting xQTL. Defaults to \code{0.5}.
 #' @param xQTL.pip.min The minimum empirical PIP used in purifying variables in each credible set. Defaults to \code{0.2}.
 #' @param xQTL.N The sample sizes of exposure.
@@ -44,8 +43,8 @@
 #'
 CisMRBEE_UV=function(by,bX,byse,bXse,LD,Rxy,xQTL.N,xQTL.selection.rule="top_K",
      top_K=1,xQTL.pip.min=0.2,
-     xQTL.max.L=10,xQTL.cred.thres=0.95,
-     xQTL.pip.thres=0.5,reliability.thres=0.6,
+     xQTL.max.L=10,
+     xQTL.pip.thres=0.5,reliability.thres=0.5,
      tauvec=seq(3,30,by=1.5),admm.rho=2,
      coverage.xQTL=0.95,coverage.causal=0.95,
      max.iter=100,max.eps=0.001,ebic.gamma=1,
@@ -57,14 +56,14 @@ bXest0=bXestse0=bX*0
 bXestse=bXestse0=c(1000,m)
 if(is.null(xQTLfit)==T){
 fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=xQTL.max.L,max_iter=1000,coverage=coverage.xQTL)
-fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(susie_get_cs(fit.susie,coverage=xQTL.cred.thres)$cs)+1,max_iter=1000,coverage=coverage.xQTL)
+fit.susie=susie_rss(z=bX/bXse,R=LD,n=xQTL.N,L=length(fit.susie$sets$cs)+1,max_iter=1000,coverage=coverage.xQTL)
 xQTLfit=fit.susie
-causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit.susie)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
-causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
-indj=union(causal.cs$ind.keep,which(fit.susie$pip>xQTL.pip.thres))
+fit.summary=summary(fit.susie)$vars
+ind.cs=fit.summary$variable[fit.summary$cs>0&fit.summary$variable_prob>=xQTL.pip.min]
+indj=union(ind.cs,which(fit.susie$pip>xQTL.pip.thres))
 }
 if(length(indj)>0){
 betaj=coef.susie(fit.susie)[-1]
@@ -89,12 +88,12 @@ bXestse=bXse
 }
 }else{
 fit.susie=xQTLfit
-causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
 if(xQTL.selection.rule=="top_K"){
 indj=top_K_pip(summary(fit.susie)$vars,top_K=top_K,pip.min.thres=xQTL.pip.min,xQTL.pip.thres=xQTL.pip.thres)
 }else{
-causal.cs=group.pip.filter(pip.summary=summary(fit.susie)$var,xQTL.cred.thres=xQTL.cred.thres,xQTL.pip.thres=xQTL.pip.min)
-indj=union(causal.cs$ind.keep,which(fit.susie$pip>xQTL.pip.thres))
+fit.summary=summary(fit.susie)$vars
+ind.cs=fit.summary$variable[fit.summary$cs>0&fit.summary$variable_prob>=xQTL.pip.min]
+indj=union(ind.cs,which(fit.susie$pip>xQTL.pip.thres))
 }
 if(length(indj)>0){
 betaj=coef.susie(fit.susie)[-1]
