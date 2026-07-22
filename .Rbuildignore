@@ -1,0 +1,6 @@
+^\.git$
+^\.gitignore$
+^\.learnings$
+^\.Rproj\.user$
+^.*\.Rproj$
+^MRBEEX\.Rcheck$
